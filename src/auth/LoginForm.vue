@@ -4,9 +4,9 @@
       <aside class="auth-visual">
         <div class="visual-inner">
           <div class="brand-badge">
-            <span>KDRC</span>
+            <img src="../assets/images/logo.png" alt="Logo" />
           </div>
-          <p class="visual-kicker">Welcome back</p>
+          <p class="visual-kicker">តោះអានសៀវភៅ</p>
           <h1>Your next great adventure begins here.</h1>
           <p class="visual-copy">
             Join our community of book lovers and discover timeless stories, cultural heritage, and
@@ -41,16 +41,26 @@
 
             <div class="form-group">
               <label for="login-password">Password</label>
-              <input
-                id="login-password"
-                type="password"
-                v-model="password"
-                autocomplete="current-password"
-                placeholder="••••••••"
-                :aria-invalid="errors.password ? 'true' : 'false'"
-                @blur="validatePassword"
-                required
-              />
+              <div class="password-input-wrapper">
+                <input
+                  id="login-password"
+                  :type="showPassword ? 'text' : 'password'"
+                  v-model="password"
+                  autocomplete="current-password"
+                  placeholder="••••••••"
+                  :aria-invalid="errors.password ? 'true' : 'false'"
+                  @blur="validatePassword"
+                  required
+                />
+                <button
+                  type="button"
+                  class="toggle-password"
+                  @click="showPassword = !showPassword"
+                  :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                >
+                  {{ showPassword ? '🙈' : '👁️' }}
+                </button>
+              </div>
               <span v-if="errors.password" class="field-error">{{ errors.password }}</span>
             </div>
 
@@ -59,7 +69,8 @@
                 <input type="checkbox" />
                 <span>Remember me for 30 days</span>
               </label>
-              <button class="link" type="button">Forgot password?</button>
+              
+              <router-link to="/reset-password" class="link">Forgot password?</router-link>
             </div>
 
             <p v-if="registered" class="form-success">Account created. Please sign in.</p>
@@ -110,6 +121,7 @@ export default defineComponent({
   setup() {
     const email = ref('');
     const password = ref('');
+    const showPassword = ref(false);
     const isSubmitting = ref(false);
     const errors = reactive({
       email: '',
@@ -172,6 +184,7 @@ export default defineComponent({
     return {
       email,
       password,
+      showPassword,
       isSubmitting,
       errors,
       registered,
@@ -207,9 +220,15 @@ export default defineComponent({
   position: relative;
   padding: 56px 60px;
   color: #e7f1ef;
+  
   background:
-    radial-gradient(circle at top right, rgba(32, 109, 98, 0.55), transparent 55%),
-    linear-gradient(145deg, #051b1d 0%, #041011 45%, #062528 100%);
+    linear-gradient(135deg, rgba(20, 15, 10, 0.7) 0%, rgba(40, 30, 20, 0.6) 50%, rgba(20, 15, 10, 0.7) 100%),
+    url('https://i.pinimg.com/736x/3c/81/0d/3c810deb946b18db150a3c472afa2602.jpg');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .auth-visual::after {
@@ -225,6 +244,10 @@ export default defineComponent({
   position: relative;
   z-index: 1;
   max-width: 420px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .brand-badge {
@@ -239,12 +262,20 @@ export default defineComponent({
   font-weight: 700;
   letter-spacing: 1px;
   margin-bottom: 28px;
+  overflow: hidden;
+}
+
+.brand-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
 }
 
 .visual-kicker {
   text-transform: uppercase;
   letter-spacing: 2px;
-  font-size: 12px;
+  font-size: 40px;
   margin: 0 0 10px;
   color: rgba(255, 255, 255, 0.7);
 }
@@ -360,6 +391,30 @@ input:focus {
   height: 14px;
 }
 
+.password-input-wrapper {
+  position: relative;
+  display: block;
+}
+
+.password-input-wrapper input {
+  padding-right: 45px;
+  width: 100%;
+}
+
+
+.toggle-password {
+  position: absolute;
+  right: -180px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  z-index: 1;
+}
+
 .link {
   border: none;
   background: none;
@@ -367,6 +422,13 @@ input:focus {
   color: #5f6a68;
   cursor: pointer;
   padding: 0;
+  text-decoration: none;
+  display: inline;
+}
+
+.link:hover {
+  color: #6a40d7;
+  text-decoration: underline;
 }
 
 .form-error {

@@ -1,21 +1,21 @@
 <template>
-  <section class="auth-page auth-signup">
+  <section class="auth-page auth-reset-password">
     <div class="auth-split">
       <aside class="auth-visual">
         <div class="visual-inner">
           <div class="brand-badge">
             <img src="../assets/images/logo.png" alt="Logo" />
           </div>
-          <p class="visual-kicker">តោះអានសៀវភៅ</p>
-          <h1>Your journey starts here.</h1>
+          <p class="visual-kicker">Reset Your Password</p>
+          <h1>Create a new password.</h1>
           <p class="visual-copy">
-            Join Cambodia's premier digital sanctuary for readers. Discover timeless wisdom, modern
-            insights, and a community that shares your passion.
+            Choose a strong password to keep your account secure. Make sure it's unique and
+            something only you can remember.
           </p>
           <div class="visual-tags">
-            <span>Curation</span>
-            <span>Heritage</span>
-            <span>Community</span>
+            <span>Strong</span>
+            <span>Secure</span>
+            <span>Unique</span>
           </div>
         </div>
       </aside>
@@ -23,52 +23,22 @@
       <div class="auth-panel">
         <div class="auth-card">
           <div class="auth-header">
-            <h2>Create Account</h2>
+            <h2>Reset Password</h2>
             <p class="auth-subtitle">
-              Already have an account?
+              Remember your password?
               <router-link to="/login">Log in</router-link>
             </p>
           </div>
 
-          <div class="social-row">
-            <button class="social" type="button">
-              <span class="dot google"></span>
-              Google
-            </button>
-            <button class="social" type="button" disabled>
-              <span class="dot facebook"></span>
-              Facebook
-            </button>
-          </div>
-
-          <div class="divider">
-            <span>or continue with</span>
-          </div>
-
-          <form @submit.prevent="handleSignup" novalidate>
+          <form @submit.prevent="handleResetPassword" novalidate>
             <div class="form-group">
-              <label for="signup-name">Full Name</label>
+              <label for="email">Email Address</label>
               <input
-                id="signup-name"
-                type="text"
-                v-model.trim="name"
-                autocomplete="name"
-                placeholder="Sokha Reach"
-                :aria-invalid="errors.name ? 'true' : 'false'"
-                @blur="validateName"
-                required
-              />
-              <span v-if="errors.name" class="field-error">{{ errors.name }}</span>
-            </div>
-
-            <div class="form-group">
-              <label for="signup-email">Email Address</label>
-              <input
-                id="signup-email"
+                id="email"
                 type="email"
                 v-model.trim="email"
                 autocomplete="email"
-                placeholder="reach@khmer-reads.com"
+                placeholder="your@email.com"
                 :aria-invalid="errors.email ? 'true' : 'false'"
                 @blur="validateEmail"
                 required
@@ -76,72 +46,76 @@
               <span v-if="errors.email" class="field-error">{{ errors.email }}</span>
             </div>
 
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="signup-password">Password</label>
-                <div class="password-input-wrapper">
-                  <input
-                    id="signup-password"
-                    :type="showPassword ? 'text' : 'password'"
-                    v-model="password"
-                    autocomplete="new-password"
-                    placeholder="••••••••"
-                    :aria-invalid="errors.password ? 'true' : 'false'"
-                    @blur="validatePassword"
-                    required
-                  />
-                  <button
-                    type="button"
-                    class="toggle-password"
-                    @click="showPassword = !showPassword"
-                    :aria-label="showPassword ? 'Hide password' : 'Show password'"
-                  >
-                    {{ showPassword ? '🙈' : '👁️' }}
-                  </button>
-                </div>
-                <span v-if="errors.password" class="field-error">{{ errors.password }}</span>
+            <div class="form-group">
+              <label for="password">New Password</label>
+              <div class="password-input-wrapper">
+                <input
+                  id="password"
+                  :type="showPassword ? 'text' : 'password'"
+                  v-model="password"
+                  autocomplete="new-password"
+                  placeholder="••••••••"
+                  :aria-invalid="errors.password ? 'true' : 'false'"
+                  @blur="validatePassword"
+                  required
+                />
+                <button
+                  type="button"
+                  class="toggle-password"
+                  @click="showPassword = !showPassword"
+                  :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                >
+                  {{ showPassword ? '🙈' : '👁️' }}
+                </button>
               </div>
-
-              <div class="form-group">
-                <label for="signup-confirm">Confirm</label>
-                <div class="password-input-wrapper">
-                  <input
-                    id="signup-confirm"
-                    :type="showConfirmPassword ? 'text' : 'password'"
-                    v-model="confirmPassword"
-                    autocomplete="new-password"
-                    placeholder="••••••••"
-                    :aria-invalid="errors.confirmPassword ? 'true' : 'false'"
-                    @blur="validateConfirm"
-                    required
-                  />
-                  <button
-                    type="button"
-                    class="toggle-password"
-                    @click="showConfirmPassword = !showConfirmPassword"
-                    :aria-label="showConfirmPassword ? 'Hide password' : 'Show password'"
-                  >
-                    {{ showConfirmPassword ? '🙈' : '👁️' }}
-                  </button>
+              <span v-if="errors.password" class="field-error">{{ errors.password }}</span>
+              <div class="password-strength">
+                <div class="strength-bar">
+                  <div class="strength-indicator" :style="{ width: passwordStrength + '%', backgroundColor: strengthColor }"></div>
                 </div>
-                <span v-if="errors.confirmPassword" class="field-error">
-                  {{ errors.confirmPassword }}
-                </span>
+                <span class="strength-text" :style="{ color: strengthColor }">{{ strengthText }}</span>
               </div>
             </div>
 
-            <label class="checkbox">
-              <input type="checkbox" />
-              <span>
-                I agree to the <a href="#">Terms of Service</a> and
-                <a href="#">Privacy Policy</a>.
-              </span>
-            </label>
+            <div class="form-group">
+              <label for="confirm">Confirm Password</label>
+              <div class="password-input-wrapper">
+                <input
+                  id="confirm"
+                  :type="showConfirmPassword ? 'text' : 'password'"
+                  v-model="confirmPassword"
+                  autocomplete="new-password"
+                  placeholder="••••••••"
+                  :aria-invalid="errors.confirmPassword ? 'true' : 'false'"
+                  @blur="validateConfirm"
+                  required
+                />
+                <button
+                  type="button"
+                  class="toggle-password"
+                  @click="showConfirmPassword = !showConfirmPassword"
+                  :aria-label="showConfirmPassword ? 'Hide password' : 'Show password'"
+                >
+                  {{ showConfirmPassword ? '🙈' : '👁️' }}
+                </button>
+              </div>
+              <span v-if="errors.confirmPassword" class="field-error">{{ errors.confirmPassword }}</span>
+            </div>
+
+            <div class="password-requirements">
+              <p>Password must contain:</p>
+              <ul>
+                <li :class="{ met: password.length >= 8 }">At least 8 characters</li>
+                <li :class="{ met: /[A-Z]/.test(password) }">One uppercase letter</li>
+                <li :class="{ met: /[a-z]/.test(password) }">One lowercase letter</li>
+                <li :class="{ met: /\d/.test(password) }">One number</li>
+              </ul>
+            </div>
 
             <p v-if="errors.form" class="form-error" role="alert">{{ errors.form }}</p>
 
             <button class="primary" type="submit" :disabled="isSubmitting">
-              {{ isSubmitting ? 'Creating account...' : 'Create Account' }}
+              {{ isSubmitting ? 'Resetting password...' : 'Reset Password' }}
             </button>
           </form>
 
@@ -153,42 +127,48 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref } from 'vue';
-import { useAuth } from './useAuth';
+import { defineComponent, reactive, ref, computed } from 'vue';
 
 export default defineComponent({
-  name: 'SignupForm',
+  name: 'ResetPassword',
   setup() {
-    const name = ref('');
     const email = ref('');
     const password = ref('');
     const confirmPassword = ref('');
     const showPassword = ref(false);
     const showConfirmPassword = ref(false);
     const isSubmitting = ref(false);
+
     const errors = reactive({
-      name: '',
       email: '',
       password: '',
       confirmPassword: '',
       form: '',
     });
-    const { signup } = useAuth();
 
-    const validateName = () => {
-      if (!name.value) {
-        errors.name = 'Name is required.';
-        return false;
-      }
+    const passwordStrength = computed(() => {
+      let strength = 0;
+      if (password.value.length >= 8) strength += 25;
+      if (password.value.length >= 12) strength += 25;
+      if (/[A-Z]/.test(password.value) && /[a-z]/.test(password.value)) strength += 25;
+      if (/\d/.test(password.value)) strength += 15;
+      if (/[!@#$%^&*]/.test(password.value)) strength += 10;
+      return Math.min(strength, 100);
+    });
 
-      if (name.value.length < 2) {
-        errors.name = 'Name must be at least 2 characters.';
-        return false;
-      }
+    const strengthText = computed(() => {
+      if (passwordStrength.value < 30) return 'Weak';
+      if (passwordStrength.value < 60) return 'Fair';
+      if (passwordStrength.value < 80) return 'Good';
+      return 'Strong';
+    });
 
-      errors.name = '';
-      return true;
-    };
+    const strengthColor = computed(() => {
+      if (passwordStrength.value < 30) return '#b42318';
+      if (passwordStrength.value < 60) return '#f59e0b';
+      if (passwordStrength.value < 80) return '#10b981';
+      return '#059669';
+    });
 
     const validateEmail = () => {
       if (!email.value) {
@@ -212,6 +192,21 @@ export default defineComponent({
         return false;
       }
 
+      if (!/[A-Z]/.test(password.value)) {
+        errors.password = 'Password must contain an uppercase letter.';
+        return false;
+      }
+
+      if (!/[a-z]/.test(password.value)) {
+        errors.password = 'Password must contain a lowercase letter.';
+        return false;
+      }
+
+      if (!/\d/.test(password.value)) {
+        errors.password = 'Password must contain a number.';
+        return false;
+      }
+
       errors.password = '';
       return true;
     };
@@ -231,28 +226,29 @@ export default defineComponent({
       return true;
     };
 
-    const handleSignup = async () => {
+    const handleResetPassword = async () => {
       errors.form = '';
-      const nameOk = validateName();
       const emailOk = validateEmail();
       const passwordOk = validatePassword();
       const confirmOk = validateConfirm();
-      if (!nameOk || !emailOk || !passwordOk || !confirmOk) {
+
+      if (!emailOk || !passwordOk || !confirmOk) {
         return;
       }
 
       isSubmitting.value = true;
       try {
-        await signup({ name: name.value, email: email.value, password: password.value });
+        // Call your auth service to reset password
+        console.log('Resetting password for:', email.value);
+        // await resetPassword({ email: email.value, newPassword: password.value });
       } catch (error) {
-        errors.form = error instanceof Error ? error.message : 'Signup failed.';
+        errors.form = error instanceof Error ? error.message : 'Password reset failed.';
       } finally {
         isSubmitting.value = false;
       }
     };
 
     return {
-      name,
       email,
       password,
       confirmPassword,
@@ -260,11 +256,13 @@ export default defineComponent({
       showConfirmPassword,
       isSubmitting,
       errors,
-      handleSignup,
-      validateName,
+      passwordStrength,
+      strengthText,
+      strengthColor,
       validateEmail,
       validatePassword,
       validateConfirm,
+      handleResetPassword,
     };
   },
 });
@@ -346,7 +344,7 @@ export default defineComponent({
 .visual-kicker {
   text-transform: uppercase;
   letter-spacing: 2px;
-  font-size: 40px;
+  font-size: 12px;
   margin: 0 0 10px;
   color: rgba(255, 255, 255, 0.7);
 }
@@ -379,6 +377,7 @@ h1 {
   place-items: center;
   background: #fbfbfc;
   padding: 60px 56px;
+  overflow-y: auto;
 }
 
 .auth-card {
@@ -408,87 +407,9 @@ h2 {
   text-decoration: none;
 }
 
-.social-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.social {
-  border-radius: 12px;
-  border: 1px solid #e3e7ea;
-  background: #fff;
-  color: #1c2422;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 12px;
-}
-
-.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.google {
-  background: conic-gradient(
-    #4285f4 0deg,
-    #4285f4 90deg,
-    #34a853 90deg,
-    #34a853 180deg,
-    #fbbc05 180deg,
-    #fbbc05 270deg,
-    #ea4335 270deg,
-    #ea4335 360deg
-  );
-}
-
-.facebook {
-  background: #1877f2;
-}
-
-.divider {
-  position: relative;
-  margin: 20px 0 16px;
-  text-align: center;
-  color: #9aa5a2;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-}
-
-.divider::before,
-.divider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 38%;
-  height: 1px;
-  background: #e5e8eb;
-}
-
-.divider::before {
-  left: 0;
-}
-
-.divider::after {
-  right: 0;
-}
-
 .form-group {
   margin-bottom: 16px;
   text-align: left;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
 }
 
 label {
@@ -517,29 +438,10 @@ input:focus {
   background: #fff;
 }
 
-.field-error {
-  display: block;
-  margin-top: 6px;
-  font-size: 12px;
-  color: #b42318;
-}
-
-.checkbox {
-  display: inline-flex;
-  gap: 8px;
-  align-items: flex-start;
-  font-size: 12px;
-  color: #5f6a68;
-  margin: 8px 0 18px;
-  text-transform: none;
-  letter-spacing: 0;
-  font-weight: 500;
-}
-
-.checkbox input {
-  width: 14px;
-  height: 14px;
-  margin-top: 3px;
+input:disabled {
+  background: #e8e8e8;
+  color: #999;
+  cursor: not-allowed;
 }
 
 .password-input-wrapper {
@@ -552,9 +454,10 @@ input:focus {
   width: 100%;
 }
 
+
 .toggle-password {
   position: absolute;
-  right: -80px;
+  right: -180px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -565,10 +468,76 @@ input:focus {
   z-index: 1;
 }
 
-.checkbox a {
-  color: #6a40d7;
+.password-strength {
+  margin-top: 8px;
+}
+
+.strength-bar {
+  width: 100%;
+  height: 4px;
+  background: #e4e7ea;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.strength-indicator {
+  height: 100%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.strength-text {
+  font-size: 12px;
   font-weight: 600;
-  text-decoration: none;
+}
+
+.password-requirements {
+  background: #f3f4f6;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 12px;
+}
+
+.password-requirements p {
+  margin: 0 0 8px;
+  color: #2e3634;
+  font-weight: 600;
+}
+
+.password-requirements ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.password-requirements li {
+  padding: 4px 0;
+  color: #737c7b;
+  display: flex;
+  align-items: center;
+}
+
+.password-requirements li::before {
+  content: '○';
+  display: inline-block;
+  margin-right: 8px;
+  font-weight: bold;
+}
+
+.password-requirements li.met {
+  color: #10b981;
+}
+
+.password-requirements li.met::before {
+  content: '✓';
+}
+
+.field-error {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #b42318;
 }
 
 .form-error {
@@ -625,15 +594,13 @@ button:disabled {
   }
 }
 
-@media (max-width: 720px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 520px) {
-  .social-row {
-    grid-template-columns: 1fr;
+  .auth-panel {
+    padding: 20px 16px;
+  }
+
+  .auth-card {
+    width: 100%;
   }
 }
 </style>

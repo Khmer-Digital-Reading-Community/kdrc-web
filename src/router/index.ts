@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import LoginForm from '../auth/LoginForm.vue';
 import SignupForm from '../auth/SignupForm.vue';
+import ResetPassword from '../auth/ResetPassword.vue';
+import VerifyOTP from '../auth/VerifyOTP.vue';
 import { authState } from '../auth/useAuth';
 import Home from '../views/Home.vue';
 import Community from '../views/Community.vue';
@@ -13,6 +15,8 @@ const router = createRouter({
 		{ path: '/community', name: 'community', component: Community, meta: { requiresAuth: true } },
 		{ path: '/login', name: 'login', component: LoginForm },
 		{ path: '/signup', name: 'signup', component: SignupForm },
+		{ path: '/reset-password', name: 'reset-password', component: ResetPassword },
+		{ path: '/verify-otp', name: 'verify-otp', component: VerifyOTP },
 		{ path: '/auth/callback', name: 'oauth-callback', component: OAuthCallback },
 	],
 });
