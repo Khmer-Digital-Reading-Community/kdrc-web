@@ -1,38 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
-import { useAuth } from './auth/useAuth';
-
-const route = useRoute();
-const { user, token, logout } = useAuth();
-const isAuthed = computed(() => Boolean(token.value));
-const isAuthRoute = computed(() => ['/login', '/signup', '/auth/callback'].includes(route.path));
+import Nav from './components/common/Navbar.vue'
+import Home from './pages/landingPage.vue'
+import Footer from './components/common/Footer.vue'
 </script>
 
 <template>
-	<div class="app-shell">
-		<header v-if="!isAuthRoute" class="site-header">
-			<div class="brand">
-				<router-link to="/">KDRC</router-link>
-				<span class="brand-tag">Khmer Digital Reading Circle</span>
-			</div>
-			<nav class="site-nav">
-				<router-link to="/community">Community</router-link>
-				<template v-if="!isAuthed">
-					<router-link to="/login">Login</router-link>
-					<router-link class="cta" to="/signup">Sign Up</router-link>
-				</template>
-				<template v-else>
-					<span class="user-pill">{{ user?.name || user?.email }}</span>
-					<button class="ghost" type="button" @click="logout">Logout</button>
-				</template>
-			</nav>
-		</header>
+  <div class="min-h-screen bg-white">
+    <Nav />
+    <Home />
+    <Footer />
+  </div>
 
-		<main class="site-main" :class="{ 'is-auth': isAuthRoute }">
-			<router-view />
-		</main>
-	</div>
 </template>
 
 <style scoped>
