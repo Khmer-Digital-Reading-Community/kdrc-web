@@ -15,4 +15,5 @@ import Hero from '../../components/Hero.vue';
 import Explore from '../../components/Explore.vue';
 import Reading_continue from '../../components/Reading_continue.vue';
 import Recommend from '../../components/Recommend.vue';
+
 </script>
