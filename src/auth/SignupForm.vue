@@ -145,7 +145,7 @@
             </button>
           </form>
 
-          <p class="auth-footer">© 2024 KDRC • Built for Khmer heritage</p>
+          <p class="auth-footer">© 2026 KDRC • Built for Khmer heritage</p>
         </div>
       </div>
     </div>
