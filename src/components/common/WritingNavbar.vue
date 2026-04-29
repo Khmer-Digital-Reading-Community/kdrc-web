@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { Settings, Bell } from 'lucide-vue-next'
 import icon from '../../assets/images/Icon.png'
+import NotificationPopup from './NotificationPopup.vue'
 
 interface Props {
   projectType?: 'formal-book' | 'short-story'
@@ -20,6 +21,7 @@ const emit = defineEmits<{
 }>()
 
 const projectType = ref<'formal-book' | 'short-story'>('formal-book')
+const showNotifications = ref(false)
 </script>
 
 <template>
@@ -75,7 +77,7 @@ const projectType = ref<'formal-book' | 'short-story'>('formal-book')
         Publish
       </button>
 
-      <button class="text-[#FDE9D0]/70 hover:text-[#FDE9D0] transition-colors">
+      <button class="text-[#FDE9D0]/70 hover:text-[#FDE9D0] transition-colors" @click="showNotifications = !showNotifications">
         <Bell :size="20" />
       </button>
 
@@ -84,4 +86,11 @@ const projectType = ref<'formal-book' | 'short-story'>('formal-book')
       </button>
     </div>
   </nav>
+
+  <!-- Notification Popup -->
+  <NotificationPopup
+    :isOpen="showNotifications"
+    @close="showNotifications = false"
+    @markAsRead="(id) => console.log('Marked as read:', id)"
+  />
 </template>

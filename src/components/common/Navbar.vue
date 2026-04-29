@@ -2,8 +2,10 @@
 // Import 'ref' from Vue so we can create reactive variables
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { Bell } from 'lucide-vue-next'
 import icon from '../../assets/images/Icon.png'
 import { authState } from '../../auth/useAuth'
+import NotificationPopup from './NotificationPopup.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -12,6 +14,7 @@ const route = useRoute()
 const mobileOpen = ref(false)
 const langOpen = ref(false) // Controls the languag dropdown
 const currentLang = ref("EN") // Stores the selected language
+const showNotifications = ref(false) // Controls notification popup
 
 // Instead of copying and pasting HTML for every link, we store them in an array
 const navLinks = [  
@@ -65,6 +68,13 @@ function handleLogout() {
             </div>
 
             <div class="hidden md:flex items-center gap-4 ml-auto">
+                <button
+                    @click="showNotifications = !showNotifications"
+                    class="text-[#FDE9D0]/70 hover:text-[#FDE9D0] transition-colors"
+                >
+                    <Bell :size="20" />
+                </button>
+
                 <div class="relative">
                     <button
                         @click="langOpen = !langOpen"
@@ -131,5 +141,12 @@ function handleLogout() {
                 </template>
             </div>
         </div>
+
+        <!-- Notification Popup -->
+        <NotificationPopup
+            :isOpen="showNotifications"
+            @close="showNotifications = false"
+            @markAsRead="(id) => console.log('Marked as read:', id)"
+        />
     </nav>
 </template>
