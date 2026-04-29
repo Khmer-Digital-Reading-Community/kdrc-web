@@ -1,14 +1,23 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import Nav from './components/common/Navbar.vue'
-import Home from './pages/landingPage.vue'
 import Footer from './components/common/Footer.vue'
+
+const route = useRoute()
+
+// Show navbar and footer only on non-auth pages
+const showLayout = computed(() => {
+  const authPages = ['/login', '/signup', '/reset-password', '/verify-otp', '/auth/callback']
+  return !authPages.includes(route.path)
+})
 </script>
 
 <template>
   <div class="min-h-screen bg-white">
-    <Nav />
-    <Home />
-    <Footer />
+    <Nav v-if="showLayout" />
+    <router-view />
+    <Footer v-if="showLayout" />
   </div>
 
 </template>

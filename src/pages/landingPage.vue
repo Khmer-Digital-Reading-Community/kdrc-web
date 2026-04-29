@@ -19,13 +19,13 @@ import heroImage from '../assets/images/image1 1.png'
                 </p>
 
                 <div class="flex flex-wrap gap-4 mt-4">
-                    <button class="bg-[#093A3F] text-white px-8 py-3.5 rounded-full font-medium hover:bg-[#072c30] transition-colors shadow-md">
+                    <router-link to="/home" class="bg-[#093A3F] text-white px-8 py-3.5 rounded-full font-medium hover:bg-[#072c30] transition-colors shadow-md">
                         Explore Library
-                    </button>
+                    </router-link>
 
-                    <button class="bg-white text-[#093A3F] border border-gray-200 shadow-sm px-8 py-3.5 rounded-full font-medium hover:bg-gray-50 transition-colors">
+                    <router-link to="/signup" class="bg-white text-[#093A3F] border border-gray-200 shadow-sm px-8 py-3.5 rounded-full font-medium hover:bg-gray-50 transition-colors">
                         Publish Story
-                    </button>
+                    </router-link>
                 </div>
             </div>
 
