@@ -37,17 +37,17 @@
               <label for="otp">Verification Code</label>
               <div class="otp-inputs">
                 <input
-                  v-for="(digit, index) in 6"
+                  v-for="index in 6"
                   :key="index"
                   type="text"
                   maxlength="1"
                   inputmode="numeric"
                   class="otp-input"
-                  :value="otp[index]"
-                  @input="handleOtpInput(index, $event)"
-                  @keydown="handleOtpKeydown(index, $event)"
+                  :value="otp[index - 1]"
+                  @input="handleOtpInput(index - 1, $event)"
+                  @keydown="handleOtpKeydown(index - 1, $event)"
                   :aria-invalid="errors.otp ? 'true' : 'false'"
-                  :ref="`otpInput${index}`"
+                  :ref="`otpInput${index - 1}`"
                 />
               </div>
               <span v-if="errors.otp" class="field-error">{{ errors.otp }}</span>
