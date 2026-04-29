@@ -1,19 +1,24 @@
 <script setup lang="ts">
 // Import 'ref' from Vue so we can create reactive variables
 import { ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import icon from '../../assets/images/Icon.png'
+import { authState } from '../../auth/useAuth'
+
+const router = useRouter()
+const route = useRoute()
 
 // Create a variable to track if the mobile menu is open. It starts as false (closed).
 const mobileOpen = ref(false)
 const langOpen = ref(false) // Controls the languag dropdown
 const currentLang = ref("EN") // Stores the selected language
-const activeTab = ref('/browse') // Stores which link id currently active
 
 // Instead of copying and pasting HTML for every link, we store them in an array
-const navLinks = [
+const navLinks = [  
     { label: 'Browse', path: '/browse' },
     { label: 'Community', path: '/community' },
-    { label: 'About', path: '/about' }
+    { label: 'About', path: '/about' },
+    { label: 'Contact', path: '/contact'}
 ]
 
 const languages = [
@@ -25,32 +30,38 @@ function selectLang(code: string) {
     currentLang.value = code // Update the landuage
     langOpen.value = false // Close the dropdown menu
 }
+
+function handleLogout() {
+    authState.token.value = null
+    router.push('/login')
+}
 </script>
+
+
 <template>
     <nav class="bg-[#093A3F] w-full h-16 border-b border-gray-700">
         <div class="max-w-7xl mx-auto px-6 h-full flex item-center">
-            <a href="/" class="flex items-center gap-2 no-underline mr-8">
+            <router-link to="/" class="flex items-center gap-2 no-underline mr-8">
                 <span class="text-2xl">
                     <img :src="icon" alt="Icon">
                 </span>
                 <span class="text-[#FDE9D0] text-xl tracking-wide">KDRC</span>
-            </a>
+            </router-link>
 
             <div class="hidden md:flex gap-8">
-                <!-- DYNAMIC CLASSES: If the activeTab matches this link's path, make it orange. Otherwise, make it gray. -->
-                <a
+                <!-- DYNAMIC CLASSES: If the current route matches this link's path, make it orange. Otherwise, make it gray. -->
+                <router-link
                 v-for="link in navLinks"
                 :key="link.label" 
-                :href="link.path"
-                @click.prevent="activeTab = link.path"
+                :to="link.path"
                 class="text-[#FDE9D0]/70 hover:text-[#FDE9D0] transition-colors flex items-center"
 
-                :class="activeTab === link.path 
+                :class="route.path === link.path 
                     ? 'text-[#F9AE5B] border-[#F9AE5B]' 
                     : 'text-gray-300 border-transparent hover:text-white'"
                 >
                 {{ link.label }}
-                </a>
+                </router-link>
             </div>
 
             <div class="hidden md:flex items-center gap-4 ml-auto">
@@ -76,12 +87,21 @@ function selectLang(code: string) {
                     </div>
                 </div>
 
-                <a href="/login" class="text-[#FDE9D0] text-sm font-medium border border-[#FDE9D0]/30 px-5 py-1.5 rounded hover:bg-[#FDE9D0]/10 transition-colors">
-                    Login
-                </a>
-                <a href="/register" class="bg-[#F9AE5B] text-[#093A3F] text-sm font-medium px-5 py-1.5 rounded hover:opacity-90 transition-opacity">
-                    Sign Up
-                </a>
+                <template v-if="authState.token.value">
+                    <button @click="handleLogout" class="text-[#FDE9D0] text-sm font-medium border border-[#FDE9D0]/30 px-5 py-1.5 rounded hover:bg-[#FDE9D0]/10 transition-colors">
+                        Logout
+                    </button>
+                </template>
+
+                <template v-else>
+                    <router-link to="/login" class="text-[#FDE9D0] text-sm font-medium border border-[#FDE9D0]/30 px-5 py-1.5 rounded hover:bg-[#FDE9D0]/10 transition-colors">
+                        Login
+                    </router-link>
+
+                    <router-link to="/signup" class="bg-[#F9AE5B] text-[#093A3F] text-sm font-medium px-5 py-1.5 rounded hover:opacity-90 transition-opacity">
+                        Sign Up
+                    </router-link>
+                </template>
             </div>
 
             <button class="md:hidden text-[#FDE9D0]" @click="mobileOpen = !mobileOpen">
@@ -90,20 +110,25 @@ function selectLang(code: string) {
         </div>
 
         <div v-if="mobileOpen" class="md:hidden bg-[#0d4d54] px-6 py-4 flex flex-col gap-4 absolute w-full border-b border-[#FDE9D0]/10 z-40">
-            <a 
+            <router-link 
                 v-for="link in navLinks"
                 :key="link.label"
-                :href="link.path"
+                :to="link.path"
                 class="text-[#FDE9D0]/70 hover:text-[#FDE9D0]"
             >
                 {{ link.label }}
-            </a>
+            </router-link>
 
             <hr class="border-[#FDE9D0]/10 my-2" />
 
             <div class="flex flex-col gap-3">
-                <a href="/login" class="text-center text-[#FDE9D0] border broder-[#FDE9D0]/30 py-2 rounded">Login</a>
-                <a href="/register" class="text-center bg-[#F9AE5B] text-[#093A3F] font-medium py-2 rounded">Sign Up</a>
+                <template v-if="authState.token.value">
+                    <button @click="handleLogout" class="text-center text-[#FDE9D0] border border-[#FDE9D0]/30 py-2 rounded hover:bg-[#FDE9D0]/10">Logout</button>
+                </template>
+                <template v-else>
+                    <router-link to="/login" class="text-center text-[#FDE9D0] border border-[#FDE9D0]/30 py-2 rounded hover:bg-[#FDE9D0]/10">Login</router-link>
+                    <router-link to="/signup" class="text-center bg-[#F9AE5B] text-[#093A3F] font-medium py-2 rounded hover:opacity-90">Sign Up</router-link>
+                </template>
             </div>
         </div>
     </nav>
