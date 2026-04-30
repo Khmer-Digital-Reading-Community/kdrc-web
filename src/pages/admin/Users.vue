@@ -14,7 +14,7 @@
     <!-- Filters and Search -->
     <div class="filters-section">
       <div class="search-box">
-        <span class="search-icon">🔍</span>
+        <Search :size="18" class="search-icon" />
         <input 
           v-model="searchQuery" 
           type="text" 
@@ -87,14 +87,14 @@
                   title="Edit User"
                   @click="editUser(user)"
                 >
-                  <img src="@/assets/images/edit.svg" alt="Edit" class="icon" />
+                  <Pencil :size="18" />
                 </button>
                 <button 
                   class="action-btn delete"
                   title="Delete User"
                   @click="deleteUser(user)"
                 >
-                  <img src="@/assets/images/delete.svg" alt="Delete" class="icon" />
+                  <Trash2 :size="18" />
                 </button>
               </div>
             </td>
@@ -154,7 +154,7 @@
       <div class="modal" @click.stop>
         <div class="modal-header">
           <h3>Edit User</h3>
-          <button class="close-btn" @click="showEditUserModal = false">✕</button>
+          <button class="close-btn" @click="showEditUserModal = false"><X :size="24" /></button>
         </div>
 
         <div class="modal-content">
@@ -216,7 +216,7 @@
       <div class="modal" @click.stop>
         <div class="modal-header">
           <h3>Add New User</h3>
-          <button class="close-btn" @click="showAddUserModal = false">✕</button>
+          <button class="close-btn" @click="showAddUserModal = false"><X :size="24" /></button>
         </div>
 
         <div class="modal-content">
@@ -288,6 +288,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { Search, Pencil, Trash2, X } from 'lucide-vue-next';
 
 interface User {
   id: number;
@@ -624,6 +625,8 @@ const addNewUser = () => {
 
 .search-icon {
   font-size: 1rem;
+  display: flex;
+  align-items: center;
   color: #8a9f8f;
 }
 
@@ -1027,6 +1030,9 @@ const addNewUser = () => {
   background: none;
   border: none;
   font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  padding: 0;
   color: #8a9f8f;
   cursor: pointer;
   transition: color 0.2s ease;
