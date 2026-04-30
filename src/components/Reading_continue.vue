@@ -1,10 +1,10 @@
 <template>
-  <section class="bg-[#faf8f3] py-14 px-8">
+  <section class="bg-[#faf8f3] py-8 px-4 md:py-14 md:px-8">
     <div class="max-w-[1280px] mx-auto">
 
       <!-- Section Header -->
       <div class="flex items-center justify-between mb-6">
-        <div class="font-['Playfair_Display'] text-[28px] font-bold text-gray-900">
+        <div class="font-['Playfair_Display'] text-[24px] md:text-[28px] font-bold text-gray-900">
           Continue Reading
         </div>
         <a
@@ -18,7 +18,7 @@
 
       <!-- Reading Card -->
       <div
-        class="bg-white border border-[#e8e4dc] rounded-2xl p-6 flex items-center gap-6
+        class="bg-white border border-[#e8e4dc] rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6
                shadow-sm hover:shadow-md transition-shadow duration-300"
       >
         <!-- Book Thumbnail -->
@@ -33,7 +33,7 @@
         </div>
 
         <!-- Info -->
-        <div class="flex-1 min-w-0">
+        <div class="flex-1 min-w-0 w-full">
           <p class="font-['Playfair_Display'] font-bold text-[17px] text-gray-900 leading-snug mb-0.5">
             {{ book.title }}
           </p>
@@ -61,7 +61,7 @@
           class="flex-none flex items-center gap-2 bg-[#1c3a2e] text-white
                  text-[13px] font-semibold px-5 py-3 rounded-xl
                  hover:bg-[#c5a050] transition-colors duration-250 whitespace-nowrap
-                 shadow-sm hover:shadow-md"
+                 shadow-sm hover:shadow-md w-full sm:w-auto justify-center"
         >
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-6.518-3.76A1 1 0 007 8.237v7.526a1 1 0 001.234.964l6.518-1.763A1 1 0 0016 14v-2.596a1 1 0 00-.248-.236z" />
