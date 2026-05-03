@@ -20,7 +20,15 @@
         </button>
       </div>
 
-      <div class="relative group">
+      <div v-if="loading" class="text-center py-10 text-gray-400">
+        Loading books...
+      </div>
+
+      <div v-else-if="error" class="text-center py-10 text-red-500">
+        {{ error }}
+      </div>
+
+      <div v-else class="relative group">
         <button @click="scrollLeft" class="absolute left-0 top-1/3 -translate-y-1/2 -translate-x-4 z-10
                     w-9 h-9 rounded-full bg-white border border-[#e8e4dc] shadow-md
                     flex items-center justify-center text-gray-500
@@ -84,71 +92,28 @@
 </template>
 
 <script>
-const module = import.meta.glob('../assets/images/books/*.{png,jpg,jpeg}', { eager: true })
+import api from '../../services/api'
 
-const images = Object.fromEntries(
-  Object.entries(module).map(([path, mod]) => {
-    const name = path.split('/').pop()?.replace(/\.(png|jpg|jpeg)$/, '') || ''
-    return [name, mod.default]
-  })
-)
 export default {
-
+  
   name: 'BookCollections',
 
   data() {
     return {
       activeDot: 0,
       dotCount: 3,
-      books: [
-        {
-          id: 1,
-          title: 'Lovers by the Sea',
-          author: 'Aria Thorne',
-          stars: '★★★★☆',
-          cover: images['Book1'],
-        },
-        {
-          id: 2,
-          title: 'Spy in the Family',
-          author: 'Tatyana Smith',
-          stars: '★★★★★',
-          cover: images['Book 2'],
-        },
-        {
-          id: 3,
-          title: 'Lightfall',
-          author: 'Aria Thorne',
-          stars: '★★★★☆',
-          cover: images['Book1'],
-        },
-        {
-          id: 4,
-          title: 'A Record of Cambodia',
-          author: 'Peter Harris',
-          stars: '★★★★☆',
-          cover: images['Book 4'],
-        },
-        {
-          id: 5,
-          title: 'The Quiet River',
-          author: 'Meng Sovanna',
-          stars: '★★★★★',
-          cover: images['Book 5'],
-        },
-        {
-          id: 6,
-          title: 'Midnight Pages',
-          author: 'Lena Voss',
-          stars: '★★★☆☆',
-          cover: images['Book 2'],
-        },
-
-      ],
+      books: [],
+      loading: false,
+      error: null,
     }
   },
 
   mounted() {
+    this.fetchBooks()
+  },
+
+  mounted() {
+    this.fetchBooks()
     const el = this.$refs.carousel
     if (el) {
       el.addEventListener('scroll', this.onScroll, { passive: true })
