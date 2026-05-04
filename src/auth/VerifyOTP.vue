@@ -84,7 +84,7 @@
 <script lang="ts">
 import { defineComponent, reactive, ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useAuth } from './useAuth';
+import { useAuth } from '../stores/useAuth';
 import api from '../services/api';
 
 export default defineComponent({

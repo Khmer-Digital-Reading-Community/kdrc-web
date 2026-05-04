@@ -7,7 +7,7 @@ import Profile from '../../assets/images/Profile.png'
 import NotificationIcon from '../../assets/images/NotificationIcon.png'
 import ChatIcon from '../../assets/images/ChatIcon.png'
 import SearchIcon from '../../assets/images/SearchIcon.png'
-import { authState } from '../../auth/useAuth'
+import { authState } from '../../stores/useAuth'
 import NotificationPopup from './NotificationPopup.vue'
 
 const router = useRouter()
