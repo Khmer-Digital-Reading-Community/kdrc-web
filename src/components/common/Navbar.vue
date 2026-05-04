@@ -15,7 +15,7 @@ const currentLang = ref("EN") // Stores the selected language
 
 // Instead of copying and pasting HTML for every link, we store them in an array
 const navLinks = [  
-    { label: 'Browse', path: '/browse' },
+    { label: 'Browse', path: '/user/explore' },
     { label: 'Community', path: '/community' },
     { label: 'About', path: '/about' },
     { label: 'Contact', path: '/contact'}
