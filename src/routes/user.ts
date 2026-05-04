@@ -14,8 +14,13 @@ export default [
         ]
     },
     {
-        path: '/user/write',
+        path: '/:id/write',
         name: 'writingpage',
         component: WritingPage
+    },
+    {
+        path: '/reading/:id',
+        name: 'readingpage',
+        component: () => import('../pages/user/Reader.vue')
     }
 ]

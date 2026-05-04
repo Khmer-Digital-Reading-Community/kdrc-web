@@ -7,6 +7,7 @@ export interface AuthUser {
   email: string;
   name?: string;
   provider?: string;
+  role?: string;
 }
 
 export interface LoginCredentials {
@@ -92,7 +93,7 @@ export const restoreSession = async () => {
 export const login = async (credentials: LoginCredentials) => {
   try {
     const response = await api.post('/auth/login', credentials);
-    const { accessToken, user: userData } = response.data || {};
+    const { access_token: accessToken, user: userData } = response.data || {};
 
     if (!accessToken) {
       throw new Error('Login failed. Missing access token from server.');
@@ -107,14 +108,31 @@ export const login = async (credentials: LoginCredentials) => {
 
 export const signup = async (userData: SignupData) => {
   try {
-    await api.post('/auth/signup', userData);
+    const response = await api.post('/auth/register', userData);
+    const { access_token: accessToken, user } = response.data || {};
+    
+    // If backend returns access token on signup, optionally auto-login
+    // Otherwise, user will need to login on the next page
+    if (accessToken) {
+      setSession(accessToken, user ?? null);
+    }
+    
+    return response.data;
   } catch (error) {
     throw new Error(parseApiError(error, 'Signup failed. Please try again.'));
   }
 };
 
 export const logout = async () => {
-  clearSession();
+  try {
+    // Call backend logout endpoint if it exists
+    await api.post('/auth/logout', {});
+  } catch (error) {
+    // Even if logout fails, clear local session
+    console.warn('Logout API call failed:', error);
+  } finally {
+    clearSession();
+  }
 };
 
 export const completeOAuth = async (accessToken: string) => {
