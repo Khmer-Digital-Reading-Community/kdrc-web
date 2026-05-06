@@ -1,6 +1,6 @@
 <template>
   <div class="bg-[#f9fafb] text-gray-800 font-sans antialiased min-h-screen flex flex-col">
-    <main class="max-w-5xl mx-auto px-6 py-10 md:py-16 w-full flex-1">
+    <main class="max-w-screen-2xl mx-auto px-4 sm:px-8 lg:px-12 py-10 md:py-16 w-full flex-1">
       <nav class="text-xs text-gray-500 mb-8 font-medium">
         <a href="#" class="hover:text-gray-900 transition">Explore</a>
         <span class="mx-1">&gt;</span>
@@ -155,6 +155,118 @@
           <button class="bg-gray-200/80 hover:bg-gray-300 transition-colors text-gray-800 text-xs font-bold px-6 py-2.5 rounded-full">View All 24 Chapters</button>
         </div>
       </div>
+
+      <div class="mt-24">
+        <div class="flex items-center gap-8 mb-12 border-b border-gray-100">
+          <button
+            @click="activeTab = 'author'"
+            :class="activeTab === 'author' ? 'text-[#CC9552] border-[#CC9552]' : 'text-gray-400 border-transparent'"
+            class="pb-4 font-bold text-sm tracking-wide border-b-2 transition-all"
+          >
+            About Author
+          </button>
+          <button
+            @click="activeTab = 'reviews'"
+            :class="activeTab === 'reviews' ? 'text-[#CC9552] border-[#CC9552]' : 'text-gray-400 border-transparent'"
+            class="pb-4 font-bold text-sm tracking-wide border-b-2 transition-all"
+          >
+            Reviews
+          </button>
+        </div>
+
+        <div v-if="activeTab === 'reviews'" class="flex flex-col lg:flex-row gap-12">
+          <div class="w-full lg:w-72 shrink-0">
+            <div class="bg-[#FDF6E9]/50 rounded-3xl p-8 text-center border border-orange-100/50">
+              <h2 class="text-6xl font-black text-gray-900 mb-2">4.8</h2>
+              <div class="flex justify-center text-yellow-500 mb-2">
+                <template v-for="i in 5" :key="i">
+                  <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                </template>
+              </div>
+              <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-8">Based on 1,248 Ratings</p>
+
+              <div class="space-y-3 mb-10">
+                <div v-for="(percent, star) in ratingBreakdown" :key="star" class="flex items-center gap-3">
+                  <span class="text-[10px] font-bold text-gray-600 w-2">{{ star }}</span>
+                  <div class="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-[#CC9552]" :style="{ width: percent + '%' }"></div>
+                  </div>
+                  <span class="text-[10px] font-bold text-gray-400 w-6 text-right">{{ percent }}%</span>
+                </div>
+              </div>
+
+              <button class="w-full py-3 px-4 border border-gray-900 rounded-xl flex items-center justify-center gap-2 text-xs font-bold hover:bg-gray-900 hover:text-white transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                Write a Review
+              </button>
+            </div>
+          </div>
+
+          <div class="flex-1 space-y-12">
+            <div v-for="review in reviews" :key="review.id" class="border-b border-gray-100 pb-12 last:border-0">
+              <div class="flex justify-between items-start mb-4">
+                <div class="flex items-center gap-4">
+                  <img :src="review.userImg" :alt="review.userName" class="w-12 h-12 rounded-xl object-cover" />
+                  <div>
+                    <h4 class="font-bold text-sm text-gray-900">{{ review.userName }}</h4>
+                    <p class="text-[10px] text-gray-400 font-medium">{{ review.date }}</p>
+                  </div>
+                </div>
+                <div class="flex text-yellow-500">
+                  <svg v-for="n in 5" :key="n" class="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                </div>
+              </div>
+              <h3 class="font-bold text-gray-900 mb-3">{{ review.title }}</h3>
+              <p class="text-gray-600 text-sm leading-relaxed mb-6">{{ review.comment }}</p>
+              <div class="flex items-center gap-6">
+                <button class="flex items-center gap-2 text-[10px] font-bold text-gray-400 hover:text-gray-900 uppercase tracking-widest">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.704a1 1 0 01.94 1.355l-1.903 5.182A2 2 0 0115.826 18H5V10.5l4.704-4.704a1 1 0 01.94 1.355L14 10z"></path></svg>
+                  Helpful ({{ review.helpfulCount }})
+                </button>
+                <button class="flex items-center gap-2 text-[10px] font-bold text-gray-400 hover:text-gray-900 uppercase tracking-widest">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l5 5m-5-5l5-5"></path></svg>
+                  Reply
+                </button>
+              </div>
+            </div>
+
+            <button class="w-full py-4 bg-white border border-gray-100 rounded-xl text-[10px] font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-50 transition-colors">
+              Load More Reviews
+            </button>
+          </div>
+        </div>
+
+        <div v-else class="flex flex-col lg:flex-row gap-6">
+          <div class="flex-1 bg-gray-100/50 rounded-2xl p-10 flex flex-col justify-between">
+            <div>
+              <h2 class="text-3xl font-bold text-gray-900 mb-6">About the Author</h2>
+              <p class="text-gray-600 leading-relaxed text-base">
+                Elias Thorne is a novelist and typographer based in Oxford. His work often dwells
+                on the intersection of physical craft and digital ephemeralness. He spends his days
+                restoring 19th-century printing presses and his nights writing the future.
+              </p>
+            </div>
+
+            <div class="mt-12 flex items-center gap-6">
+              <a href="#" class="text-[#0f3b35] font-bold text-sm border-b-2 border-[#0f3b35] pb-0.5 hover:text-[#1a5f56] transition-colors">Follow Elias</a>
+              <a href="#" class="text-gray-500 font-bold text-sm hover:text-gray-900 transition-colors">Author Bio</a>
+            </div>
+          </div>
+
+          <div class="w-full lg:w-100 relative rounded-2xl overflow-hidden group">
+            <img
+              :src="Author"
+              alt="Elias Thorne"
+              class="w-full h-87.5 object-cover grayscale brightness-75 group-hover:scale-105 transition-transform duration-500"
+            />
+            <div class="absolute inset-0 bg-linear-to-t from-[#0f3b35]/90 via-transparent to-transparent flex items-end p-8">
+              <p class="text-white italic font-serif text-lg leading-snug">
+                "Writing is the only way I know how to listen to the silence."
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
 
     <Footer />
@@ -162,8 +274,43 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import Footer from '../../components/common/Footer.vue'
 import bookCoverSrc from '../../assets/images/BookCover.png'
+import Author from '../../assets/images/Author Portrait.png'
+
+const activeTab = ref<'author' | 'reviews'>('reviews')
+
+const ratingBreakdown = {
+  5: 85,
+  4: 10,
+  3: 3,
+  2: 1,
+  1: 1,
+} as const
+
+const reviews = ref([
+  {
+    id: 1,
+    userName: 'Lina Som',
+    userImg: 'https://i.pravatar.cc/150?u=lina',
+    date: 'June 15, 2024',
+    title: 'A masterpiece of Khmer literature',
+    comment:
+      'The way Rotha describes the carving process made me feel like I was there in the 12th century. The prose is almost tactile, you can feel the grit of the sandstone...',
+    helpfulCount: 24,
+  },
+  {
+    id: 2,
+    userName: 'Dara Chan',
+    userImg: 'https://i.pravatar.cc/150?u=dara',
+    date: 'June 10, 2024',
+    title: 'Compelling and educational',
+    comment:
+      'I’ve never appreciated the Bayon temples as much as I do after reading this. The historical accuracy combined with the emotional journey...',
+    helpfulCount: 12,
+  },
+])
 
 function onCoverError(event: Event) {
   const target = event.target as HTMLImageElement

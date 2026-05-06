@@ -4,10 +4,9 @@ import SignupForm from '../auth/SignupForm.vue';
 import ForgotPassword from '../auth/ForgotPassword.vue';
 import ResetPassword from '../auth/ResetPassword.vue';
 import VerifyOTP from '../auth/VerifyOTP.vue';
-import OAuthCallback from '../auth/OAuthCallback.vue';
+import ChatBox from '../components/chat/ChatBox.vue';
 import adminRoutes from './admin';
 import userRoutes from './user';
-import { authState } from '../stores/useAuth';
 // import OAuthCallback from '../views/OAuthCallback.vue';
 
 const router = createRouter({
@@ -16,9 +15,9 @@ const router = createRouter({
 		// Redirect root to user home
 		{ path: '/', redirect: '/user/home' },
 		// { path: '/', name: 'home', component: Home, meta: { requiresAuth: true } },
+		{ path: '/chatbox', name: 'chatbox', component: ChatBox },
 		{ path: '/login', name: 'login', component: LoginForm },
 		{ path: '/signup', name: 'signup', component: SignupForm },
-		{ path: '/auth/callback', name: 'oauth-callback', component: OAuthCallback },
 		{ path: '/forgot-password', name: 'forgot-password', component: ForgotPassword },
 		{ path: '/reset-password', name: 'reset-password', component: ResetPassword },
 		{ path: '/verify-otp', name: 'verify-otp', component: VerifyOTP },
@@ -27,18 +26,18 @@ const router = createRouter({
 	],
 });
 
-router.beforeEach((to) => {
-	const isAuthed = Boolean(authState.token.value);
+// router.beforeEach((to) => {
+// 	const isAuthed = Boolean(authState.token.value);
 
-	if (to.meta.requiresAuth && !isAuthed) {
-		return { path: '/login', query: { redirect: to.fullPath } };
-	}
+// 	if (to.meta.requiresAuth && !isAuthed) {
+// 		return { path: '/login', query: { redirect: to.fullPath } };
+// 	}
 
 	if ((to.path === '/login' || to.path === '/signup') && isAuthed) {
 		return { path: '/user/home' };
 	}
 
-	return true;
-});
+// 	return true;
+// });
 
 export default router;
