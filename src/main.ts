@@ -1,9 +1,9 @@
 import { createApp } from 'vue';
 // import { createPinia } from 'pinia';
-import './style.css';
+import './assets/style/style.css';
 import App from './App.vue';
 import router from './routes';
-import { restoreSession } from './auth/useAuth';
+import { restoreSession } from './services/auth.service';
 
 const app = createApp(App);
 // const pinia = createPinia();

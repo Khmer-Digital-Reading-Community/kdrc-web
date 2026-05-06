@@ -1,9 +1,9 @@
 <template>
-    <section class="bg-white py-14 px-8">
+    <section class="bg-white py-8 px-4 md:py-14 md:px-8">
         <div class="max-w-[1280px] mx-auto">
 
             <!-- Section Header -->
-            <div class="flex items-end justify-between mb-8">
+            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-8">
                 <div class="flex flex-col items-start">
                    
                     <p class=" text-[28px] font-bold  !text-black  ">
@@ -20,10 +20,10 @@
             </div>
 
             <!-- Genre Grid -->
-            <div class="grid grid-cols-12 grid-rows-2 gap-4 h-[480px]">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 auto-rows-[220px] lg:auto-rows-none lg:h-[480px]">
 
                 <!-- Khmer Literature — large left hero card -->
-                <div class="col-span-5 row-span-2 relative rounded-2xl overflow-hidden cursor-pointer group"
+                <div class="lg:col-span-5 lg:row-span-2 md:row-span-2 row-span-1 relative rounded-2xl overflow-hidden cursor-pointer group"
                     @click="selectGenre(genres[0])">
                     <img :src="genres[0].image" alt="Khmer Literature"
                         class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -70,10 +70,11 @@
                 <!-- Education — top middle -->
                 <div v-for="(genre, i) in genres.slice(1, 5)" :key="genre.id" :class="[
                     'relative rounded-2xl overflow-hidden cursor-pointer group',
-                    i === 0 ? 'col-span-4 row-span-1' : '',
-                    i === 1 ? 'col-span-3 row-span-1' : '',
-                    i === 2 ? 'col-span-3 row-span-1' : '',
-                    i === 3 ? 'col-span-4 row-span-1' : '',
+                    'lg:row-span-1',
+                    i === 0 ? 'lg:col-span-4' : '',
+                    i === 1 ? 'lg:col-span-3' : '',
+                    i === 2 ? 'lg:col-span-3' : '',
+                    i === 3 ? 'lg:col-span-4' : '',
                 ]" :style="{ background: genre.bg }" @click="selectGenre(genre)">
                     <!-- Background image if available -->
                     <img v-if="genre.image" :src="genre.image" :alt="genre.name"
@@ -107,14 +108,14 @@
                 </div>
 
                 <!-- Free Books — bottom right spanning -->
-                <div class="col-span-7 row-span-1 relative rounded-2xl overflow-hidden cursor-pointer group"
+                <div class="lg:col-span-7 lg:row-span-1 row-span-1 relative rounded-2xl overflow-hidden cursor-pointer group"
                     :style="{ background: genres[5].bg }" @click="selectGenre(genres[5])">
                     <img :src="genres[5].image" alt="Free Books"
                         class="absolute inset-0 w-full h-full object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-300" />
                     <div
                         class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[#1c3a2e]/10">
                     </div>
-                    <div class="relative z-10 p-5 h-full flex items-center gap-5">
+                    <div class="relative z-10 p-5 h-full flex flex-col md:flex-row items-start md:items-center gap-5">
                         <div
                             class="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl flex-none">
                             {{ genres[5].icon }}

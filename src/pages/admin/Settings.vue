@@ -25,7 +25,10 @@
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=admin" alt="Profile" />
               </div>
               <div class="upload-controls">
-                <button class="btn btn-secondary">Upload Photo</button>
+                <button class="btn btn-secondary">
+                  <Upload :size="20" />
+                  Upload Photo
+                </button>
                 <p class="info-text">JPG, PNG up to 5MB</p>
               </div>
             </div>
@@ -307,6 +310,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { Upload } from 'lucide-vue-next';
 
 interface Session {
   id: number;
