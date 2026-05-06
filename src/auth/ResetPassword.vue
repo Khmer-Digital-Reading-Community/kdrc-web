@@ -32,6 +32,21 @@
 
           <form @submit.prevent="handleResetPassword" novalidate>
             <div class="form-group">
+              <label for="email">Email Address</label>
+              <input
+                id="email"
+                type="email"
+                v-model.trim="email"
+                autocomplete="email"
+                placeholder="your@email.com"
+                :aria-invalid="errors.email ? 'true' : 'false'"
+                @blur="validateEmail"
+                required
+              />
+              <span v-if="errors.email" class="field-error">{{ errors.email }}</span>
+            </div>
+
+            <div class="form-group">
               <label for="password">New Password</label>
               <div class="password-input-wrapper">
                 <input
@@ -113,15 +128,11 @@
 
 <script lang="ts">
 import { defineComponent, reactive, ref, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import api from '../services/api';
 
 export default defineComponent({
   name: 'ResetPassword',
   setup() {
-    const router = useRouter();
-    const route = useRoute();
-    const email = ref(route.query.email as string || '');
+    const email = ref('');
     const password = ref('');
     const confirmPassword = ref('');
     const showPassword = ref(false);
@@ -129,6 +140,7 @@ export default defineComponent({
     const isSubmitting = ref(false);
 
     const errors = reactive({
+      email: '',
       password: '',
       confirmPassword: '',
       form: '',
@@ -157,6 +169,17 @@ export default defineComponent({
       if (passwordStrength.value < 80) return '#10b981';
       return '#059669';
     });
+
+    const validateEmail = () => {
+      if (!email.value) {
+        errors.email = 'Email is required.';
+        return false;
+      }
+
+      const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value);
+      errors.email = isValid ? '' : 'Enter a valid email address.';
+      return isValid;
+    };
 
     const validatePassword = () => {
       if (!password.value) {
@@ -205,20 +228,19 @@ export default defineComponent({
 
     const handleResetPassword = async () => {
       errors.form = '';
+      const emailOk = validateEmail();
       const passwordOk = validatePassword();
       const confirmOk = validateConfirm();
 
-      if (!passwordOk || !confirmOk) {
+      if (!emailOk || !passwordOk || !confirmOk) {
         return;
       }
 
       isSubmitting.value = true;
       try {
-        await api.post('/auth/reset-password', {
-          email: email.value,
-          newPassword: password.value,
-        });
-        await router.push('/password-reset-success');
+        // Call your auth service to reset password
+        console.log('Resetting password for:', email.value);
+        // await resetPassword({ email: email.value, newPassword: password.value });
       } catch (error) {
         errors.form = error instanceof Error ? error.message : 'Password reset failed.';
       } finally {
@@ -227,6 +249,7 @@ export default defineComponent({
     };
 
     return {
+      email,
       password,
       confirmPassword,
       showPassword,
@@ -236,6 +259,7 @@ export default defineComponent({
       passwordStrength,
       strengthText,
       strengthColor,
+      validateEmail,
       validatePassword,
       validateConfirm,
       handleResetPassword,
@@ -248,26 +272,23 @@ export default defineComponent({
 .auth-page {
   min-height: calc(100vh - 140px);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
+  align-items: stretch;
 }
 
 .auth-split {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   width: 100%;
-  max-width: 900px;
-  border-radius: 20px;
+  border-radius: 28px;
   overflow: hidden;
   background: #fff;
   border: 1px solid rgba(15, 25, 20, 0.08);
-  box-shadow: 0 20px 50px rgba(12, 18, 16, 0.15);
+  box-shadow: 0 40px 80px rgba(12, 18, 16, 0.12);
 }
 
 .auth-visual {
   position: relative;
-  padding: 30px 20px;
+  padding: 56px 60px;
   color: #f1ece7;
   background:
     linear-gradient(135deg, rgba(20, 15, 10, 0.7) 0%, rgba(40, 30, 20, 0.6) 50%, rgba(20, 15, 10, 0.7) 100%),
@@ -352,21 +373,20 @@ h1 {
 }
 
 .auth-panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   background: #fbfbfc;
-  padding: 40px 30px;
+  padding: 60px 56px;
   overflow-y: auto;
 }
 
 .auth-card {
-  width: 100%;
+  width: min(440px, 100%);
 }
 
 .auth-header {
   margin-bottom: 20px;
-  text-align: center;
+  text-align: left;
 }
 
 h2 {

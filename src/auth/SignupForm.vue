@@ -31,12 +31,12 @@
           </div>
 
           <div class="social-row">
-            <button class="social" type="button" @click="startGoogleLogin">
-              <img src="../assets/images/google.svg" alt="Google" class="social-logo" />
+            <button class="social" type="button">
+              <span class="dot google"></span>
               Google
             </button>
-            <button class="social" type="button" @click="startFacebookLogin">
-              <img src="../assets/images/facebook.svg" alt="Facebook" class="social-logo" />
+            <button class="social" type="button" disabled>
+              <span class="dot facebook"></span>
               Facebook
             </button>
           </div>
@@ -145,7 +145,7 @@
             </button>
           </form>
 
-          <p class="auth-footer">© 2026 KDRC • Built for Khmer heritage</p>
+          <p class="auth-footer">© 2024 KDRC • Built for Khmer heritage</p>
         </div>
       </div>
     </div>
@@ -173,7 +173,7 @@ export default defineComponent({
       confirmPassword: '',
       form: '',
     });
-    const { signup, startGoogleLogin, startFacebookLogin } = useAuth();
+    const { signup } = useAuth();
 
     const validateName = () => {
       if (!name.value) {
@@ -265,8 +265,6 @@ export default defineComponent({
       validateEmail,
       validatePassword,
       validateConfirm,
-      startGoogleLogin,
-      startFacebookLogin,
     };
   },
 });
@@ -276,33 +274,30 @@ export default defineComponent({
 .auth-page {
   min-height: calc(100vh - 140px);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
+  align-items: stretch;
 }
 
 .auth-split {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   width: 100%;
-  max-width: 900px;
-  border-radius: 20px;
+  border-radius: 28px;
   overflow: hidden;
   background: #fff;
   border: 1px solid rgba(15, 25, 20, 0.08);
-  box-shadow: 0 20px 50px rgba(12, 18, 16, 0.15);
+  box-shadow: 0 40px 80px rgba(12, 18, 16, 0.12);
 }
 
 .auth-visual {
-  display: flex;
   position: relative;
-  padding: 30px 20px;
+  padding: 56px 60px;
   color: #f1ece7;
   background:
     linear-gradient(135deg, rgba(20, 15, 10, 0.7) 0%, rgba(40, 30, 20, 0.6) 50%, rgba(20, 15, 10, 0.7) 100%),
     url('https://i.pinimg.com/736x/73/52/39/735239814b6155298efb8341d55293b3.jpg');
   background-size: cover;
   background-position: center;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
@@ -380,20 +375,19 @@ h1 {
 }
 
 .auth-panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   background: #fbfbfc;
-  padding: 40px 30px;
+  padding: 60px 56px;
 }
 
 .auth-card {
-  width: 100%;
+  width: min(440px, 100%);
 }
 
 .auth-header {
   margin-bottom: 20px;
-  text-align: center;
+  text-align: left;
 }
 
 h2 {
@@ -432,12 +426,6 @@ h2 {
   justify-content: center;
   gap: 8px;
   padding: 10px 12px;
-}
-
-.social-logo {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
 }
 
 .dot {

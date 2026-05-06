@@ -70,7 +70,7 @@
                 <span>Remember me for 30 days</span>
               </label>
               
-              <router-link to="/forgot-password" class="link">Forgot password?</router-link>
+              <router-link to="/reset-password" class="link">Forgot password?</router-link>
             </div>
 
             <p v-if="registered" class="form-success">Account created. Please sign in.</p>
@@ -91,11 +91,11 @@
                 @click="startGoogleLogin"
                 :disabled="isSubmitting"
               >
-                <img src="../assets/images/google.svg" alt="Google" class="social-logo" />
+                <span class="dot google"></span>
                 Google
               </button>
-              <button class="social" type="button" @click="startFacebookLogin" :disabled="isSubmitting">
-                <img src="../assets/images/facebook.svg" alt="Facebook" class="social-logo" />
+              <button class="social" type="button" disabled>
+                <span class="dot facebook"></span>
                 Facebook
               </button>
             </div>
@@ -129,7 +129,7 @@ export default defineComponent({
       form: '',
     });
     const route = useRoute();
-    const { login, startGoogleLogin, startFacebookLogin } = useAuth();
+    const { login, startGoogleLogin } = useAuth();
 
     const registered = computed(() => route.query.registered === '1');
 
@@ -190,7 +190,6 @@ export default defineComponent({
       registered,
       handleLogin,
       startGoogleLogin,
-      startFacebookLogin,
       validateEmail,
       validatePassword,
     };
@@ -202,27 +201,24 @@ export default defineComponent({
 .auth-page {
   min-height: calc(100vh - 140px);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
+  align-items: stretch;
 }
 
 .auth-split {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   gap: 0;
   width: 100%;
-  max-width: 900px;
-  border-radius: 20px;
+  border-radius: 28px;
   overflow: hidden;
   background: #fff;
   border: 1px solid rgba(15, 25, 20, 0.08);
-  box-shadow: 0 20px 50px rgba(12, 18, 16, 0.15);
+  box-shadow: 0 40px 80px rgba(12, 18, 16, 0.12);
 }
 
 .auth-visual {
   position: relative;
-  padding: 30px 20px;
+  padding: 56px 60px;
   color: #e7f1ef;
   
   background:
@@ -306,20 +302,19 @@ h1 {
 }
 
 .auth-panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   background: #fbfbfc;
-  padding: 40px 30px;
+  padding: 60px 56px;
 }
 
 .auth-card {
-  width: 100%;
+  width: min(420px, 100%);
 }
 
 .auth-header {
   margin-bottom: 24px;
-  text-align: center;
+  text-align: left;
 }
 
 h2 {
@@ -519,12 +514,6 @@ button:disabled {
   justify-content: center;
   gap: 8px;
   padding: 10px 12px;
-}
-
-.social-logo {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
 }
 
 .dot {

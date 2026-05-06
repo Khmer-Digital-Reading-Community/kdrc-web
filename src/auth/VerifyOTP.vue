@@ -37,17 +37,17 @@
               <label for="otp">Verification Code</label>
               <div class="otp-inputs">
                 <input
-                  v-for="index in 6"
+                  v-for="(digit, index) in 6"
                   :key="index"
                   type="text"
                   maxlength="1"
                   inputmode="numeric"
                   class="otp-input"
-                  :value="otp[index - 1]"
-                  @input="handleOtpInput(index - 1, $event)"
-                  @keydown="handleOtpKeydown(index - 1, $event)"
+                  :value="otp[index]"
+                  @input="handleOtpInput(index, $event)"
+                  @keydown="handleOtpKeydown(index, $event)"
                   :aria-invalid="errors.otp ? 'true' : 'false'"
-                  :ref="`otpInput${index - 1}`"
+                  :ref="`otpInput${index}`"
                 />
               </div>
               <span v-if="errors.otp" class="field-error">{{ errors.otp }}</span>
@@ -83,18 +83,13 @@
 
 <script lang="ts">
 import { defineComponent, reactive, ref, onMounted, onBeforeUnmount } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
 import { useAuth } from './useAuth';
-import api from '../services/api';
 
 export default defineComponent({
   name: 'VerifyOTP',
   setup() {
-    const router = useRouter();
-    const route = useRoute();
-    const isPasswordReset = route.meta.isPasswordReset === true;
     const otp = ref(['', '', '', '', '', '']);
-    const email = ref((route.query.email as string) || '');
+    const email = ref('');
     const isSubmitting = ref(false);
     const resendCooldown = ref(0);
     let cooldownTimer: number | null = null;
@@ -148,26 +143,9 @@ export default defineComponent({
 
       isSubmitting.value = true;
       try {
-        if (isPasswordReset) {
-          // Verify OTP for password reset flow
-          await api.post('/auth/verify-otp-reset', {
-            email: email.value,
-            otp: otpCode,
-          });
-          // Redirect to reset password with email
-          await router.push({
-            name: 'reset-password',
-            query: { email: email.value },
-          });
-        } else {
-          // Regular OTP verification flow
-          const response = await api.post('/auth/verify-otp', {
-            email: email.value,
-            otp: otpCode,
-          });
-          // Handle regular OTP verification completion
-          console.log('OTP verified:', response.data);
-        }
+        // Call your auth service to verify OTP
+        console.log('Verifying OTP:', otpCode);
+        // await verifyOTP({ email: email.value, otp: otpCode });
       } catch (error) {
         errors.form = error instanceof Error ? error.message : 'OTP verification failed.';
       } finally {
@@ -178,11 +156,8 @@ export default defineComponent({
     const handleResendOTP = async () => {
       if (resendCooldown.value > 0) return;
       try {
-        if (isPasswordReset) {
-          await api.post('/auth/resend-otp-reset', { email: email.value });
-        } else {
-          await api.post('/auth/resend-otp', { email: email.value });
-        }
+        // Call your auth service to resend OTP
+        console.log('Resending OTP to:', email.value);
         startResendCooldown();
       } catch (error) {
         errors.form = error instanceof Error ? error.message : 'Failed to resend OTP.';
@@ -200,8 +175,6 @@ export default defineComponent({
       if (cooldownTimer) clearInterval(cooldownTimer);
     });
 
-    const { completeOAuth } = useAuth();
-
     return {
       otp,
       email,
@@ -212,7 +185,6 @@ export default defineComponent({
       handleOtpKeydown,
       handleVerifyOTP,
       handleResendOTP,
-      completeOAuth,
     };
   },
 });
@@ -222,26 +194,23 @@ export default defineComponent({
 .auth-page {
   min-height: calc(100vh - 140px);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
+  align-items: stretch;
 }
 
 .auth-split {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   width: 100%;
-  max-width: 900px;
-  border-radius: 20px;
+  border-radius: 28px;
   overflow: hidden;
   background: #fff;
   border: 1px solid rgba(15, 25, 20, 0.08);
-  box-shadow: 0 20px 50px rgba(12, 18, 16, 0.15);
+  box-shadow: 0 40px 80px rgba(12, 18, 16, 0.12);
 }
 
 .auth-visual {
   position: relative;
-  padding: 30px 20px;
+  padding: 56px 60px;
   color: #f1ece7;
   background:
     linear-gradient(135deg, rgba(20, 15, 10, 0.7) 0%, rgba(40, 30, 20, 0.6) 50%, rgba(20, 15, 10, 0.7) 100%),
@@ -326,20 +295,19 @@ h1 {
 }
 
 .auth-panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   background: #fbfbfc;
-  padding: 40px 30px;
+  padding: 60px 56px;
 }
 
 .auth-card {
-  width: 100%;
+  width: min(440px, 100%);
 }
 
 .auth-header {
   margin-bottom: 20px;
-  text-align: center;
+  text-align: left;
 }
 
 h2 {
