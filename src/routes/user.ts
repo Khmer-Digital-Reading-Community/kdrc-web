@@ -14,17 +14,17 @@ export default [
         path: '/user',
         component: UserLayout,
         children: [
-            { path: '/', name: 'landingpage', component: LandingPage },
-            { path: '/home', name: 'homepage', component: Home },
-            { path: '/community', name: 'community', component: Community },
-            { path: '/explore', name: 'explore', alias: ['/explore', '/browse'], component: ExplorePage },
-            { path: '/exchange', name: 'exchange', component: ExchangePage },
+            { path: '', name: 'landingpage', component: LandingPage },
+            { path: 'home', name: 'homepage', component: Home },
+            { path: 'community', name: 'community', component: Community },
+            { path: 'explore', name: 'explore', component: ExplorePage },
+            { path: 'exchange', name: 'exchange', component: ExchangePage },
             { 
-                path: '/book-exchange-detail/:id', 
+                path: 'book-exchange-detail/:id', 
                 name: 'book-exchange-detail', 
                 component: BookExchangeDetail 
             },
-            {path: '/book-detail/:id', name: 'book-detail', component: BookDetail}
+            { path: 'book-detail/:id', name: 'book-detail', component: BookDetail }
         ]
     },
     {
