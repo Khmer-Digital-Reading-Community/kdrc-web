@@ -29,14 +29,7 @@
           <span class="nav-icon"></span>
           <span class="nav-label">Books</span>
         </router-link>
-        <router-link 
-          to="/admin/categories" 
-          class="nav-link"
-          :class="{ active: isActive('/admin/categories') }"
-        >
-          <span class="nav-icon"></span>
-          <span class="nav-label">Categories</span>
-        </router-link>
+        
       </div>
 
       <!-- User Management -->
@@ -49,14 +42,6 @@
         >
           <span class="nav-icon"></span>
           <span class="nav-label">Users</span>
-        </router-link>
-        <router-link 
-          to="/admin/roles" 
-          class="nav-link"
-          :class="{ active: isActive('/admin/roles') }"
-        >
-          <span class="nav-icon"></span>
-          <span class="nav-label">Roles & Permissions</span>
         </router-link>
       </div>
 

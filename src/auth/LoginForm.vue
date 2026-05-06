@@ -114,7 +114,7 @@
 <script lang="ts">
 import { computed, defineComponent, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { useAuth } from './useAuth';
+import { useAuth } from '../stores/useAuth';
 
 export default defineComponent({
   name: 'LoginForm',

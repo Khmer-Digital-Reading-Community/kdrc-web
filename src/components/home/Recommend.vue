@@ -1,12 +1,12 @@
 <template>
-  <section class="bg-[#faf8f3] py-14 px-8">
+  <section class="bg-[#faf8f3] py-8 px-4 md:py-14 md:px-8">
     <div class="max-w-[1280px] mx-auto">
 
       <!-- Section Header -->
-      <div class="flex items-center justify-between mb-8">
-        <h2 class="font-['Playfair_Display'] text-[28px] font-bold text-gray-900">
+      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-8">
+        <div class="font-['Playfair_Display'] text-[28px] font-bold text-gray-900">
           Recommended for You
-        </h2>
+        </div>
 
         <!-- Tabs -->
         <div class="flex items-center gap-1 bg-white border border-[#e8e4dc] rounded-xl p-1">
@@ -26,19 +26,19 @@
         </div>
       </div>
 
-      <!-- ✅ GRID FIXED (now inside container) -->
-      <div class="grid grid-cols-12 gap-8">
+      <!-- GRID RESPONSIVE -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         <!-- LEFT -->
-        <div class="col-span-8 flex flex-col">
+        <div class="lg:col-span-8 flex flex-col">
           <div
             v-for="book in filteredBooks"
             :key="book.id"
-            class="flex gap-6 py-6 border-b border-[#e8e4dc] group cursor-pointer hover:bg-[#faf8f3] px-4 rounded-xl transition"
+            class="flex flex-col sm:flex-row gap-4 sm:gap-6 py-6 border-b border-[#e8e4dc] group cursor-pointer hover:bg-[#faf8f3] px-3 sm:px-4 rounded-xl transition"
           >
 
             <!-- Cover -->
-            <div class="w-[150px] h-[210px] rounded-xl overflow-hidden shadow-md group-hover:-translate-y-1 transition">
+            <div class="w-full sm:w-[150px] h-[180px] sm:h-[210px] rounded-xl overflow-hidden shadow-md group-hover:-translate-y-1 transition">
               <img :src="book.cover" class="w-full h-full object-cover" />
             </div>
 
@@ -86,7 +86,7 @@
         </div>
 
         <!-- RIGHT -->
-        <div class="col-span-4 flex flex-col gap-5">
+        <div class="lg:col-span-4 flex flex-col gap-5">
 
           <!-- Top Books -->
           <div class="bg-white border rounded-2xl p-5">

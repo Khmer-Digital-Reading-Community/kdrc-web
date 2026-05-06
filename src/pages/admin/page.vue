@@ -3,7 +3,9 @@
     <div class="dashboard-grid">
       <!-- Statistics Cards -->
       <div class="stat-card">
-        <div class="stat-icon">📚</div>
+        <div class="stat-icon">
+          <BookOpen :size="32" />
+        </div>
         <div class="stat-content">
           <p class="stat-label">Total Books</p>
           <p class="stat-value">1,234</p>
@@ -11,7 +13,9 @@
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon">👥</div>
+        <div class="stat-icon">
+          <Users :size="32" />
+        </div>
         <div class="stat-content">
           <p class="stat-label">Active Users</p>
           <p class="stat-value">567</p>
@@ -19,7 +23,9 @@
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon">💬</div>
+        <div class="stat-icon">
+          <MessageSquare :size="32" />
+        </div>
         <div class="stat-content">
           <p class="stat-label">Comments</p>
           <p class="stat-value">2,891</p>
@@ -27,7 +33,9 @@
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon">📈</div>
+        <div class="stat-icon">
+          <TrendingUp :size="32" />
+        </div>
         <div class="stat-content">
           <p class="stat-label">Growth Rate</p>
           <p class="stat-value">+12.5%</p>
@@ -66,6 +74,7 @@
 </template>
 
 <script setup lang="ts">
+import { BookOpen, Users, MessageSquare, TrendingUp } from 'lucide-vue-next';
 </script>
 
 <style scoped>
@@ -98,7 +107,14 @@
 }
 
 .stat-icon {
-  font-size: 2.5rem;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
 }
 
 .stat-content {

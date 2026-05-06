@@ -154,7 +154,7 @@
 
 <script lang="ts">
 import { defineComponent, reactive, ref } from 'vue';
-import { useAuth } from './useAuth';
+import { useAuth } from '../stores/useAuth';
 
 export default defineComponent({
   name: 'SignupForm',
@@ -499,7 +499,7 @@ h2 {
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(1, minmax(0, 1fr));
   gap: 14px;
 }
 
