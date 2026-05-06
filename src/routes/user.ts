@@ -2,6 +2,12 @@ import UserLayout from "../layouts/UserLayout.vue";
 import Home from "../pages/user/Home.vue";
 import LandingPage from "../pages/user/landingPage.vue";
 import WritingPage from "../pages/user/WritingPage.vue";
+import Community from "../pages/user/Community.vue";
+import ExplorePage from "../pages/user/ExplorePage.vue";
+import BookExchangeDetail from "../pages/user/BookExchangeDetail.vue";
+import ExchangePage from "../pages/user/ExchangePage.vue";
+import Reader from "../pages/user/Reader.vue";
+import BookDetail from "../pages/user/BookDetail.vue";
 
 export default [
     {
@@ -10,14 +16,15 @@ export default [
         children: [
             { path: '/', name: 'landingpage', component: LandingPage },
             { path: '/home', name: 'homepage', component: Home },
-            { path: '/community', name: 'community', component: () => import('../pages/user/Community.vue') },
-            { path: '/explore', name: 'explore', alias: ['/explore', '/browse'], component: () => import('../pages/user/ExplorePage.vue') },
-            { path: '/exchange', name: 'exchange', component: () => import('../pages/user/ExchangePage.vue') }, 
+            { path: '/community', name: 'community', component: Community },
+            { path: '/explore', name: 'explore', alias: ['/explore', '/browse'], component: ExplorePage },
+            { path: '/exchange', name: 'exchange', component: ExchangePage },
             { 
-                path: '/exchange/:id', 
+                path: '/book-exchange-detail/:id', 
                 name: 'book-exchange-detail', 
-                component: () => import('../pages/user/BookExchangeDetail.vue') 
+                component: BookExchangeDetail 
             },
+            {path: '/book-detail/:id', name: 'book-detail', component: BookDetail}
         ]
     },
     {
@@ -28,6 +35,6 @@ export default [
     {
         path: '/reading/:id',
         name: 'readingpage',
-        component: () => import('../pages/user/Reader.vue')
+        component: Reader
     }
 ]
