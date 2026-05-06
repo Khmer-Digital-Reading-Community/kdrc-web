@@ -13,6 +13,8 @@ import { authState } from '../stores/useAuth';
 const router = createRouter({
 	history: createWebHistory(),
 	routes: [
+		// Redirect root to user home
+		{ path: '/', redirect: '/user/home' },
 		// { path: '/', name: 'home', component: Home, meta: { requiresAuth: true } },
 		{ path: '/login', name: 'login', component: LoginForm },
 		{ path: '/signup', name: 'signup', component: SignupForm },
@@ -33,7 +35,7 @@ router.beforeEach((to) => {
 	}
 
 	if ((to.path === '/login' || to.path === '/signup') && isAuthed) {
-		return { path: '/' };
+		return { path: '/user/home' };
 	}
 
 	return true;

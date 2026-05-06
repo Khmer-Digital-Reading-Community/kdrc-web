@@ -44,6 +44,7 @@ const parseApiError = (error: unknown, fallback: string) => {
 };
 
 const setSession = (accessToken: string, userData?: AuthUser | null) => {
+  console.log('setSession called with token:', !!accessToken);
   token.value = accessToken;
 
   if (userData) {
@@ -52,6 +53,7 @@ const setSession = (accessToken: string, userData?: AuthUser | null) => {
 
   localStorage.setItem('token', accessToken);
   setApiAuthToken(accessToken);
+  console.log('Token set in localStorage and state. token.value:', !!token.value);
 };
 
 const clearSession = () => {
@@ -153,4 +155,4 @@ export const startFacebookLogin = () => {
   window.location.href = `${apiBaseUrl}/auth/facebook`;
 };
 
-export { clearSession, parseApiError, setSession };
+export { clearSession, parseApiError, setSession, token, user, isRestoring };

@@ -110,10 +110,6 @@ export default {
 
   mounted() {
     this.fetchBooks()
-  },
-
-  mounted() {
-    this.fetchBooks()
     const el = this.$refs.carousel
     if (el) {
       el.addEventListener('scroll', this.onScroll, { passive: true })
@@ -126,6 +122,19 @@ export default {
   },
 
   methods: {
+    async fetchBooks() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get('/books')
+        this.books = response.data.slice(0, 12) // Get first 12 books
+      } catch (err) {
+        this.error = 'Failed to load books'
+        console.error('Error fetching books:', err)
+      } finally {
+        this.loading = false
+      }
+    },
     scrollLeft() {
       this.$refs.carousel.scrollBy({ left: -360, behavior: 'smooth' })
     },
