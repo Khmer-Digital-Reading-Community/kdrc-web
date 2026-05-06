@@ -84,14 +84,14 @@
                 @click="setActive(item)"
                 :class="[
                   'w-full flex items-center gap-3 px-4 py-2.5 rounded-none text-left relative transition-all duration-150 group',
-                  activeItem === item.label
+                  $route.path === item.route
                     ? 'text-[#1c3a2e] font-semibold bg-white/60'
                     : 'text-gray-500 hover:text-[#1c3a2e] hover:bg-white/40'
                 ]"
               >
                 <!-- Active indicator bar -->
                 <span
-                  v-if="activeItem === item.label"
+                  v-if="$route.path === item.route"
                   class="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-[#c5a050] rounded-l-full"
                 ></span>
 
@@ -144,13 +144,15 @@
 </template>
 
 <script>
+import Dashboard from '../../pages/user/Dashboard.vue';
+
 export default {
   name: 'DashboardSidebar',
 
   data() {
     return {
       collapsed: false,
-      activeItem: 'Earning',
+      //activeItem: 'Earning',
       mobileOpen: false,
       isMobile: false,
 
@@ -160,6 +162,7 @@ export default {
           items: [
             {
               label: 'Dashboard',
+              route: '/dashboard',
               icon: `<svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                        <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor"/>
                        <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor"/>
@@ -169,12 +172,14 @@ export default {
             },
             {
               label: 'Manuscripts',
+              route: '/manuscripts',
               icon: `<svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                      </svg>`,
             },
             {
               label: 'Exchange',
+              route: '/exchange',
               icon: `<svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                      </svg>`,
@@ -186,14 +191,16 @@ export default {
           items: [
             {
               label: 'Analytics',
+              route: '/analytics',
               icon: `<svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                       <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                       <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 ２h-２a２ ２ ０ ０１-２-２z"/>
                      </svg>`,
             },
             {
               label: 'Earning',
-              icon: `<svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                       <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+              route: '/earning',
+              icon: `<svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 极客时间
+                       <path stroke-linecap="round" stroke-linejoin="round" d="M3 极客时间h18M7 极客时间h1m4 极客时间h1m-7 极客时间h1２a3 极客时间3 极客时间０ 极客时间００３-3V8a3 极客时间3 极客时间０ 极客时间００３-3H6a3 极客时间3 极客时间０ 极客时间００３ 
                      </svg>`,
             },
           ],
@@ -203,12 +210,14 @@ export default {
           items: [
             {
               label: 'Archive',
+              route: '/archive',
               icon: `<svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                      </svg>`,
             },
             {
               label: 'Reports',
+              route: '/reports',
               icon: `<svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                      </svg>`,
@@ -220,12 +229,14 @@ export default {
           items: [
             {
               label: 'Plan and Billing',
+              route: '/billing',
               icon: `<svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                      </svg>`,
             },
             {
               label: 'Settings',
+              route: '/settings',
               icon: `<svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -260,8 +271,12 @@ export default {
     },
 
     setActive(item) {
-      this.activeItem = item.label
       this.mobileOpen = false
+
+      if (item.route && this.$route.path !== item.route) {
+        this.$router.push(item.route)
+      }
+
       this.$emit('navigate', item.label)
     },
   },

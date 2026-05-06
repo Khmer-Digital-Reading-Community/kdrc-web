@@ -1,3 +1,4 @@
+import DashboardLayout from "../layouts/DashboardLayout.vue";
 import UserLayout from "../layouts/UserLayout.vue";
 import Home from "../pages/user/Home.vue";
 import LandingPage from "../pages/user/landingPage.vue";
@@ -36,5 +37,22 @@ export default [
         path: '/reading/:id',
         name: 'readingpage',
         component: Reader
+    },
+    {
+        path: '/dashboard',
+        component: DashboardLayout,
+        children: [
+            {
+                path: '',
+                name: 'dashboard',
+                component: () => import('../pages/user/Dashboard.vue')
+            }
+        ]
+    },
+    {
+        path: '/manuscripts',
+        name: 'manuscripts',
+        component: () => import('../pages/user/Manuscripts.vue')
+        
     }
 ]
