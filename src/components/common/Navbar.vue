@@ -21,8 +21,9 @@ const showNotifications = ref(false) // Controls notification popup
 const props = defineProps<{ forceAuth?: boolean }>()
 const isAuthed = computed(() => props.forceAuth ?? Boolean(authState.token.value))
 
-const navLinks = [
-    { label: 'Browse', path: '/browse' },
+// Instead of copying and pasting HTML for every link, we store them in an array
+const navLinks = [  
+    { label: 'Browse', path: '/explore' },
     { label: 'Community', path: '/community' },
     { label: 'About', path: '/about' },
     { label: 'Contact', path: '/contact' },
