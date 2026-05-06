@@ -12,6 +12,8 @@ import userRoutes from './user';
 const router = createRouter({
 	history: createWebHistory(),
 	routes: [
+		// Redirect root to user home
+		{ path: '/', redirect: '/user/home' },
 		// { path: '/', name: 'home', component: Home, meta: { requiresAuth: true } },
 		{ path: '/chatbox', name: 'chatbox', component: ChatBox },
 		{ path: '/login', name: 'login', component: LoginForm },
@@ -31,9 +33,9 @@ const router = createRouter({
 // 		return { path: '/login', query: { redirect: to.fullPath } };
 // 	}
 
-// 	if ((to.path === '/login' || to.path === '/signup') && isAuthed) {
-// 		return { path: '/' };
-// 	}
+	if ((to.path === '/login' || to.path === '/signup') && isAuthed) {
+		return { path: '/user/home' };
+	}
 
 // 	return true;
 // });
