@@ -1,6 +1,6 @@
 <template>
   <div class="bg-[#f9fafb] text-gray-800 font-sans antialiased min-h-screen flex flex-col">
-    <main class="max-w-5xl mx-auto px-6 py-10 md:py-16 w-full flex-1">
+    <main class="max-w-screen-2xl mx-auto px-4 sm:px-8 lg:px-12 py-10 md:py-16 w-full flex-1">
       <nav class="text-xs text-gray-500 mb-8 font-medium">
         <a href="#" class="hover:text-gray-900 transition">Explore</a>
         <span class="mx-1">&gt;</span>
@@ -155,6 +155,49 @@
           <button class="bg-gray-200/80 hover:bg-gray-300 transition-colors text-gray-800 text-xs font-bold px-6 py-2.5 rounded-full">View All 24 Chapters</button>
         </div>
       </div>
+
+      <div class="mt-24">
+        <!-- Tabs -->
+        <div class="flex items-center gap-8 mb-8 border-b border-gray-200">
+          <button class="pb-4 text-[#F8A45C] font-bold border-b-2 border-[#F8A45C] text-sm tracking-wide">About Author</button>
+          <button class="pb-4 text-gray-500 font-bold text-sm tracking-wide hover:text-gray-900 transition-colors">Reviews</button>
+        </div>
+
+        <!-- Author Card -->
+        <div class="flex flex-col lg:flex-row gap-6">
+          <!-- Bio Section -->
+          <div class="flex-1 bg-gray-100/50 rounded-2xl p-10 flex flex-col justify-between">
+            <div>
+              <h2 class="text-3xl font-bold text-gray-900 mb-6">About the Author</h2>
+              <p class="text-gray-600 leading-relaxed text-base">
+                Elias Thorne is a novelist and typographer based in Oxford. His work often dwells
+                on the intersection of physical craft and digital ephemeralness. He spends his days
+                restoring 19th-century printing presses and his nights writing the future.
+              </p>
+            </div>
+
+            <div class="mt-12 flex items-center gap-6">
+              <a href="#" class="text-[#0f3b35] font-bold text-sm border-b-2 border-[#0f3b35] pb-0.5 hover:text-[#1a5f56] transition-colors">Follow Elias</a>
+              <a href="#" class="text-gray-500 font-bold text-sm hover:text-gray-900 transition-colors">Author Bio</a>
+            </div>
+          </div>
+
+          <!-- Author Image/Quote Section -->
+          <div class="w-full lg:w-115 relative rounded-2xl overflow-hidden group">
+            <img
+              :src="Author"
+              alt="Elias Thorne"
+              class="w-full h-87.5 object-cover grayscale brightness-75 group-hover:scale-105 transition-transform duration-500"
+            />
+            <!-- Dark Overlay for Quote -->
+            <div class="absolute inset-0 bg-linear-to-t from-[#0f3b35]/90 via-transparent to-transparent flex items-end p-8">
+              <p class="text-white italic font-serif text-lg leading-snug">
+                "Writing is the only way I know how to listen to the silence."
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
 
     <Footer />
@@ -164,6 +207,7 @@
 <script setup lang="ts">
 import Footer from '../../components/common/Footer.vue'
 import bookCoverSrc from '../../assets/images/BookCover.png'
+import Author from '../../assets/images/Author Portrait.png'
 
 function onCoverError(event: Event) {
   const target = event.target as HTMLImageElement
