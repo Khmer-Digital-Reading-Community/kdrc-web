@@ -121,6 +121,10 @@ export function useAuth() {
     window.location.href = `${apiBaseUrl}/auth/google`;
   };
 
+  const startFacebookLogin = () => {
+    window.location.href = `${apiBaseUrl}/auth/facebook`;
+  };
+
   const logout = async () => {
     clearSession();
     await router.push('/login');
@@ -134,6 +138,7 @@ export function useAuth() {
     signup,
     logout,
     startGoogleLogin,
+    startFacebookLogin,
     completeOAuth,
   };
 }
