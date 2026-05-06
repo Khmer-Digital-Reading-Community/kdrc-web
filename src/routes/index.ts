@@ -4,6 +4,7 @@ import SignupForm from '../auth/SignupForm.vue';
 import ForgotPassword from '../auth/ForgotPassword.vue';
 import ResetPassword from '../auth/ResetPassword.vue';
 import VerifyOTP from '../auth/VerifyOTP.vue';
+import ChatBox from '../components/chat/ChatBox.vue';
 import adminRoutes from './admin';
 import userRoutes from './user';
 // import OAuthCallback from '../views/OAuthCallback.vue';
@@ -12,6 +13,7 @@ const router = createRouter({
 	history: createWebHistory(),
 	routes: [
 		// { path: '/', name: 'home', component: Home, meta: { requiresAuth: true } },
+		{ path: '/chatbox', name: 'chatbox', component: ChatBox },
 		{ path: '/login', name: 'login', component: LoginForm },
 		{ path: '/signup', name: 'signup', component: SignupForm },
 		{ path: '/forgot-password', name: 'forgot-password', component: ForgotPassword },
