@@ -1,3 +1,4 @@
+import DashboardLayout from "../layouts/DashboardLayout.vue";
 import UserLayout from "../layouts/UserLayout.vue";
 import Home from "../pages/user/Home.vue";
 import LandingPage from "../pages/user/landingPage.vue";
@@ -12,11 +13,11 @@ export default [
             { path: '/home', name: 'homepage', component: Home },
             { path: '/community', name: 'community', component: () => import('../pages/user/Community.vue') },
             { path: '/explore', name: 'explore', alias: ['/explore', '/browse'], component: () => import('../pages/user/ExplorePage.vue') },
-            { path: '/exchange', name: 'exchange', component: () => import('../pages/user/ExchangePage.vue') }, 
-            { 
-                path: '/exchange/:id', 
-                name: 'book-exchange-detail', 
-                component: () => import('../pages/user/BookExchangeDetail.vue') 
+            { path: '/exchange', name: 'exchange', component: () => import('../pages/user/ExchangePage.vue') },
+            {
+                path: '/exchange/:id',
+                name: 'book-exchange-detail',
+                component: () => import('../pages/user/BookExchangeDetail.vue')
             },
         ]
     },
@@ -29,5 +30,21 @@ export default [
         path: '/reading/:id',
         name: 'readingpage',
         component: () => import('../pages/user/Reader.vue')
+    },
+    {
+        path: '/dashboard',
+        component: DashboardLayout,
+        children: [
+            {
+                path: '',
+                name: 'dashboard',
+                component: () => import('../pages/user/Dashboard.vue')
+            }
+        ]
+    },
+    {
+        path: '/manuscripts',
+        name: 'manuscripts',
+        component: () => import('../pages/user/Manuscripts.vue')
     }
 ]
