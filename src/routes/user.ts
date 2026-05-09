@@ -1,3 +1,4 @@
+import { Component } from "lucide-vue-next";
 import UserLayout from "../layouts/UserLayout.vue";
 import Home from "../pages/user/Home.vue";
 import LandingPage from "../pages/user/landingPage.vue";
@@ -18,6 +19,7 @@ export default [
                 name: 'book-exchange-detail', 
                 component: () => import('../pages/user/BookExchangeDetail.vue') 
             },
+            { path: '/about', name:'about', component: () => import('../pages/user/AboutUs.vue')},
         ]
     },
     {

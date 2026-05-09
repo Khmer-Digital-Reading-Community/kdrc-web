@@ -1,3 +1,8 @@
+<script setup>
+import literatureImage from '../../assets/images/Literature.png'
+import writingImage from '../../assets/images/Writing.png'
+</script>
+
 <template>
   <div class="bg-[#F4EDDF] ">
 
@@ -24,8 +29,8 @@
         </div>
       </div>
       <div class="relative flex-shrink-0 max-w-md">
-        <img src="../assets/images/Literature.png" class="w-70 h-auto mt-10 md:mt-0 rounded-3xl p-2 rotate-2" />
-        <img src="../assets/images/Writing.png"
+        <img :src="literatureImage" class="w-70 h-auto mt-10 md:mt-0 rounded-3xl p-2 rotate-2" />
+        <img :src="writingImage"
           class="absolute bottom-0 -left-10 w-25 h-25 -rotate-8 border-10 border-white rounded-lg">
 
       </div>
