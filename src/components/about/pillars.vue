@@ -2,10 +2,10 @@
   <section class="bg-white px-14 py-14">
 
     <!-- Header -->
-    <p class="text-[11px] font-bold tracking-[0.14em] text-[#c5a050] uppercase mb-2">
+    <p class="text-[11px] font-bold tracking-[0.14em] text-[#F9AE5B] uppercase mb-2">
       What we offer
     </p>
-     <div class="heading-2 text-[#1c3a2e] mb-10">
+     <div class="heading-2 text-[#093A3F] mb-10">
        Everything a reader or writer needs
      </div>
 
@@ -15,7 +15,7 @@
         v-for="pillar in pillars"
         :key="pillar.title"
         class="bg-[#faf8f3] border border-[#e8e4dc] rounded-xl p-6
-               hover:border-[#c5a050] hover:shadow-sm transition-all duration-200 group"
+               hover:border-[#F9AE5B] hover:shadow-sm transition-all duration-200 group"
       >
         <!-- Icon -->
         <div
@@ -29,7 +29,7 @@
         </div>
 
         <!-- Title -->
-        <div class="text-[14px] font-semibold text-[#1c3a2e] mb-2 group-hover:text-[#c5a050] transition-colors">
+        <div class="text-[14px] font-semibold text-[#093A3F] mb-2 group-hover:text-[#F9AE5B] transition-colors">
           {{ pillar.title }}
         </div>
 
@@ -64,9 +64,9 @@ export default {
           desc: 'Classic Khmer literature, public domain works & educational books — free, curated and categorised by genre.',
           tag: 'Open access',
           iconBg: '#e8f0ee',
-          iconColor: '#1c3a2e',
+          iconColor: '#093A3F',
           tagBg: '#e8f0ee',
-          tagColor: '#1c3a2e',
+          tagColor: '#093A3F',
           iconPath: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253z"/>',
         },
         {
@@ -74,9 +74,9 @@ export default {
           desc: 'Create books, manage chapters, publish episodically. Readers become writers automatically — no separate signup.',
           tag: 'For creators',
           iconBg: '#fdf6e8',
-          iconColor: '#c5a050',
+          iconColor: '#F9AE5B',
           tagBg: '#fdf6e8',
-          tagColor: '#b8903f',
+          tagColor: '#e8963f',
           iconPath: '<path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>',
         },
         {

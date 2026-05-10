@@ -2,10 +2,10 @@
   <section class="bg-[#faf8f3] px-4 md:px-8 lg:px-14 py-10 md:py-12 lg:py-14">
 
     <!-- Header -->
-    <p class="text-[11px] font-bold tracking-[0.14em] text-[#c5a050] uppercase mb-2">
+    <p class="text-[11px] font-bold tracking-[0.14em] text-[#F9AE5B] uppercase mb-2">
       The experience
     </p>
-     <div class="heading-2 text-[#1c3a2e] mb-8 md:mb-10 lg:mb-12">
+     <div class="heading-2 text-[#093A3F] mb-8 md:mb-10 lg:mb-12">
        From first page to full author
      </div>
 
@@ -21,10 +21,10 @@
         <div class="flex flex-col items-center flex-none">
           <div
             class="w-10 h-10 rounded-full flex items-center justify-center flex-none"
-            :class="index % 2 === 0 ? 'bg-[#1c3a2e]' : 'bg-[#c5a050]'"
+            :class="index % 2 === 0 ? 'bg-[#093A3F]' : 'bg-[#F9AE5B]'"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                 stroke-width="2" :class="index % 2 === 0 ? 'text-[#c5a050]' : 'text-white'"
+                 stroke-width="2" :class="index % 2 === 0 ? 'text-[#F9AE5B]' : 'text-white'"
                  v-html="step.iconPath">
             </svg>
           </div>
@@ -37,11 +37,11 @@
         <!-- Content -->
         <div class="pt-2 pb-1">
           <div class="flex items-center gap-3 mb-2">
-            <span class="text-[11px] font-bold tracking-[0.12em] text-[#c5a050] uppercase">
+            <span class="text-[11px] font-bold tracking-[0.12em] text-[#F9AE5B] uppercase">
               Step {{ index + 1 }}
             </span>
           </div>
-           <div class="heading-3 text-[#1c3a2e] mb-2">
+           <div class="heading-3 text-[#093A3F] mb-2">
              {{ step.title }}
            </div>
           <p class="text-[13px] text-gray-500 leading-[1.75]">
@@ -53,7 +53,7 @@
             class="mt-3 bg-white border border-[#e8e4dc] rounded-xl px-4 py-3
                    flex items-start gap-2"
           >
-            <span class="text-[#c5a050] mt-0.5 flex-none">
+            <span class="text-[#F9AE5B] mt-0.5 flex-none">
               <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
               </svg>

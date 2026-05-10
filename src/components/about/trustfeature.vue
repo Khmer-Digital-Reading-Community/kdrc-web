@@ -2,10 +2,10 @@
   <section class="bg-white px-14 py-14">
 
     <!-- Header -->
-    <p class="text-[11px] font-bold tracking-[0.14em] text-[#c5a050] uppercase mb-2">
+    <p class="text-[11px] font-bold tracking-[0.14em] text-[#F9AE5B] uppercase mb-2">
       Built right
     </p>
-     <div class="heading-2 text-[#1c3a2e] mb-10">
+     <div class="heading-2 text-[#093A3F] mb-10">
        Safe, fast & open to all
      </div>
 
@@ -15,7 +15,7 @@
         v-for="feature in features"
         :key="feature.title"
         class="border border-[#e8e4dc] rounded-xl p-5 flex gap-4 items-flex-start
-               hover:border-[#c5a050] hover:bg-[#faf8f3] transition-all duration-200 group"
+               hover:border-[#F9AE5B] hover:bg-[#faf8f3] transition-all duration-200 group"
       >
         <!-- Icon box -->
         <div
@@ -31,7 +31,7 @@
 
         <!-- Text -->
         <div>
-          <div class="text-[13px] font-semibold text-[#1c3a2e] mb-1.5 group-hover:text-[#c5a050] transition-colors">
+          <div class="text-[13px] font-semibold text-[#093A3F] mb-1.5 group-hover:text-[#F9AE5B] transition-colors">
             {{ feature.title }}
           </div>
           <div class="text-[12px] text-gray-500 leading-relaxed">
@@ -61,7 +61,7 @@ export default {
           desc: 'JWT auth, bcrypt hashing, role-based access control. Draft chapters stay private until the author publishes them.',
           source: 'Authentication & Security',
           iconBg: '#e8f0ee',
-          iconColor: '#1c3a2e',
+          iconColor: '#093A3F',
           iconPath: '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>',
         },
         {
@@ -69,7 +69,7 @@ export default {
           desc: 'Every published work is protected. No one can copy or claim another author\'s ideas or content without permission.',
           source: 'Out-Points §16',
           iconBg: '#fdf6e8',
-          iconColor: '#c5a050',
+          iconColor: '#F9AE5B',
           iconPath: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>',
         },
         {
