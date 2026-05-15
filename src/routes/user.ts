@@ -1,3 +1,4 @@
+import { Component } from "lucide-vue-next";
 import DashboardLayout from "../layouts/DashboardLayout.vue";
 import UserLayout from "../layouts/UserLayout.vue";
 import Home from "../pages/user/Home.vue";
@@ -26,6 +27,7 @@ export default [
                 name: 'book-exchange-detail', 
                 component: BookExchangeDetail 
             },
+            { path: '/about', name:'about', component: () => import('../pages/user/AboutUs.vue')},
             { path: 'book-detail/:id', name: 'book-detail', component: BookDetail },
         ]
     },
