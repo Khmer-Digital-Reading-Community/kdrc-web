@@ -43,6 +43,18 @@ const parseApiError = (error: unknown, fallback: string) => {
   return fallback;
 };
 
+const unwrapResponseData = <T>(responseData: unknown): T => {
+  if (
+    responseData &&
+    typeof responseData === 'object' &&
+    'data' in responseData
+  ) {
+    return (responseData as { data: T }).data;
+  }
+
+  return responseData as T;
+};
+
 const setSession = (accessToken: string, userData?: AuthUser | null) => {
   console.log('setSession called with token:', !!accessToken);
   token.value = accessToken;
@@ -65,8 +77,9 @@ const clearSession = () => {
 
 const fetchProfile = async () => {
   const response = await api.get<AuthUser>('/auth/me');
-  user.value = response.data;
-  return response.data;
+  const profile = unwrapResponseData<AuthUser>(response.data);
+  user.value = profile;
+  return profile;
 };
 
 if (token.value) {
@@ -95,14 +108,18 @@ export const restoreSession = async () => {
 export const login = async (credentials: LoginCredentials) => {
   try {
     const response = await api.post('/auth/login', credentials);
-    const { access_token: accessToken, user: userData } = response.data || {};
+    const { accessToken, refreshToken, user: userData } = unwrapResponseData<{
+      accessToken?: string;
+      refreshToken?: string;
+      user?: AuthUser;
+    }>(response.data) || {};
 
     if (!accessToken) {
       throw new Error('Login failed. Missing access token from server.');
     }
 
     setSession(accessToken, userData ?? null);
-    return { accessToken, user: userData ?? null };
+    return { accessToken, refreshToken, user: userData ?? null };
   } catch (error) {
     throw new Error(parseApiError(error, 'Login failed. Please try again.'));
   }
@@ -111,7 +128,10 @@ export const login = async (credentials: LoginCredentials) => {
 export const signup = async (userData: SignupData) => {
   try {
     const response = await api.post('/auth/register', userData);
-    const { access_token: accessToken, user } = response.data || {};
+    const { accessToken, user } = unwrapResponseData<{
+      accessToken?: string;
+      user?: AuthUser;
+    }>(response.data) || {};
     
     // If backend returns access token on signup, optionally auto-login
     // Otherwise, user will need to login on the next page
