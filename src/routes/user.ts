@@ -27,7 +27,7 @@ export default [
                 name: 'book-exchange-detail', 
                 component: BookExchangeDetail 
             },
-            { path: '/about', name:'about', component: () => import('../pages/user/AboutUs.vue')},
+            { path: 'about', name:'about', component: () => import('../pages/user/AboutUs.vue')},
             { path: 'book-detail/:id', name: 'book-detail', component: BookDetail },
         ]
     },

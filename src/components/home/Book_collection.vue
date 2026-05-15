@@ -175,7 +175,7 @@ export default {
   </div>
 </template>
 
-<script>
+<!-- <script>
 import api from '../../services/api'
 
 export default {
@@ -239,7 +239,7 @@ export default {
   },
 }
 
-</script>
+</script> -->
 
 <style scoped>
 /* Hide scrollbar cross-browser */

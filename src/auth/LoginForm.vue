@@ -3,16 +3,16 @@
     <div class="auth-split">
       <aside class="auth-visual">
         <div class="visual-inner">
-          <div class="brand-badge">
+          <router-link class="brand-badge" to="/">
             <img src="../assets/images/logo.png" alt="Logo" />
-          </div>
+          </router-link>
           <p class="visual-kicker">តោះអានសៀវភៅ</p>
           <h1>Your next great adventure begins here.</h1>
           <p class="visual-copy">
             Join our community of book lovers and discover timeless stories, cultural heritage, and
             modern literature in one elegant space.
           </p>
-          <p class="visual-footnote">Established 2024</p>
+          <p class="visual-footnote">Established 2026</p>
         </div>
       </aside>
 
