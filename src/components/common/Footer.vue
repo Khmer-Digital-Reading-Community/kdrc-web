@@ -104,11 +104,11 @@ const footerCols = [
   {
     title: 'Explore',
     links: [
-      { label: 'Browse Books',    path: '/browse'              },
-      { label: 'Classic Khmer',   path: '/browse?genre=classic'},
-      { label: 'Fiction',         path: '/browse?genre=fiction'},
-      { label: 'Education',       path: '/browse?genre=edu'   },
-      { label: 'Free Books',      path: '/browse?type=free'   },
+      { label: 'Browse Books',    path: '/explore'              },
+      { label: 'Classic Khmer',   path: '/explore'},
+      { label: 'Fiction',         path: '/explore'},
+      { label: 'Education',       path: '/explore'   },
+      { label: 'Free Books',      path: '/explore'   },
     ],
   },
   {
@@ -116,25 +116,25 @@ const footerCols = [
     links: [
       { label: 'Discussions',  path: '/community' },
       { label: 'Book Exchange', path: '/exchange' },
-      { label: 'Writers',      path: '/writers'   },
-      { label: 'Start Writing', path: '/write'    },
+      // { label: 'Writers',      path: '/writers'   },
+      // { label: 'Start Writing', path: '/write'    },
     ],
   },
   {
     title: 'Support',
     links: [
-      { label: 'About KDRC',    path: '/about'   },
-      { label: 'FAQ',           path: '/faq'     },
-      { label: 'Contact Us',    path: '/contact' },
-      { label: 'Privacy Policy',path: '/privacy' },
-      { label: 'Terms of Use',  path: '/terms'   },
+      // { label: 'About KDRC',    path: '/about'   },
+      // { label: 'FAQ',           path: '/faq'     },
+      // { label: 'Contact Us',    path: '/contact' },
+      // { label: 'Privacy Policy',path: '/privacy' },
+      // { label: 'Terms of Use',  path: '/terms'   },
     ],
   },
 ]
 
-const bottomLinks = [
-  { label: 'Privacy', path: '/privacy' },
-  { label: 'Terms',   path: '/terms'   },
-  { label: 'Contact', path: '/contact' },
+const bottomLinks: Array<{ label: string; path: string }> = [
+  // { label: 'Privacy', path: '/privacy' },
+  // { label: 'Terms',   path: '/terms'   },
+  // { label: 'Contact', path: '/contact' },
 ]
 </script>

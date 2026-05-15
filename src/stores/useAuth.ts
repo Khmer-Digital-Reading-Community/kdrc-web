@@ -21,7 +21,7 @@ export function useAuth() {
   ) => {
     try {
       await loginUser(credentials);
-      await router.push(redirectTo || '/');
+      await router.push(redirectTo || '/home');
     } catch (error) {
       throw new Error(parseApiError(error, 'Login failed. Please try again.'));
     }
@@ -39,7 +39,7 @@ export function useAuth() {
   const completeOAuth = async (accessToken: string) => {
     try {
       await completeOAuthSession(accessToken);
-      await router.push('/');
+      await router.push('/home');
     } catch (error) {
       throw new Error(parseApiError(error, 'OAuth login failed.'));
     }
@@ -65,3 +65,5 @@ export function useAuth() {
 
 export { authState };
 export const restoreSession = restoreAuthSession;
+// Export token ref directly for components that need reactive access
+export { token } from '../services/auth.service';

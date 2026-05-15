@@ -175,6 +175,71 @@ export default {
   </div>
 </template>
 
+<script>
+import api from '../../services/api'
+
+export default {
+  
+  name: 'BookCollections',
+
+  data() {
+    return {
+      activeDot: 0,
+      dotCount: 3,
+      books: [],
+      loading: false,
+      error: null,
+    }
+  },
+
+  mounted() {
+    this.fetchBooks()
+    const el = this.$refs.carousel
+    if (el) {
+      el.addEventListener('scroll', this.onScroll, { passive: true })
+    }
+  },
+
+  beforeUnmount() {
+    const el = this.$refs.carousel
+    if (el) el.removeEventListener('scroll', this.onScroll)
+  },
+
+  methods: {
+    async fetchBooks() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get('/books')
+        this.books = response.data.slice(0, 12) // Get first 12 books
+      } catch (err) {
+        this.error = 'Failed to load books'
+        console.error('Error fetching books:', err)
+      } finally {
+        this.loading = false
+      }
+    },
+    scrollLeft() {
+      this.$refs.carousel.scrollBy({ left: -360, behavior: 'smooth' })
+    },
+    scrollRight() {
+      this.$refs.carousel.scrollBy({ left: 360, behavior: 'smooth' })
+    },
+    scrollToPage(index) {
+      const el = this.$refs.carousel
+      const pageWidth = el.clientWidth
+      el.scrollTo({ left: pageWidth * index, behavior: 'smooth' })
+      this.activeDot = index
+    },
+    onScroll() {
+      const el = this.$refs.carousel
+      const scrollFraction = el.scrollLeft / (el.scrollWidth - el.clientWidth)
+      this.activeDot = Math.round(scrollFraction * (this.dotCount - 1))
+    },
+  },
+}
+
+</script>
 
 <style scoped>
 /* Hide scrollbar cross-browser */
