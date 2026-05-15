@@ -21,7 +21,7 @@ export function useAuth() {
   ) => {
     try {
       await loginUser(credentials);
-      await router.push(redirectTo || '/user/home');
+      await router.push(redirectTo || '/home');
     } catch (error) {
       throw new Error(parseApiError(error, 'Login failed. Please try again.'));
     }
@@ -39,7 +39,7 @@ export function useAuth() {
   const completeOAuth = async (accessToken: string) => {
     try {
       await completeOAuthSession(accessToken);
-      await router.push('/user/home');
+      await router.push('/home');
     } catch (error) {
       throw new Error(parseApiError(error, 'OAuth login failed.'));
     }

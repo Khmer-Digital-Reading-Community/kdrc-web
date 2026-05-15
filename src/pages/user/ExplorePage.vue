@@ -82,7 +82,7 @@
             <router-link 
               v-for="book in books" 
               :key="book.id" 
-              :to="`/user/book-exchange-detail/${book.id}`"
+              :to="`/book-exchange-detail/${book.id}`"
               class="group block bg-white rounded-[32px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500"
             >
               <!-- Colored Card Header - Height increased to 340px and padding reduced to p-6 for a larger book -->
