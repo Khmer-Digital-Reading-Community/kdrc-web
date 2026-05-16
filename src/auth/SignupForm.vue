@@ -155,6 +155,15 @@
 <script lang="ts">
 import { defineComponent, reactive, ref } from 'vue';
 import { useAuth } from '../stores/useAuth';
+import { signup as signupUser, parseApiError } from '../services/auth';
+import { useRouter } from 'vue-router';
+import {
+  validateConfirmPasswordValue,
+  validateEmailValue,
+  validateNameValue,
+  validatePasswordValue,
+} from '../utils/auth-validation';
+import { mapApiErrorToForm } from '../utils/form-error-mapper';
 
 export default defineComponent({
   name: 'SignupForm',
@@ -173,62 +182,30 @@ export default defineComponent({
       confirmPassword: '',
       form: '',
     });
-    const { signup, startGoogleLogin, startFacebookLogin } = useAuth();
+    const { startGoogleLogin, startFacebookLogin } = useAuth();
+    const router = useRouter();
 
     const validateName = () => {
-      if (!name.value) {
-        errors.name = 'Name is required.';
-        return false;
-      }
-
-      if (name.value.length < 2) {
-        errors.name = 'Name must be at least 2 characters.';
-        return false;
-      }
-
-      errors.name = '';
-      return true;
+      errors.name = validateNameValue(name.value);
+      return errors.name.length === 0;
     };
 
     const validateEmail = () => {
-      if (!email.value) {
-        errors.email = 'Email is required.';
-        return false;
-      }
-
-      const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value);
-      errors.email = isValid ? '' : 'Enter a valid email address.';
-      return isValid;
+      errors.email = validateEmailValue(email.value);
+      return errors.email.length === 0;
     };
 
     const validatePassword = () => {
-      if (!password.value) {
-        errors.password = 'Password is required.';
-        return false;
-      }
-
-      if (password.value.length < 8) {
-        errors.password = 'Password must be at least 8 characters.';
-        return false;
-      }
-
-      errors.password = '';
-      return true;
+      errors.password = validatePasswordValue(password.value);
+      return errors.password.length === 0;
     };
 
     const validateConfirm = () => {
-      if (!confirmPassword.value) {
-        errors.confirmPassword = 'Please confirm your password.';
-        return false;
-      }
-
-      if (confirmPassword.value !== password.value) {
-        errors.confirmPassword = 'Passwords do not match.';
-        return false;
-      }
-
-      errors.confirmPassword = '';
-      return true;
+      errors.confirmPassword = validateConfirmPasswordValue(
+        confirmPassword.value,
+        password.value,
+      );
+      return errors.confirmPassword.length === 0;
     };
 
     const handleSignup = async () => {
@@ -243,9 +220,17 @@ export default defineComponent({
 
       isSubmitting.value = true;
       try {
-        await signup({ name: name.value, email: email.value, password: password.value });
+        await signupUser({ name: name.value, email: email.value, password: password.value });
+        // on success, redirect to login with registered flag
+        router.push({ path: '/login', query: { registered: '1' } });
       } catch (error) {
-        errors.form = error instanceof Error ? error.message : 'Signup failed.';
+        mapApiErrorToForm(
+          error,
+          errors,
+          ['name', 'email', 'password', 'confirmPassword'],
+          'Signup failed. Please try again.',
+          parseApiError,
+        );
       } finally {
         isSubmitting.value = false;
       }

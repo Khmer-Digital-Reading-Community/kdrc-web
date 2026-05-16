@@ -27,13 +27,26 @@ const isRestoring = ref(false);
 
 const parseApiError = (error: unknown, fallback: string) => {
   if (axios.isAxiosError(error)) {
+    // backend returns { status: 'error', data: { message, errors }}
+    const apiPayload = error.response?.data;
+    const nested = apiPayload && typeof apiPayload === 'object' ? (apiPayload as any).data : null;
     const message =
-      error.response?.data?.message ||
-      error.response?.data?.error ||
+      (nested && nested.message) ||
+      apiPayload?.message ||
+      apiPayload?.error ||
       error.message;
-    return typeof message === 'string' && message.trim().length > 0
-      ? message
-      : fallback;
+
+    if (typeof message === 'string' && message.trim().length > 0) {
+      return message;
+    }
+
+    if (nested && nested.errors) {
+      // If validation errors array, join for a simple string fallback
+      if (Array.isArray(nested.errors)) return nested.errors.join('; ');
+      return String(nested.errors);
+    }
+
+    return fallback;
   }
 
   if (error instanceof Error && error.message.trim().length > 0) {
@@ -44,12 +57,9 @@ const parseApiError = (error: unknown, fallback: string) => {
 };
 
 const unwrapResponseData = <T>(responseData: unknown): T => {
-  if (
-    responseData &&
-    typeof responseData === 'object' &&
-    'data' in responseData
-  ) {
-    return (responseData as { data: T }).data;
+  if (responseData && typeof responseData === 'object') {
+    const rd = responseData as any;
+    if ('data' in rd) return rd.data as T;
   }
 
   return responseData as T;

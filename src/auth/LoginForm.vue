@@ -113,8 +113,11 @@
 
 <script lang="ts">
 import { computed, defineComponent, reactive, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuth } from '../stores/useAuth';
+import { login as loginService, parseApiError } from '../services/auth';
+import { validateEmailValue, validatePasswordValue } from '../utils/auth-validation';
+import { mapApiErrorToForm } from '../utils/form-error-mapper';
 
 export default defineComponent({
   name: 'LoginForm',
@@ -129,34 +132,19 @@ export default defineComponent({
       form: '',
     });
     const route = useRoute();
-    const { login, startGoogleLogin, startFacebookLogin } = useAuth();
+    const router = useRouter();
+    const { startGoogleLogin, startFacebookLogin } = useAuth();
 
     const registered = computed(() => route.query.registered === '1');
 
     const validateEmail = () => {
-      if (!email.value) {
-        errors.email = 'Email is required.';
-        return false;
-      }
-
-      const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value);
-      errors.email = isValid ? '' : 'Enter a valid email address.';
-      return isValid;
+      errors.email = validateEmailValue(email.value);
+      return errors.email.length === 0;
     };
 
     const validatePassword = () => {
-      if (!password.value) {
-        errors.password = 'Password is required.';
-        return false;
-      }
-
-      if (password.value.length < 8) {
-        errors.password = 'Password must be at least 8 characters.';
-        return false;
-      }
-
-      errors.password = '';
-      return true;
+      errors.password = validatePasswordValue(password.value);
+      return errors.password.length === 0;
     };
 
     const handleLogin = async () => {
@@ -173,9 +161,17 @@ export default defineComponent({
           typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/')
             ? route.query.redirect
             : '/';
-        await login({ email: email.value, password: password.value }, redirectTarget);
+
+        await loginService({ email: email.value, password: password.value });
+        await router.push(redirectTarget);
       } catch (error) {
-        errors.form = error instanceof Error ? error.message : 'Login failed.';
+        mapApiErrorToForm(
+          error,
+          errors,
+          ['email', 'password'],
+          'Login failed. Please try again.',
+          parseApiError,
+        );
       } finally {
         isSubmitting.value = false;
       }

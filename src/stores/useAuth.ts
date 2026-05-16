@@ -9,7 +9,7 @@ import {
   signup as signupUser,
   startFacebookLogin,
   startGoogleLogin,
-} from '../services/auth.service';
+} from '../services/auth';
 
 export function useAuth() {
   const router = useRouter();
@@ -66,4 +66,4 @@ export function useAuth() {
 export { authState };
 export const restoreSession = restoreAuthSession;
 // Export token ref directly for components that need reactive access
-export { token } from '../services/auth.service';
+export { token } from '../services/auth';
