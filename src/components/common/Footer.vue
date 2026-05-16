@@ -132,7 +132,7 @@ const footerCols = [
   },
 ]
 
-const bottomLinks = [
+const bottomLinks: any[] = [
   // { label: 'Privacy', path: '/privacy' },
   // { label: 'Terms',   path: '/terms'   },
   // { label: 'Contact', path: '/contact' },
