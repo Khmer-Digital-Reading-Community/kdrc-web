@@ -49,6 +49,11 @@ export default [
                 path: '',
                 name: 'dashboard',
                 component: () => import('../pages/user/Dashboard.vue')
+            },
+            {
+                path: 'earnings',
+                name: 'earnings',
+                component: () => import('../pages/user/EarningsPage.vue')
             }
         ]
     },
