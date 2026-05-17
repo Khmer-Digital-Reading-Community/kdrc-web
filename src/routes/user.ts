@@ -54,6 +54,11 @@ export default [
                 path: 'earnings',
                 name: 'earnings',
                 component: () => import('../pages/user/EarningsPage.vue')
+            },
+            {
+                path: 'analytics',
+                name: 'analytics',
+                component: () => import('../pages/user/AnalyticsPage.vue')
             }
         ]
     },
