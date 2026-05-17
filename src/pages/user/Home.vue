@@ -3,7 +3,9 @@
         <Hero/>
         <Book_collection/>
         <Reading_continue/>
+
         <Explore/>
+        
         <Recommend/>
         
     </div>

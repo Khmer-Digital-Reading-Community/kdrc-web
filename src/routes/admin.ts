@@ -6,7 +6,8 @@ export default [
         component: AdminLayout,
         children: [
             { path: 'dashboard', name: 'admin-dashboard', component: () => import('../pages/admin/page.vue') },
-            { path: 'books', name: 'admin-books', component: () => import('../pages/admin/Books.vue') },           
+            { path: 'books', name: 'admin-books', component: () => import('../pages/admin/Books.vue') },
+            { path: 'challenges', name: 'admin-challenges', component: () => import('../pages/admin/Challenges.vue') },
             { path: 'users', name: 'admin-users', component: () => import('../pages/admin/Users.vue') },
             { path: 'notifications', name: 'admin-notifications', component: () => import('../pages/admin/Notifications.vue') },       
             { path: 'comments', name: 'admin-comments', component: () => import('../pages/admin/Comments.vue') },
