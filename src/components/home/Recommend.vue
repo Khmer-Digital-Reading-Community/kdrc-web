@@ -114,7 +114,7 @@
 </template>
 
 <script>
-const module = import.meta.glob('../assets/images/books/*.{png,jpg,jpeg}', { eager: true })
+const module = import.meta.glob('../../assets/images/books/*.{png,jpg,jpeg}', { eager: true })
 
 const images = Object.fromEntries(
   Object.entries(module).map(([path, mod]) => {

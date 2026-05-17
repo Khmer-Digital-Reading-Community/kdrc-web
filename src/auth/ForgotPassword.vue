@@ -1,38 +1,106 @@
 <template>
-  <section class="auth-page auth-forgot-password">
-    <div class="auth-split">
-      <aside class="auth-visual">
-        <div class="visual-inner">
-          <div class="brand-badge">
-            <img src="../assets/images/logo.png" alt="Logo" />
+  <section class="min-h-screen flex items-center justify-center px-4 py-10 font-sans overflow-hidden relative">
+
+    <!-- Ambient grain overlay -->
+    <div class="pointer-events-none absolute inset-0 opacity-[0.035]"
+      style="background-image: url('data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E'); background-size: 200px;">
+    </div>
+
+    <!-- Warm glow blobs -->
+    <div class="pointer-events-none absolute top-[-120px] left-[-80px] w-[520px] h-[520px] rounded-full opacity-[0.12]"
+      style="background: radial-gradient(circle, #c8862a 0%, transparent 70%);">
+    </div>
+    <div class="pointer-events-none absolute bottom-[-100px] right-[-60px] w-[400px] h-[400px] rounded-full opacity-[0.08]"
+      style="background: radial-gradient(circle, #7c5c2e 0%, transparent 70%);">
+    </div>
+
+    <!-- Card -->
+    <div class="relative z-10 w-full max-w-[920px] grid grid-cols-1 lg:grid-cols-2 rounded-2xl overflow-hidden border border-white/[0.06]">
+
+      <!-- LEFT PANEL -->
+      <aside
+        class="hidden lg:flex relative flex-col justify-between px-10 py-12 text-[#e8dcc8] overflow-hidden bg-cover bg-center bg-no-repeat"
+        style="background-image: linear-gradient(160deg, rgba(26,18,8,0.8) 0%, rgba(14,11,6,0.85) 60%, rgba(18,16,10,0.9) 100%), url('https://i.pinimg.com/736x/73/52/39/735239814b6155298efb8341d55293b3.jpg'); background-blend-mode: multiply;"
+      >
+        <!-- Decorative book spine lines -->
+        <div class="absolute inset-y-0 right-0 flex gap-[3px] opacity-20">
+          <div class="w-[2px] h-full" style="background: linear-gradient(to bottom, transparent, #c8862a, transparent);"></div>
+          <div class="w-[1px] h-full" style="background: linear-gradient(to bottom, transparent, #8a5f1e, transparent);"></div>
+        </div>
+
+        <!-- Top: brand -->
+        <div>
+          <div class="flex items-center gap-3 mb-14">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center border border-[#c8862a]/30 bg-[#c8862a]/10">
+              <svg class="w-5 h-5 text-[#c8862a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <span class="text-[#c8862a] font-semibold tracking-widest text-xs uppercase">The Library</span>
           </div>
-          <p class="visual-kicker">Password Recovery</p>
-          <h1>Get back to your account.</h1>
-          <p class="visual-copy">
-            We'll send a verification code to your email address to help you reset your password
-            and regain access to your account.
+
+          <p class="text-[#c8862a]/60 text-sm tracking-[0.2em] uppercase mb-4 font-light">Password Recovery</p>
+
+          <h1 class="text-[2.6rem] leading-[1.1] font-serif font-bold text-[#e8dcc8] mb-6"
+            style="font-family: 'Georgia', 'Times New Roman', serif; text-shadow: 0 2px 24px rgba(200,134,42,0.15);">
+            Get back to<br />your account.<br />
+            <span class="italic text-[#c8862a]">We've got you.</span>
+          </h1>
+
+          <p class="text-[#a99278] text-sm leading-relaxed max-w-[280px]">
+            We'll send a verification code to your email address to help you reset your password and regain access.
           </p>
-          <div class="visual-tags">
-            <span>Secure</span>
-            <span>Quick</span>
-            <span>Easy</span>
+
+          <!-- Tags -->
+          <div class="flex gap-4 mt-8">
+            <span class="text-[10px] uppercase tracking-[0.2em] text-[#c8862a]/50">Secure</span>
+            <span class="text-[10px] uppercase tracking-[0.2em] text-[#c8862a]/50">Quick</span>
+            <span class="text-[10px] uppercase tracking-[0.2em] text-[#c8862a]/50">Easy</span>
           </div>
+        </div>
+
+        <!-- Bottom: footnote -->
+        <div class="mt-12">
+          <div class="w-8 h-[1px] bg-[#c8862a]/40 mb-4"></div>
+          <p class="text-[#6b5a45] text-[10px] tracking-[0.25em] uppercase">Established 2026</p>
         </div>
       </aside>
 
-      <div class="auth-panel">
-        <div class="auth-card">
-          <div class="auth-header">
-            <h2>Forgot Password</h2>
-            <p class="auth-subtitle">
-              Remember your password?
-              <router-link to="/login">Log in</router-link>
+      <!-- RIGHT PANEL -->
+      <div class="flex items-center justify-center bg-white px-8 py-12 lg:px-12">
+        <div class="w-full max-w-[360px]">
+
+          <!-- Header -->
+          <div class="mb-8">
+            <h2 class="text-[1.75rem] font-serif font-bold text-[#1a1208] mb-1"
+              style="font-family: 'Georgia', 'Times New Roman', serif;">
+              Forgot Password
+            </h2>
+            <p class="text-[#666666] text-sm">
+              Remember it?
+              <router-link to="/login" class="ml-1 text-[#c8862a] font-semibold hover:text-[#a86818] transition-colors duration-150">Log in</router-link>
             </p>
           </div>
 
-          <form @submit.prevent="handleSendOTP" novalidate>
-            <div class="form-group">
-              <label for="email">Email Address</label>
+          <!-- Error banner -->
+          <transition name="fade">
+            <div v-if="errors.form" role="alert"
+              class="mb-5 flex items-center gap-2.5 rounded-xl px-4 py-3 bg-red-900/30 border border-red-700/30 text-red-400 text-sm">
+              <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+              {{ errors.form }}
+            </div>
+          </transition>
+
+          <form @submit.prevent="handleSendOTP" novalidate class="space-y-5">
+
+            <!-- Email -->
+            <div>
+              <label for="email"
+                class="block mb-2 text-[10px] font-semibold tracking-[0.18em] uppercase text-[#666666]">
+                Email Address
+              </label>
               <input
                 id="email"
                 type="email"
@@ -42,18 +110,39 @@
                 :aria-invalid="errors.email ? 'true' : 'false'"
                 @blur="validateEmail"
                 required
+                class="w-full rounded-xl px-4 py-3 text-sm bg-white border text-[#333333] placeholder-[#999999] transition-all duration-200 outline-none focus:ring-2 focus:ring-[#c8862a]/40 focus:border-[#c8862a]/50"
+                :class="errors.email ? 'border-red-700/60' : 'border-[#dddddd] focus:border-transparent'"
               />
-              <span v-if="errors.email" class="field-error">{{ errors.email }}</span>
+              <p v-if="errors.email" class="mt-1.5 text-xs text-red-400 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                {{ errors.email }}
+              </p>
             </div>
 
-            <p v-if="errors.form" class="form-error" role="alert">{{ errors.form }}</p>
-
-            <button class="primary" type="submit" :disabled="isSubmitting">
-              {{ isSubmitting ? 'Sending OTP...' : 'Send OTP' }}
+            <!-- Submit -->
+            <button
+              type="submit"
+              :disabled="isSubmitting"
+              class="w-full py-3 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
+              style="background: linear-gradient(135deg, #b87820 0%, #c8862a 50%, #a86818 100%); color: #1a0e04; box-shadow: 0 8px 28px rgba(200,134,42,0.25);">
+              <span class="relative z-10 flex items-center justify-center gap-2">
+                <svg v-if="isSubmitting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                {{ isSubmitting ? 'Sending OTP…' : 'Send OTP' }}
+              </span>
+              <div class="absolute inset-0 bg-white/10 translate-x-[-120%] group-hover:translate-x-[120%] transition-transform duration-700 skew-x-12"></div>
             </button>
           </form>
 
-          <p class="auth-footer">© 2026 KDRC • Built for Khmer heritage</p>
+          <!-- Footer -->
+          <p class="mt-10 pt-4 text-center text-xs text-[#666666]">
+            © 2026 KDRC • Built for Khmer heritage
+          </p>
+
         </div>
       </div>
     </div>
@@ -97,7 +186,6 @@ export default defineComponent({
       isSubmitting.value = true;
       try {
         await api.post('/auth/forgot-password', { email: email.value });
-        // Redirect to verify OTP with email in query
         await router.push({
           name: 'verify-otp-reset',
           query: { email: email.value, step: 'verify' },
@@ -122,217 +210,13 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.auth-page {
-  min-height: calc(100vh - 140px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
-
-.auth-split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  width: 100%;
-  max-width: 900px;
-  border-radius: 20px;
-  overflow: hidden;
-  background: #fff;
-  border: 1px solid rgba(15, 25, 20, 0.08);
-  box-shadow: 0 20px 50px rgba(12, 18, 16, 0.15);
-}
-
-.auth-visual {
-  position: relative;
-  padding: 30px 20px;
-  color: #f1ece7;
-  background: linear-gradient(135deg, rgba(20, 15, 10, 0.7) 0%, rgba(40, 30, 20, 0.6) 50%, rgba(20, 15, 10, 0.7) 100%),
-    url('https://i.pinimg.com/736x/73/52/39/735239814b6155298efb8341d55293b3.jpg');
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.auth-visual::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"%3E%3Cpath d="M0 80h160" stroke="rgba(255,255,255,0.08)"/%3E%3Cpath d="M80 0v160" stroke="rgba(255,255,255,0.06)"/%3E%3C/svg%3E');
-  opacity: 0.35;
-  pointer-events: none;
-}
-
-.visual-inner {
-  position: relative;
-  z-index: 1;
-  max-width: 420px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.brand-badge {
-  width: 64px;
-  height: 64px;
-  border-radius: 18px;
-  display: grid;
-  place-items: center;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-  font-weight: 700;
-  letter-spacing: 1px;
-  margin-bottom: 28px;
-  overflow: hidden;
-}
-
-.brand-badge img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
-}
-
-.visual-kicker {
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-size: 12px;
-  margin: 0 0 10px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-h1 {
-  font-size: clamp(32px, 4vw, 48px);
-  line-height: 1.1;
-  margin: 0 0 16px;
-  color: #f7efe6;
-}
-
-.visual-copy {
-  margin: 0 0 28px;
-  color: rgba(241, 236, 231, 0.78);
-  font-size: 15px;
-}
-
-.visual-tags {
-  display: flex;
-  gap: 18px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-size: 10px;
-  color: rgba(241, 236, 231, 0.6);
-  justify-content: center;
-}
-
-.auth-panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fbfbfc;
-  padding: 40px 30px;
-}
-
-.auth-card {
-  width: 100%;
-}
-
-.auth-header {
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-h2 {
-  font-size: 28px;
-  margin: 0 0 6px;
-  color: #1f2422;
-}
-
-.auth-subtitle {
-  margin: 0;
-  color: #737c7b;
-  font-size: 13px;
-}
-
-.auth-subtitle a {
-  color: #6a40d7;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.form-group {
-  margin-bottom: 16px;
-  text-align: left;
-}
-
-label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 600;
-  color: #2e3634;
-  font-size: 12px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-}
-
-input {
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid #e4e7ea;
-  background: #f7f8fa;
-  font-size: 14px;
-  color: #1f2b29;
-}
-
-input:focus {
-  outline: 2px solid rgba(15, 109, 95, 0.35);
-  border-color: transparent;
-  background: #fff;
-}
-
-.field-error {
-  display: block;
-  margin-top: 6px;
-  font-size: 12px;
-  color: #b42318;
-}
-
-.form-error {
-  margin: 12px 0 0;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: #fbe5e5;
-  color: #8b1c1c;
-  font-size: 13px;
-}
-
-button {
-  width: 100%;
-  padding: 12px 16px;
-  border-radius: 999px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.primary {
-  background: #0f3b3f;
-  color: #fff;
-  box-shadow: 0 16px 28px rgba(12, 40, 38, 0.25);
-}
-
-.auth-footer {
-  margin: 20px 0 0;
-  text-align: center;
-  color: #6d7070;
-  font-size: 13px;
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>
