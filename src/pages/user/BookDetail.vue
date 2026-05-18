@@ -1,319 +1,217 @@
+<script setup lang="ts">
+import { ref } from "vue";
+
+import BookHero from "@/components/bookdetail/BookHero.vue";
+import ChapterList from "@/components/bookdetail/ChapterList.vue";
+import BookTabs from "@/components/bookdetail/BookTabs.vue";
+import ReviewSection from "@/components/bookdetail/ReviewSection.vue";
+import AuthorSection from "@/components/bookdetail/AuthorSection.vue";
+
+import { useBookDetail } from "../../composables/useBookDetails";
+
+const activeTab = ref<"author" | "reviews">(
+  "reviews"
+);
+
+const { book, loading } = useBookDetail();
+
+// Mock data for testing without API
+// const loading = ref(false);
+
+// const book = ref({
+//   id: "1",
+
+//   title: "The Whispering Vellum",
+
+//   description:
+//     "An atmospheric literary fantasy exploring forgotten memories, sacred manuscripts, and the fragile architecture of storytelling.",
+
+//   coverImage:
+//     "https://images.unsplash.com/photo-1544947950-fa07a98d237f",
+
+//   language: "English",
+
+//   pages: 342,
+
+//   publisher: "Atelier Press",
+
+//   rating: 4.8,
+
+//   reviewCount: 1248,
+
+//   author: {
+//     name: "Elias Thorne",
+
+//     bio:
+//       "Elias Thorne writes literary fantasy centered around memory, architecture, and silence. His work has been translated into 14 languages.",
+
+//     image:
+//       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+//   },
+
+//   chapters: [
+//     {
+//       id: "1",
+//       title: "The Last Library",
+//       duration: "12 min read",
+//       isPremium: false,
+//       isPublic: true,
+//     },
+
+//     {
+//       id: "2",
+//       title: "Ink Between Stones",
+//       duration: "18 min read",
+//       isPremium: true,
+//       isPublic: false,
+//     },
+
+//     {
+//       id: "3",
+//       title: "The Quiet Cathedral",
+//       duration: "14 min read",
+//       isPremium: true,
+//       isPublic: false,
+//     },
+//   ],
+
+//   reviews: [
+//     {
+//       id: "1",
+//       userName: "Sophia Bennett",
+
+//       userImg:
+//         "https://randomuser.me/api/portraits/women/44.jpg",
+
+//       date: "May 18, 2026",
+
+//       title: "Beautifully Written",
+
+//       comment:
+//         "The prose feels cinematic and deeply emotional. Every chapter unfolds like architecture.",
+
+//       helpfulCount: 18,
+//     },
+
+//     {
+//       id: "2",
+//       userName: "Daniel Gray",
+
+//       userImg:
+//         "https://randomuser.me/api/portraits/men/32.jpg",
+
+//       date: "May 16, 2026",
+
+//       title: "A Modern Masterpiece",
+
+//       comment:
+//         "Rarely does fantasy literature feel this intimate and intelligent.",
+
+//       helpfulCount: 9,
+//     },
+//   ],
+// });
+</script>
+
 <template>
-  <div class="bg-[#f9fafb] text-gray-800 font-sans antialiased min-h-screen flex flex-col">
-    <main class="max-w-screen-2xl mx-auto px-4 sm:px-8 lg:px-12 py-10 md:py-16 w-full flex-1">
-      <nav class="text-xs text-gray-500 mb-8 font-medium">
-        <a href="/explore" class="hover:text-gray-900 transition">Explore</a>
-        <span class="mx-1">&gt;</span>
-        <span class="text-gray-400">Book Details</span>
+  <div
+    class="bg-[#f9fafb]
+           text-gray-800
+           font-sans
+           antialiased
+           min-h-screen
+           flex flex-col"
+  >
+
+    <!-- Loading -->
+    <div
+      v-if="loading"
+      class="flex-1 flex items-center justify-center"
+    >
+      <p class="text-gray-500">
+        Loading book details...
+      </p>
+    </div>
+
+    <!-- Content -->
+    <main
+      v-else-if="book"
+      class="max-w-screen-2xl
+             mx-auto
+             px-4 sm:px-8 lg:px-12
+             py-10 md:py-16
+             w-full flex-1"
+    >
+
+      <!-- Breadcrumb -->
+      <nav
+        class="text-xs text-gray-500
+               mb-8 font-medium"
+      >
+
+        <RouterLink
+          to="/explore"
+          class="hover:text-gray-900 transition"
+        >
+          Explore
+        </RouterLink>
+
+        <span class="mx-1">
+          >
+        </span>
+
+        <span class="text-gray-400">
+          Book Details
+        </span>
+
       </nav>
 
-      <div class="flex flex-col md:flex-row gap-10 lg:gap-16 mb-20">
-        <div class="w-full md:w-[320px] shrink-0">
-            <img 
-                :src="bookCoverSrc" 
-                @error="onCoverError" 
-                alt="Book cover" 
-                class="w-full aspect-2/3 rounded shadow-xl object-cover" 
-                />
-        </div>
+      <!-- Hero -->
+      <BookHero :book="book" />
 
-        <div class="flex-1 flex flex-col justify-center">
-          <div class="flex flex-wrap items-center gap-4 mb-4">
-            <span class="bg-gray-200/80 text-gray-600 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded">Editorial Choice</span>
-            <div class="flex items-center gap-1">
-              <div class="flex text-yellow-500 text-sm">
-                <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              </div>
-              <span class="text-xs text-gray-900 font-medium ml-1">4.8 <span class="text-gray-500 font-normal">(1.2k Reviews)</span></span>
-            </div>
-          </div>
+      <!-- Chapters -->
+      <ChapterList
+        :chapters="book.chapters"
+      />
 
-          <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight mb-2">The Whispering Vellum</h1>
-          <p class="text-gray-500 mb-8">by <a href="#" class="text-[#134e4a] font-bold hover:underline">Elias Thorne</a></p>
-
-          <div class="text-gray-600 text-sm md:text-base leading-relaxed space-y-4 mb-8">
-            <p>Deep within the archives of a forgotten library, Julian discovers a manuscript that writes itself as he reads. A haunting exploration of destiny, creative obsession, and the thin line between the author and the art.</p>
-            <p>In this evocative debut, Elias Thorne weaves a narrative that mirrors the tactile experience of turning heavy, age-worn pages. "The Whispering Vellum" isn't just a story; it's an invitation to lose oneself in the architecture of language.</p>
-          </div>
-
-          <div class="flex items-center gap-3 mb-10 md:mb-14">
-            <button class="bg-[#0f3b35] hover:bg-[#0a2622] transition-colors text-white px-6 py-3 rounded-md font-semibold text-sm flex items-center gap-2">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-              Read Now
-            </button>
-            <button class="bg-white border border-gray-300 hover:bg-gray-50 transition-colors text-gray-700 p-3 rounded-md">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-            </button>
-          </div>
-
-          <div class="grid grid-cols-3 gap-6 border-t border-gray-200 pt-6">
-            <div>
-              <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Length</div>
-              <div class="text-sm font-semibold text-gray-900">242 Pages</div>
-            </div>
-            <div>
-              <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Language</div>
-              <div class="text-sm font-semibold text-gray-900">English</div>
-            </div>
-            <div>
-              <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Publisher</div>
-              <div class="text-sm font-semibold text-gray-900">Atelier Press</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div class="mb-6">
-          <h2 class="text-2xl font-bold text-gray-900 mb-1">Table of Contents</h2>
-          <p class="text-sm text-gray-500">The architectural bones of the story.</p>
-        </div>
-
-        <div class="space-y-3">
-          <div class="group flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:border-gray-300 transition-colors cursor-pointer">
-            <div class="flex items-center gap-6">
-              <span class="text-gray-300 font-mono text-lg w-6">01</span>
-              <div>
-                <h3 class="font-semibold text-gray-900 group-hover:text-[#134e4a] transition-colors">The Scent of Ancient Dust</h3>
-                <p class="text-xs text-gray-500 mt-0.5">12 minutes read • Free Preview</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <span class="bg-[#e6f4ea] text-[#1e8e3e] text-[10px] font-bold px-2 py-1 rounded tracking-wide">PUBLIC</span>
-              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-            </div>
-          </div>
-
-          <div class="group flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:border-gray-300 transition-colors cursor-pointer">
-            <div class="flex items-center gap-6">
-              <span class="text-gray-300 font-mono text-lg w-6">02</span>
-              <div>
-                <h3 class="font-semibold text-gray-900 group-hover:text-[#134e4a] transition-colors">The Ink That Never Dries</h3>
-                <p class="text-xs text-gray-500 mt-0.5">16 minutes read • Free Preview</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <span class="bg-[#e6f4ea] text-[#1e8e3e] text-[10px] font-bold px-2 py-1 rounded tracking-wide">PUBLIC</span>
-              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between p-4 bg-gray-100/50 rounded-lg border border-transparent">
-            <div class="flex items-center gap-6">
-              <span class="text-gray-300 font-mono text-lg w-6">03</span>
-              <div>
-                <h3 class="font-semibold text-gray-400">Midnight in the West Wing</h3>
-                <p class="text-xs text-gray-400 mt-0.5">18 minutes read</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="flex items-center gap-1.5 bg-gray-200/80 text-gray-500 text-[10px] font-bold px-2 py-1 rounded tracking-wide">
-                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
-                PREMIUM
-              </div>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between p-4 bg-gray-100/50 rounded-lg border border-transparent">
-            <div class="flex items-center gap-6">
-              <span class="text-gray-300 font-mono text-lg w-6">04</span>
-              <div>
-                <h3 class="font-semibold text-gray-400">The Architect's Silence</h3>
-                <p class="text-xs text-gray-400 mt-0.5">22 minutes read</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="flex items-center gap-1.5 bg-gray-200/80 text-gray-500 text-[10px] font-bold px-2 py-1 rounded tracking-wide">
-                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
-                PREMIUM
-              </div>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between p-4 bg-gray-100/50 rounded-lg border border-transparent">
-            <div class="flex items-center gap-6">
-              <span class="text-gray-300 font-mono text-lg w-6">05</span>
-              <div>
-                <h3 class="font-semibold text-gray-400">Paper Cut Epiphanies</h3>
-                <p class="text-xs text-gray-400 mt-0.5">14 minutes read</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="flex items-center gap-1.5 bg-gray-200/80 text-gray-500 text-[10px] font-bold px-2 py-1 rounded tracking-wide">
-                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
-                PREMIUM
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-8 flex justify-center">
-          <button class="bg-gray-200/80 hover:bg-gray-300 transition-colors text-gray-800 text-xs font-bold px-6 py-2.5 rounded-full">View All 24 Chapters</button>
-        </div>
-      </div>
-
+      <!-- Tabs Section -->
       <div class="mt-24">
-        <div class="flex items-center gap-8 mb-12 border-b border-gray-100">
-          <button
-            @click="activeTab = 'author'"
-            :class="activeTab === 'author' ? 'text-[#CC9552] border-[#CC9552]' : 'text-gray-400 border-transparent'"
-            class="pb-4 font-bold text-sm tracking-wide border-b-2 transition-all"
-          >
-            About Author
-          </button>
-          <button
-            @click="activeTab = 'reviews'"
-            :class="activeTab === 'reviews' ? 'text-[#CC9552] border-[#CC9552]' : 'text-gray-400 border-transparent'"
-            class="pb-4 font-bold text-sm tracking-wide border-b-2 transition-all"
-          >
-            Reviews
-          </button>
-        </div>
 
-        <div v-if="activeTab === 'reviews'" class="flex flex-col lg:flex-row gap-12">
-          <div class="w-full lg:w-72 shrink-0">
-            <div class="bg-[#FDF6E9]/50 rounded-3xl p-8 text-center border border-orange-100/50">
-              <h2 class="text-6xl font-black text-gray-900 mb-2">4.8</h2>
-              <div class="flex justify-center text-yellow-500 mb-2">
-                <template v-for="i in 5" :key="i">
-                  <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                </template>
-              </div>
-              <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-8">Based on 1,248 Ratings</p>
+        <!-- Tabs -->
+        <BookTabs
+          :activeTab="activeTab"
+          @change-tab="activeTab = $event"
+        />
 
-              <div class="space-y-3 mb-10">
-                <div v-for="(percent, star) in ratingBreakdown" :key="star" class="flex items-center gap-3">
-                  <span class="text-[10px] font-bold text-gray-600 w-2">{{ star }}</span>
-                  <div class="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div class="h-full bg-[#CC9552]" :style="{ width: percent + '%' }"></div>
-                  </div>
-                  <span class="text-[10px] font-bold text-gray-400 w-6 text-right">{{ percent }}%</span>
-                </div>
-              </div>
+        <!-- Reviews -->
+        <ReviewSection
+          v-if="activeTab === 'reviews'"
+          :reviews="book.reviews"
+          :rating="book.rating"
+          :reviewCount="book.reviewCount"
+        />
 
-              <button class="w-full py-3 px-4 border border-gray-900 rounded-xl flex items-center justify-center gap-2 text-xs font-bold hover:bg-gray-900 hover:text-white transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                Write a Review
-              </button>
-            </div>
-          </div>
+        <!-- Author -->
+        <AuthorSection
+          v-else
+          :author="book.author"
+        />
 
-          <div class="flex-1 space-y-12">
-            <div v-for="review in reviews" :key="review.id" class="border-b border-gray-100 pb-12 last:border-0">
-              <div class="flex justify-between items-start mb-4">
-                <div class="flex items-center gap-4">
-                  <img :src="review.userImg" :alt="review.userName" class="w-12 h-12 rounded-xl object-cover" />
-                  <div>
-                    <h4 class="font-bold text-sm text-gray-900">{{ review.userName }}</h4>
-                    <p class="text-[10px] text-gray-400 font-medium">{{ review.date }}</p>
-                  </div>
-                </div>
-                <div class="flex text-yellow-500">
-                  <svg v-for="n in 5" :key="n" class="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                </div>
-              </div>
-              <h3 class="font-bold text-gray-900 mb-3">{{ review.title }}</h3>
-              <p class="text-gray-600 text-sm leading-relaxed mb-6">{{ review.comment }}</p>
-              <div class="flex items-center gap-6">
-                <button class="flex items-center gap-2 text-[10px] font-bold text-gray-400 hover:text-gray-900 uppercase tracking-widest">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.704a1 1 0 01.94 1.355l-1.903 5.182A2 2 0 0115.826 18H5V10.5l4.704-4.704a1 1 0 01.94 1.355L14 10z"></path></svg>
-                  Helpful ({{ review.helpfulCount }})
-                </button>
-                <button class="flex items-center gap-2 text-[10px] font-bold text-gray-400 hover:text-gray-900 uppercase tracking-widest">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l5 5m-5-5l5-5"></path></svg>
-                  Reply
-                </button>
-              </div>
-            </div>
-
-            <button class="w-full py-4 bg-white border border-gray-100 rounded-xl text-[10px] font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-50 transition-colors">
-              Load More Reviews
-            </button>
-          </div>
-        </div>
-
-        <div v-else class="flex flex-col lg:flex-row gap-6">
-          <div class="flex-1 bg-gray-100/50 rounded-2xl p-10 flex flex-col justify-between">
-            <div>
-              <h2 class="text-3xl font-bold text-gray-900 mb-6">About the Author</h2>
-              <p class="text-gray-600 leading-relaxed text-base">
-                Elias Thorne is a novelist and typographer based in Oxford. His work often dwells
-                on the intersection of physical craft and digital ephemeralness. He spends his days
-                restoring 19th-century printing presses and his nights writing the future.
-              </p>
-            </div>
-
-            <div class="mt-12 flex items-center gap-6">
-              <a href="#" class="text-[#0f3b35] font-bold text-sm border-b-2 border-[#0f3b35] pb-0.5 hover:text-[#1a5f56] transition-colors">Follow Elias</a>
-              <a href="#" class="text-gray-500 font-bold text-sm hover:text-gray-900 transition-colors">Author Bio</a>
-            </div>
-          </div>
-
-          <div class="w-full lg:w-100 relative rounded-2xl overflow-hidden group">
-            <img
-              :src="Author"
-              alt="Elias Thorne"
-              class="w-full h-87.5 object-cover grayscale brightness-75 group-hover:scale-105 transition-transform duration-500"
-            />
-            <div class="absolute inset-0 bg-linear-to-t from-[#0f3b35]/90 via-transparent to-transparent flex items-end p-8">
-              <p class="text-white italic font-serif text-lg leading-snug">
-                "Writing is the only way I know how to listen to the silence."
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
+
     </main>
 
-    <Footer />
+    <!-- Empty -->
+    <div
+      v-else
+      class="flex-1 flex items-center justify-center"
+    >
+
+      <p class="text-gray-500">
+        Book not found.
+      </p>
+
+    </div>
+
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref } from 'vue'
-import Footer from '../../components/common/Footer.vue'
-import bookCoverSrc from '../../assets/images/BookCover.png'
-import Author from '../../assets/images/Author Portrait.png'
-
-const activeTab = ref<'author' | 'reviews'>('reviews')
-
-const ratingBreakdown = {
-  5: 85,
-  4: 10,
-  3: 3,
-  2: 1,
-  1: 1,
-} as const
-
-const reviews = ref([
-  {
-    id: 1,
-    userName: 'Lina Som',
-    userImg: 'https://i.pravatar.cc/150?u=lina',
-    date: 'June 15, 2024',
-    title: 'A masterpiece of Khmer literature',
-    comment:
-      'The way Rotha describes the carving process made me feel like I was there in the 12th century. The prose is almost tactile, you can feel the grit of the sandstone...',
-    helpfulCount: 24,
-  },
-  {
-    id: 2,
-    userName: 'Dara Chan',
-    userImg: 'https://i.pravatar.cc/150?u=dara',
-    date: 'June 10, 2024',
-    title: 'Compelling and educational',
-    comment:
-      'I’ve never appreciated the Bayon temples as much as I do after reading this. The historical accuracy combined with the emotional journey...',
-    helpfulCount: 12,
-  },
-])
-
-function onCoverError(event: Event) {
-  const target = event.target as HTMLImageElement
-  target.src = 'https://placehold.co/320x480?text=Book+Cover'
-}
-</script>
