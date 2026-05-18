@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { Bell } from 'lucide-vue-next'
 import icon from '../../assets/images/Icon.png'
 import Profile from '../../assets/images/Profile.png'
 import NotificationIcon from '../../assets/images/NotificationIcon.png'
@@ -30,21 +31,21 @@ watch(() => token.value, (newVal) => {
 console.log('Initial token value:', !!token.value, 'isAuthed:', isAuthed.value)
 
 const publicNavLinks = [
-    { label: 'Browse', path: '/user/explore' },
-    { label: 'Community', path: '/user/community' },
+    { label: 'Browse', path: '/explore' },
+    { label: 'Community', path: '/community' },
 ]
 
 const authenticatedNavLinks = [
-    { label: 'Home', path: '/user/home' },
-    { label: 'Explore', path: '/user/explore' },
-    { label: 'Library', path: '/user/exchange' },
+    { label: 'Home', path: '/home' },
+    { label: 'Explore', path: '/explore' },
+    { label: 'Library', path: '/exchange' },
     { label: 'Stories', path: '/reading/1' },
-    { label: 'Community', path: '/user/community' },
+    { label: 'Community', path: '/community' },
 ]
 
 const profileMenuItems = [
-    { label: 'Profile', path: '/user/admin/settings' },
-    { label: 'Dashboard', path: '/user/admin/dashboard' },
+    { label: 'Profile', path: '/settings' },
+    { label: 'Dashboard', path: '/dashboard' },
 ]
 
 const languages = [
@@ -143,9 +144,9 @@ async function handleLogout() {
                     <button type="button" @click="showNotifications = !showNotifications" class="inline-flex flex-col justify-start items-start">
                         <img :src="NotificationIcon" alt="Notifications" class="w-4 h-5 object-contain" />
                     </button>
-                    <button type="button" class="inline-flex flex-col justify-start items-start">
+                    <router-link to="/chatbox" class="inline-flex flex-col justify-start items-start">
                         <img :src="ChatIcon" alt="Chat" class="w-5 h-5 object-contain" />
-                    </button>
+                    </router-link>
                 </div>
 
                 <div class="relative">

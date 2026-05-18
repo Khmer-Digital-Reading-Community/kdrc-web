@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const rawBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL;
 console.log('API Base URL:', rawBaseUrl);
 export const apiBaseUrl = rawBaseUrl.replace(/\/+$/, '');
 

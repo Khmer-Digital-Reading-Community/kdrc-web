@@ -104,18 +104,18 @@ const footerCols = [
   {
     title: 'Explore',
     links: [
-      { label: 'Browse Books',    path: '/user/explore'              },
-      { label: 'Classic Khmer',   path: '/user/explore'},
-      { label: 'Fiction',         path: '/user/explore'},
-      { label: 'Education',       path: '/user/explore'   },
-      { label: 'Free Books',      path: '/user/explore'   },
+      { label: 'Browse Books',    path: '/explore'              },
+      { label: 'Classic Khmer',   path: '/explore'},
+      { label: 'Fiction',         path: '/explore'},
+      { label: 'Education',       path: '/explore'   },
+      { label: 'Free Books',      path: '/explore'   },
     ],
   },
   {
     title: 'Community',
     links: [
-      { label: 'Discussions',  path: '/user/community' },
-      { label: 'Book Exchange', path: '/user/exchange' },
+      { label: 'Discussions',  path: '/community' },
+      { label: 'Book Exchange', path: '/exchange' },
       // { label: 'Writers',      path: '/writers'   },
       // { label: 'Start Writing', path: '/write'    },
     ],
@@ -132,7 +132,7 @@ const footerCols = [
   },
 ]
 
-const bottomLinks: any[] = [
+const bottomLinks: Array<{ label: string; path: string }> = [
   // { label: 'Privacy', path: '/privacy' },
   // { label: 'Terms',   path: '/terms'   },
   // { label: 'Contact', path: '/contact' },

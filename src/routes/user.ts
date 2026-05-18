@@ -1,3 +1,4 @@
+//import { Component } from "lucide-vue-next";
 import DashboardLayout from "../layouts/DashboardLayout.vue";
 import UserLayout from "../layouts/UserLayout.vue";
 import Home from "../pages/user/Home.vue";
@@ -9,10 +10,11 @@ import BookExchangeDetail from "../pages/user/BookExchangeDetail.vue";
 import ExchangePage from "../pages/user/ExchangePage.vue";
 import Reader from "../pages/user/Reader.vue";
 import BookDetail from "../pages/user/BookDetail.vue";
+//import ChatBox from '../components/chat/ChatBox.vue';
 
 export default [
     {
-        path: '/user',
+        path: '/',
         component: UserLayout,
         children: [
             { path: '', name: 'landingpage', component: LandingPage },
@@ -25,7 +27,8 @@ export default [
                 name: 'book-exchange-detail', 
                 component: BookExchangeDetail 
             },
-            { path: 'book-detail/:id', name: 'book-detail', component: BookDetail }
+            { path: 'about', name:'about', component: () => import('../pages/user/AboutUs.vue')},
+            { path: 'book-detail/:id', name: 'book-detail', component: BookDetail },
         ]
     },
     {

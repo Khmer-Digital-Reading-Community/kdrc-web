@@ -7,12 +7,13 @@
   <Footer v-if="!isDashboard" />
 
 </template>
-<script lang="ts">
-export default {
-  computed: {
-    isDashboard() {
-      return this.$route.path.includes('/dashboard')
-    }
-  }
-}
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import NavBar from '../components/common/Navbar.vue'
+import Footer from '../components/common/Footer.vue'
+
+const route = useRoute()
+
+const isDashboard = computed(() => route.path.includes('/dashboard'))
 </script>
