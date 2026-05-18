@@ -33,9 +33,9 @@ const router = createRouter({
 // 		return { path: '/login', query: { redirect: to.fullPath } };
 // 	}
 
-if ((to.path === '/login' || to.path === '/signup') && isAuthed) {
-	return { path: '/user/home' };
-}
+// if ((to.path === '/login' || to.path === '/signup') && isAuthed) {
+// 	return { path: '/user/home' };
+// }
 
 // 	return true;
 // });
