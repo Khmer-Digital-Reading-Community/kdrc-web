@@ -62,7 +62,7 @@
             <router-link 
               v-for="book in paginatedBooks" 
               :key="book.id" 
-              :to="`/book-exchange-detail/${book.id}`"
+              :to="`/book-detail/${book.id}`"
               class="group block bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col h-full"
             >
               <div :class="book.headerColor" class="h-[240px] md:h-[300px] w-full flex items-end justify-center pt-8 md:pt-10 pb-0 relative overflow-hidden shrink-0">

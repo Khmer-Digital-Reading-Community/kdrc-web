@@ -2,7 +2,7 @@
   <div class="bg-[#f9fafb] text-gray-800 font-sans antialiased min-h-screen flex flex-col">
     <main class="max-w-screen-2xl mx-auto px-4 sm:px-8 lg:px-12 py-10 md:py-16 w-full flex-1">
       <nav class="text-xs text-gray-500 mb-8 font-medium">
-        <a href="#" class="hover:text-gray-900 transition">Explore</a>
+        <a href="/explore" class="hover:text-gray-900 transition">Explore</a>
         <span class="mx-1">&gt;</span>
         <span class="text-gray-400">Book Details</span>
       </nav>
