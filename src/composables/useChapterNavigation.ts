@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import api from '../services/api';
 
 export interface Chapter {
@@ -19,7 +19,6 @@ export interface Chapter {
 
 export function useChapterNavigation() {
   const router = useRouter();
-  const route = useRoute();
 
   // State
   const chapters = ref<Chapter[]>([]);
