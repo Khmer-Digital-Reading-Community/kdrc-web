@@ -116,14 +116,13 @@ const { book, loading } = useBookDetail();
 <template>
   <div
     class="bg-[#f9fafb]
-           text-gray-800
-           font-sans
-           antialiased
-           min-h-screen
-           flex flex-col"
+            text-gray-800
+            font-sans
+            antialiased
+            min-h-screen
+            flex flex-col"
   >
 
-    <!-- Loading -->
     <div
       v-if="loading"
       class="flex-1 flex items-center justify-center"
@@ -133,20 +132,18 @@ const { book, loading } = useBookDetail();
       </p>
     </div>
 
-    <!-- Content -->
     <main
       v-else-if="book"
       class="max-w-screen-2xl
-             mx-auto
-             px-4 sm:px-8 lg:px-12
-             py-10 md:py-16
-             w-full flex-1"
+              mx-auto
+              px-4 sm:px-8 lg:px-12
+              py-10 md:py-16
+              w-full flex-1"
     >
 
-      <!-- Breadcrumb -->
       <nav
         class="text-xs text-gray-500
-               mb-8 font-medium"
+                mb-8 font-medium"
       >
 
         <RouterLink
@@ -166,24 +163,19 @@ const { book, loading } = useBookDetail();
 
       </nav>
 
-      <!-- Hero -->
       <BookHero :book="book" />
 
-      <!-- Chapters -->
       <ChapterList
         :chapters="book.chapters"
       />
 
-      <!-- Tabs Section -->
       <div class="mt-24">
 
-        <!-- Tabs -->
         <BookTabs
           :activeTab="activeTab"
           @change-tab="activeTab = $event"
         />
 
-        <!-- Reviews -->
         <ReviewSection
           v-if="activeTab === 'reviews'"
           :reviews="book.reviews"
@@ -191,7 +183,6 @@ const { book, loading } = useBookDetail();
           :reviewCount="book.reviewCount"
         />
 
-        <!-- Author -->
         <AuthorSection
           v-else
           :author="book.author"
@@ -201,7 +192,6 @@ const { book, loading } = useBookDetail();
 
     </main>
 
-    <!-- Empty -->
     <div
       v-else
       class="flex-1 flex items-center justify-center"

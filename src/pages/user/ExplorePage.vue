@@ -7,16 +7,13 @@
       class="max-w-[1320px] mx-auto px-4 sm:px-8 md:px-12 pt-4 sm:pt-16"
     >
 
-      <!-- Header -->
       <ExploreHeader />
 
-      <!-- Mobile Filter -->
       <div
         v-if="isMobileFilterOpen"
         class="fixed inset-0 z-50 md:hidden"
       >
 
-        <!-- Backdrop -->
         <div
           class="absolute inset-0 bg-black/40"
           @click="
@@ -24,12 +21,10 @@
           "
         />
 
-        <!-- Drawer -->
         <div
           class="absolute left-0 top-0 h-full w-[280px] bg-white p-6 overflow-y-auto"
         >
 
-          <!-- Top -->
           <div
             class="flex items-center justify-between mb-8"
           >
@@ -49,7 +44,6 @@
 
           </div>
 
-          <!-- Filters -->
           <SidebarFilters
             :activeCategory="activeCategory"
             :categories="categories"
@@ -97,7 +91,6 @@
         <!-- Main Content -->
         <main class="flex-1">
 
-          <!-- Toolbar -->
           <ExploreToolbar
             :sortBy="sortBy"
             @toggleFilter="
@@ -105,7 +98,6 @@
             "
           />
 
-          <!-- Loading -->
           <div
             v-if="loading"
             class="text-center py-24"
@@ -113,7 +105,6 @@
             Loading books...
           </div>
 
-          <!-- Error -->
           <div
             v-else-if="error"
             class="text-center py-24 text-red-500"
@@ -121,20 +112,17 @@
             {{ error }}
           </div>
 
-          <!-- Empty -->
           <EmptyExplore
             v-else-if="
               paginatedBooks.length === 0
             "
           />
 
-          <!-- Grid -->
           <ExploreGrid
             v-else
             :books="paginatedBooks"
           />
 
-          <!-- Pagination -->
           <ExplorePagination
             :currentPage="currentPage"
             :totalPages="totalPages"
