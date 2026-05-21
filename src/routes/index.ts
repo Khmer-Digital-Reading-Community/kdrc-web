@@ -8,9 +8,9 @@ import ChatBox from '../components/chat/ChatBox.vue';
 import adminRoutes from './admin';
 import userRoutes from './user';
 import OAuthCallback from '../auth/OAuthCallback.vue';
-import LandingPage from "../pages/user/landingPage.vue";
-import { computed } from 'vue';
-import { token } from '../stores/useAuth';
+// import LandingPage from "../pages/user/landingPage.vue";
+// import { computed } from 'vue';
+// import { token } from '../stores/useAuth';
 // import OAuthCallback from '../views/OAuthCallback.vue';
 
 const router = createRouter({

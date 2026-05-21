@@ -8,7 +8,7 @@
       </div>
       <div class="header-actions">
         <button class="btn btn-secondary" @click="markAllAsRead" v-if="unreadCount > 0">
-          <CheckAll :size="20" />
+          <Check :size="20" />
           Mark All as Read
         </button>
         <button class="btn btn-danger" @click="clearAll" v-if="notifications.length > 0">
@@ -146,7 +146,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { 
-  Bell, Search, Trash2, CheckAll, Eye, EyeOff,
+  Bell, Search, Trash2, Check, Eye, EyeOff,
   AlertCircle, Info, Shield, RefreshCw, User
 } from 'lucide-vue-next';
 
