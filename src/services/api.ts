@@ -1,7 +1,15 @@
 import axios from 'axios';
-const rawBaseUrl = import.meta.env.VITE_API_BASE_URL;
-console.log('API Base URL:', rawBaseUrl);
-export const apiBaseUrl = rawBaseUrl.replace(/\/+$/, '');
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+const fallbackBaseUrl = 'http://localhost:3001';
+
+if (!rawBaseUrl) {
+  console.warn(
+    `VITE_API_BASE_URL is not set. Falling back to ${fallbackBaseUrl}. ` +
+      'Create a .env file in kdrc-web to override this.',
+  );
+}
+
+export const apiBaseUrl = (rawBaseUrl || fallbackBaseUrl).replace(/\/+$/, '');
 
 const api = axios.create({
   baseURL: apiBaseUrl,

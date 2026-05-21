@@ -1,4 +1,4 @@
-import { Component } from "lucide-vue-next";
+//import { Component } from "lucide-vue-next";
 import DashboardLayout from "../layouts/DashboardLayout.vue";
 import UserLayout from "../layouts/UserLayout.vue";
 import Home from "../pages/user/Home.vue";
@@ -10,7 +10,7 @@ import BookExchangeDetail from "../pages/user/BookExchangeDetail.vue";
 import ExchangePage from "../pages/user/ExchangePage.vue";
 import Reader from "../pages/user/Reader.vue";
 import BookDetail from "../pages/user/BookDetail.vue";
-import ChatBox from '../components/chat/ChatBox.vue';
+//import ChatBox from '../components/chat/ChatBox.vue';
 
 export default [
     {
@@ -22,12 +22,12 @@ export default [
             { path: 'community', name: 'community', component: Community },
             { path: 'explore', name: 'explore', component: ExplorePage },
             { path: 'exchange', name: 'exchange', component: ExchangePage },
-            { 
-                path: 'book-exchange-detail/:id', 
-                name: 'book-exchange-detail', 
-                component: BookExchangeDetail 
+            {
+                path: 'book-exchange-detail/:id',
+                name: 'book-exchange-detail',
+                component: BookExchangeDetail
             },
-            { path: 'about', name:'about', component: () => import('../pages/user/AboutUs.vue')},
+            { path: 'about', name: 'about', component: () => import('../pages/user/AboutUs.vue') },
             { path: 'book-detail/:id', name: 'book-detail', component: BookDetail },
         ]
     },
@@ -56,6 +56,11 @@ export default [
         path: '/manuscripts',
         name: 'manuscripts',
         component: () => import('../pages/user/Manuscripts.vue')
-        
+
+    },
+    {
+        path: '/bookmarks',
+        name: '/bookmarks',
+        component: () => import('../pages/user/BookmarkPage.vue')
     }
 ]

@@ -165,11 +165,10 @@
 
 <script setup lang="ts">
 import { onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { useChapterNavigation } from '../../composables/useChapterNavigation';
 
 const route = useRoute();
-const router = useRouter();
 
 const {
   chapters,

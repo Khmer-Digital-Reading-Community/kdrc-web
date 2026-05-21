@@ -267,7 +267,7 @@
           <button 
             v-if="selectedReport?.status !== 'resolved'"
             class="btn btn-primary" 
-            @click="markAsResolved(selectedReport); showDetailModal = false"
+            @click="resolveSelectedReport"
           >
             Mark as Resolved
           </button>
@@ -460,6 +460,13 @@ const markAsResolved = (report: Report) => {
   if (idx !== -1) {
     reports.value[idx].status = 'resolved';
   }
+};
+
+const resolveSelectedReport = () => {
+  if (!selectedReport.value) return;
+
+  markAsResolved(selectedReport.value);
+  showDetailModal.value = false;
 };
 
 const deleteReport = (report: Report) => {

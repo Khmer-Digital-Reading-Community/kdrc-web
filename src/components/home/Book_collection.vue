@@ -136,7 +136,9 @@ export default {
           style="scrollbar-width: none;">
           
           <div v-for="(book, index) in books" :key="book.id" class="flex-none w-[310px] cursor-pointer"
-            :style="{ animationDelay: `${index * 60}ms` }">
+            :style="{ animationDelay: `${index * 60}ms` }"
+            @click="$router.push(`/book-detail/${book.id}`)"
+            >
             <!-- Cover -->
             <div class="w-[306px] h-[456px] rounded-xl overflow-hidden mb-3 relative shadow-md
                      transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl">
