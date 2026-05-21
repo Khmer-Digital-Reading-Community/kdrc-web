@@ -29,7 +29,14 @@
           <span class="nav-icon"></span>
           <span class="nav-label">Books</span>
         </router-link>
-        
+        <router-link 
+          to="/admin/challenges" 
+          class="nav-link"
+          :class="{ active: isActive('/admin/challenges') }"
+        >
+          <span class="nav-icon"></span>
+          <span class="nav-label">Challenges</span>
+        </router-link>
       </div>
 
       <!-- User Management -->

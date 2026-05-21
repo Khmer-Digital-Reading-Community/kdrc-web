@@ -1,93 +1,84 @@
 <template>
   <div class="flex-col gap-3.5">
 
-    <!-- My stats -->
-    <!-- <div class="grid grid-cols-2 gap-2">
+    <div class="grid grid-cols-2 gap-2">
       <div
-        v-for="s in myStats" :key="s.label"
+        v-for="s in miniStats" :key="s.label"
         class="bg-white border border-black/[0.08] rounded-xl px-3.5 py-3 text-center shadow-sm"
       >
         <p class="font-['Syne',sans-serif] text-[20px] font-bold text-[#1c3a2e] leading-none">{{ s.val }}</p>
         <p class="text-[10px] text-[#c0bbb2] mt-1">{{ s.label }}</p>
       </div>
-    </div> -->
+    </div>
 
-    <!-- Trending -->
     <div class="bg-white border border-black/[0.08] rounded-2xl p-4 shadow-sm">
-      <div class="flex items-center justify-between mb-3.5">
-        <span class="font-['Syne',sans-serif] text-[14px] font-semibold text-[#1c3a2e]">Trending</span>
+      <div class="flex items-center justify-between mb-3">
+        <span class="font-['Syne',sans-serif] text-[14px] font-semibold text-[#1c3a2e]">My Challenges</span>
+        <span class="text-[11px] font-semibold text-[#c5a050]">2 active</span>
+      </div>
+      <div class="flex flex-col gap-2.5">
+        <div v-for="c in challenges" :key="c.title" class="flex items-center gap-2.5">
+          <span v-html="c.icon" class="flex-none text-[#1c3a2e]"></span>
+          <div class="flex-1 min-w-0">
+            <p class="text-[12px] font-semibold text-[#1c3a2e] truncate">{{ c.title }}</p>
+            <p class="text-[10px] text-[#c0bbb2] mt-0.5">{{ c.progress }}</p>
+            <div class="h-1.5 bg-[#f0ece4] rounded-full overflow-hidden mt-1">
+              <div
+                class="h-full bg-[#c5a050] rounded-full"
+                :style="{ width: c.pct + '%' }"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-black/[0.08] rounded-2xl p-4 shadow-sm">
+      <div class="flex items-center justify-between mb-3">
+        <span class="font-['Syne',sans-serif] text-[14px] font-semibold text-[#1c3a2e]">Recent Badges</span>
         <button class="text-[11px] font-semibold text-[#c5a050] hover:opacity-70 transition-opacity">See all</button>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <div
+          v-for="b in recentBadges" :key="b.name"
+          class="flex items-center gap-1.5 bg-[#f5f1ea] rounded-full px-2.5 py-1"
+        >
+          <span v-html="b.icon" class="flex-none text-[#1c3a2e]"></span>
+          <span class="text-[10px] font-medium text-[#1c3a2e]">{{ b.name }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-black/[0.08] rounded-2xl p-4 shadow-sm">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-1.5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c5a050" stroke-width="1.8">
+            <circle cx="12" cy="8" r="5"/><path d="M12 13l-2.5 6 2.5-1 2.5 1-2.5-6z"/>
+          </svg>
+          <span class="font-['Syne',sans-serif] text-[14px] font-semibold text-[#1c3a2e]">Top Readers</span>
+        </div>
+        <button class="text-[11px] font-semibold text-[#c5a050] hover:opacity-70 transition-opacity">Full board</button>
       </div>
       <div class="flex flex-col gap-2.5">
         <div
-          v-for="(t, i) in trending" :key="t.tag"
-          class="flex items-center gap-2.5 cursor-pointer hover:opacity-70 transition-opacity"
+          v-for="(r, i) in topReaders" :key="r.name"
+          class="flex items-center gap-2"
         >
-          <span :class="['text-[11px] font-bold min-w-[18px]', i === 0 ? 'text-[#c5a050]' : 'text-[#e0dbd0]']">
-            {{ String(i+1).padStart(2,'0') }}
-          </span>
-          <div class="flex-1">
-            <p class="text-[13px] font-semibold text-[#1c3a2e]">#{{ t.tag }}</p>
-            <p class="text-[11px] text-[#c0bbb2]">{{ t.count }} posts</p>
-          </div>
-          <svg class="text-[#c0bbb2]" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" d="M7 17L17 7M17 7H7M17 7v10"/>
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    <!-- Writers to follow -->
-    <div class="bg-white border border-black/[0.08] rounded-2xl p-4 shadow-sm">
-      <div class="flex items-center justify-between mb-3.5">
-        <span class="font-['Syne',sans-serif] text-[14px] font-semibold text-[#1c3a2e]">Writers to follow</span>
-        <button class="text-[11px] font-semibold text-[#c5a050] hover:opacity-70 transition-opacity">Discover</button>
-      </div>
-      <div class="flex flex-col gap-3">
-        <div v-for="w in writers" :key="w.name" class="flex items-center gap-2.5">
+          <span
+            class="text-[11px] font-bold min-w-[16px]"
+            :class="i === 0 ? 'text-[#c5a050]' : i === 1 ? 'text-[#a8a8a8]' : i === 2 ? 'text-[#cd7f32]' : 'text-[#e0dbd0]'"
+          >{{ '#' + (i+1) }}</span>
           <div
-            class="w-8 h-8 rounded-full flex items-center justify-center text-white text-[12px] font-semibold flex-none"
-            :style="{ background: w.color }"
-          >{{ w.initials }}</div>
+            class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-none"
+            :style="{ background: r.color }"
+          >{{ r.initials }}</div>
           <div class="flex-1 min-w-0">
-            <p class="text-[13px] font-semibold text-[#1c3a2e] leading-none">{{ w.name }}</p>
-            <p class="text-[11px] text-[#c0bbb2] mt-0.5">{{ w.genre }} · {{ w.followers }}</p>
+            <p class="text-[12px] font-semibold text-[#1c3a2e] truncate">{{ r.name }}</p>
           </div>
-          <button
-            @click="w.following = !w.following"
-            :class="[
-              'text-[12px] font-semibold min-w-[48px] px-2.5 py-1 rounded-lg border transition-all duration-150',
-              w.following
-                ? 'bg-[#1c3a2e] text-white border-[#1c3a2e]'
-                : 'bg-transparent text-[#1c3a2e] border-black/[0.12] hover:bg-[#f5f1ea]'
-            ]"
-          >{{ w.following ? '✓' : '+' }}</button>
+          <span class="text-[11px] font-bold text-[#c5a050]">{{ r.books }}</span>
         </div>
       </div>
     </div>
-
-    <!-- Reading challenge -->
-    <!-- <div class="bg-[#1c3a2e] rounded-2xl p-4">
-      <div class="flex gap-2.5 items-start mb-3.5">
-        <svg width="16" height="16" class="text-white/60 mt-0.5 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M5 3l3.057-3 3.943 3.928 3.057-3L18 4.444l-3.057 3L18 11.39l-3.057 3-3.943-3.928-3.057 3L5 10.556l3.057-3L5 3z"/>
-        </svg>
-        <div>
-          <p class="text-[13px] font-semibold text-white leading-none">2024 Reading Challenge</p>
-          <p class="text-[11px] text-white/50 mt-0.5">14 of 24 books</p>
-        </div>
-      </div>
-      <div class="h-1.5 bg-white/[0.12] rounded-full overflow-hidden mb-2.5">
-        <div class="h-full bg-[#c5a050] rounded-full" style="width: 58%"></div>
-      </div>
-      <div class="flex items-center justify-between">
-        <span class="text-[12px] font-semibold text-[#c5a050]">58% complete</span>
-        <button class="text-[11px] font-semibold text-white/80 bg-white/10 border border-white/[0.18]
-                       px-3 py-1 rounded-lg hover:bg-white/20 transition-colors duration-150">
-          Update
-        </button>
-      </div>
-    </div> -->
 
   </div>
 </template>
@@ -97,24 +88,33 @@ export default {
   name: 'CommunityRightSidebar',
   data() {
     return {
-      myStats: [
-        { val: '142', label: 'Followers' },
-        { val: '38',  label: 'Following' },
-        { val: '24',  label: 'Posts'     },
-        { val: '1.2k',label: 'Likes'     },
+      miniStats: [
+        { val: '18', label: 'Books' },
+        { val: '12', label: 'Day Streak' },
+        { val: '4.8k', label: 'Pages' },
+        { val: '5', label: 'Badges' },
       ],
-      trending: [
-        { tag: 'KhmerLit',         count: '1.2k' },
-        { tag: 'BookReview',       count: '894'  },
-        { tag: 'ReadingChallenge', count: '762'  },
-        { tag: 'ClassicPoetry',    count: '541'  },
-        { tag: 'NewChapter',       count: '489'  },
+      challenges: [
+        {
+          title: '2025 Reading Challenge', progress: '8/24 books', pct: 33,
+          icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>`,
+        },
+        {
+          title: 'Khmer Lit Explorer', progress: '2/5 books', pct: 40,
+          icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>`,
+        },
       ],
-      writers: [
-        { name: 'Dara Samnang', initials: 'DS', genre: 'Fiction',  followers: '2.1k', color: '#1c3a2e', following: false },
-        { name: 'Leakna Rath',  initials: 'LR', genre: 'Poetry',   followers: '980',  color: '#7a3d92', following: false },
-        { name: 'Vutha Prak',   initials: 'VP', genre: 'History',  followers: '1.4k', color: '#3a5fa5', following: true  },
-        { name: 'Chan Dara',    initials: 'CD', genre: 'Essays',   followers: '630',  color: '#c5a050', following: false },
+      recentBadges: [
+        { name: 'First Chapter', icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>` },
+        { name: '7-Day Streak', icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>` },
+        { name: 'Bookworm', icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path stroke-linecap="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/></svg>` },
+        { name: 'Reviewer', icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>` },
+      ],
+      topReaders: [
+        { name: 'Dara Samnang', initials: 'DS', color: '#1c3a2e', books: 32 },
+        { name: 'Leakna Rath', initials: 'LR', color: '#7a3d92', books: 28 },
+        { name: 'Vutha Prak', initials: 'VP', color: '#3a5fa5', books: 24 },
+        { name: 'Sophal Prak', initials: 'SP', color: '#c5a050', books: 18, isYou: true },
       ],
     }
   },

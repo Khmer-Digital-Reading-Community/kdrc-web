@@ -8,6 +8,7 @@ import NotificationIcon from '../../assets/images/NotificationIcon.png'
 import ChatIcon from '../../assets/images/ChatIcon.png'
 import SearchIcon from '../../assets/images/SearchIcon.png'
 import { useAuth, token } from '../../stores/useAuth'
+import { authState } from '../../services/auth'
 import NotificationPopup from './NotificationPopup.vue'
 
 const router = useRouter()
@@ -22,6 +23,7 @@ const showNotifications = ref(false)
 
 // Derive auth state only from the session token.
 const isAuthed = computed(() => Boolean(token.value))
+const isAdmin = computed(() => authState.user?.role === 'ADMIN')
 
 // Debug logging
 watch(() => token.value, (newVal) => {
@@ -43,10 +45,16 @@ const authenticatedNavLinks = [
     { label: 'Community', path: '/community' },
 ]
 
-const profileMenuItems = [
-    { label: 'Profile', path: '/settings' },
-    { label: 'Dashboard', path: '/dashboard' },
-]
+const profileMenuItems = computed(() => {
+    const items = [
+        { label: 'Profile', path: '/settings' },
+        { label: 'Dashboard', path: '/dashboard' },
+    ]
+    if (isAdmin.value) {
+        items.splice(1, 0, { label: 'Admin Panel', path: '/admin/dashboard' })
+    }
+    return items
+})
 
 const languages = [
     { code: 'EN', label: 'English' },

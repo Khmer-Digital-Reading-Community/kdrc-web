@@ -20,7 +20,7 @@
             </div>
 
             <!-- Genre Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 auto-rows-[220px] lg:auto-rows-none lg:h-[480px]">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 auto-rows-[220px] lg:auto-rows-[240px]">
 
                 <!-- Khmer Literature — large left hero card -->
                 <div class="lg:col-span-5 lg:row-span-2 md:row-span-2 row-span-1 relative rounded-2xl overflow-hidden cursor-pointer group"
