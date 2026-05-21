@@ -1,10 +1,52 @@
 <script setup lang="ts">
+import { ref, onMounted, computed } from 'vue'
 import Sidebar from '@/components/common/Sidebar.vue'
 import Navbar from '@/components/common/Navbar.vue'
 
 import ManuscriptHeader from '@/components/manuscript/ManuscriptHeader.vue'
 import ManuscriptFilters from '@/components/manuscript/ManuscriptFilters.vue'
 import ManuscriptGrid from '@/components/manuscript/ManuscriptGrid.vue'
+import { getMyBooks, deleteBook, type Book } from '@/services/bookApi'
+
+const books = ref<Book[]>([])
+const searchQuery = ref('')
+const statusFilter = ref('All')
+const isLoading = ref(true)
+
+const fetchBooks = async () => {
+  isLoading.value = true
+  try {
+    books.value = await getMyBooks()
+  } catch (error) {
+    console.error('Failed to fetch books:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const filteredBooks = computed(() => {
+  return books.value.filter(book => {
+    const matchesSearch = book.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const matchesStatus = statusFilter.value === 'All' || 
+                         (statusFilter.value === 'Drafts' && book.status === 'DRAFT') ||
+                         (statusFilter.value === 'Published' && book.status === 'PUBLISHED') ||
+                         (statusFilter.value === 'Archived' && book.status === 'ARCHIVED')
+    return matchesSearch && matchesStatus
+  })
+})
+
+const handleDeleteBook = async (id: string) => {
+  if (confirm('Are you sure you want to delete this book? This action cannot be undone.')) {
+    try {
+      await deleteBook(id)
+      books.value = books.value.filter(b => b.id !== id)
+    } catch (error) {
+      alert('Failed to delete book')
+    }
+  }
+}
+
+onMounted(fetchBooks)
 </script>
 
 <template>
@@ -22,9 +64,20 @@ import ManuscriptGrid from '@/components/manuscript/ManuscriptGrid.vue'
 
         <ManuscriptHeader />
 
-        <ManuscriptFilters />
+        <ManuscriptFilters 
+          v-model:search="searchQuery"
+          v-model:status="statusFilter"
+        />
 
-        <ManuscriptGrid />
+        <div v-if="isLoading" class="flex justify-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#123C3A]"></div>
+        </div>
+        
+        <ManuscriptGrid 
+          v-else
+          :books="filteredBooks" 
+          @delete="handleDeleteBook"
+        />
 
       </main>
 

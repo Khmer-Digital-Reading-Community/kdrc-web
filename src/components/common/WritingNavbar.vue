@@ -7,11 +7,13 @@ import NotificationPopup from './NotificationPopup.vue'
 interface Props {
   projectType?: 'formal-book' | 'short-story'
   isSaved?: boolean
+  status?: string
 }
 
 withDefaults(defineProps<Props>(), {
   projectType: 'formal-book',
-  isSaved: true
+  isSaved: true,
+  status: 'DRAFT'
 })
 
 const emit = defineEmits<{
@@ -72,9 +74,15 @@ const showNotifications = ref(false)
 
       <button
         @click="emit('publish')"
-        class="px-4 py-1.5 bg-[#F9AE5B] text-[#093A3F] text-sm font-medium rounded hover:opacity-90 transition-opacity"
+        :disabled="status === 'PUBLISHED'"
+        :class="[
+          'px-4 py-1.5 text-sm font-medium rounded transition-opacity',
+          status === 'PUBLISHED' 
+            ? 'bg-gray-500 text-white cursor-not-allowed opacity-50' 
+            : 'bg-[#F9AE5B] text-[#093A3F] hover:opacity-90'
+        ]"
       >
-        Publish
+        {{ status === 'PUBLISHED' ? 'Published' : 'Publish' }}
       </button>
 
       <button class="text-[#FDE9D0]/70 hover:text-[#FDE9D0] transition-colors" @click="showNotifications = !showNotifications">

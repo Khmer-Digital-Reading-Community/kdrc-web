@@ -1,10 +1,34 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import Sidebar from '@/components/common/Sidebar.vue'
 import Navbar from '@/components/common/Navbar.vue'
 
 import WelcomeBanner from '@/components/dashboard/WelcomeBanner.vue'
 import StatCard from '@/components/dashboard/StatCard.vue'
 import RecentManuscripts from '@/components/dashboard/RecentManuscripts.vue'
+import { getMyBookStats, getMyBooks, type AuthorStats, type Book } from '@/services/bookApi'
+
+const stats = ref<AuthorStats | null>(null)
+const recentBooks = ref<Book[]>([])
+const isLoading = ref(true)
+
+const fetchDashboardData = async () => {
+  isLoading.value = true
+  try {
+    const [statsData, booksData] = await Promise.all([
+      getMyBookStats(),
+      getMyBooks()
+    ])
+    stats.value = statsData
+    recentBooks.value = booksData.slice(0, 5) // Get only top 5 recent books
+  } catch (error) {
+    console.error('Failed to fetch dashboard data:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(fetchDashboardData)
 </script>
 
 <template>
@@ -41,46 +65,52 @@ import RecentManuscripts from '@/components/dashboard/RecentManuscripts.vue'
           <!-- Welcome Banner -->
           <WelcomeBanner />
 
-          <!-- Stats Section -->
-          <section
-            class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3
-                   gap-4 lg:gap-6 my-4 lg:my-6"
-          >
+          <div v-if="isLoading" class="flex justify-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9C6700]"></div>
+          </div>
 
-            <StatCard
-              title="Daily Word Goal"
-              value="72%"
-              subtitle="1,800 / 2,500"
-              description="Words written today"
-            />
+          <template v-else>
+            <!-- Stats Section -->
+            <section
+              class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3
+                    gap-4 lg:gap-6 my-4 lg:my-6"
+            >
 
-            <StatCard
-              title="Writing Streak"
-              value="14 Days"
-              subtitle="Excellent"
-              description="You're on fire"
-            />
+              <StatCard
+                title="Total Books"
+                :value="stats?.totalBooks.toString() || '0'"
+                :subtitle="`${stats?.totalPublished} Published`"
+                description="Your complete portfolio"
+              />
 
-            <StatCard
-              title="Weekly Engagement"
-              value="+12.4%"
-              subtitle="Compared to last week"
-              description="Community interaction"
-            />
+              <StatCard
+                title="Writing Streak"
+                :value="`${stats?.streakDays || 0} Days`"
+                subtitle="Excellent"
+                description="Keep the momentum going"
+              />
 
-          </section>
+              <StatCard
+                title="Total Words"
+                :value="Intl.NumberFormat('en-US', { notation: 'compact' }).format(stats?.totalWords || 0)"
+                :subtitle="`${stats?.engagementRate}% Engagement`"
+                description="Community interaction"
+              />
 
-          <!-- Bottom Section -->
-          <section
-            class="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6"
-          >
+            </section>
 
-            <!-- Recent Manuscripts -->
-            <div class="xl:col-span-2 min-w-0">
-              <RecentManuscripts />
-            </div>
+            <!-- Bottom Section -->
+            <section
+              class="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6"
+            >
 
-          </section>
+              <!-- Recent Manuscripts -->
+              <div class="xl:col-span-2 min-w-0">
+                <RecentManuscripts :books="recentBooks" />
+              </div>
+
+            </section>
+          </template>
 
         </div>
 

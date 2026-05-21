@@ -1,15 +1,25 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import { MoreVertical, Trash2, Edit3 } from 'lucide-vue-next'
+
 defineProps<{
   title: string
   words: string
   edit: string
   status: string
 }>()
+
+const emit = defineEmits<{
+  edit: []
+  delete: []
+}>()
+
+const showMenu = ref(false)
 </script>
 
 <template>
   <div
-    class="bg-[#FBF7F0] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition"
+    class="bg-[#FBF7F0] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition group"
   >
 
     <!-- Cover -->
@@ -19,7 +29,10 @@ defineProps<{
 
       <!-- Status Badge -->
       <span
-        class="absolute top-3 right-3 bg-[#2FE0A5] text-[10px] px-3 py-1 rounded-full font-bold uppercase"
+        :class="[
+          'absolute top-3 right-3 text-[10px] px-3 py-1 rounded-full font-bold uppercase',
+          status === 'PUBLISHED' ? 'bg-[#2FE0A5] text-[#123C3A]' : 'bg-amber-400 text-[#123C3A]'
+        ]"
       >
         {{ status }}
       </span>
@@ -31,7 +44,7 @@ defineProps<{
 
       <!-- Title -->
       <h2
-        class="font-bold text-[#123C3A] text-lg leading-snug mb-2"
+        class="font-bold text-[#123C3A] text-lg leading-snug mb-2 line-clamp-1"
       >
         {{ title }}
       </h2>
@@ -46,19 +59,40 @@ defineProps<{
       </div>
 
       <!-- Bottom -->
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between relative">
 
         <!-- Button -->
         <button
-          class="bg-[#1BC47D] hover:bg-[#16a56a] text-white text-xs px-4 py-2 rounded-lg font-medium transition"
+          @click="emit('edit')"
+          class="bg-[#1BC47D] hover:bg-[#16a56a] text-white text-xs px-4 py-2 rounded-lg font-medium transition flex items-center gap-2"
         >
+          <Edit3 :size="14" />
           Continue Edit
         </button>
 
         <!-- Menu -->
-        <button class="text-gray-400 text-xl">
-          ⋮
-        </button>
+        <div class="relative">
+          <button 
+            @click="showMenu = !showMenu"
+            class="text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-100"
+          >
+            <MoreVertical :size="20" />
+          </button>
+
+          <!-- Dropdown -->
+          <div 
+            v-if="showMenu"
+            class="absolute right-0 bottom-full mb-2 w-36 bg-white rounded-xl shadow-xl border border-gray-100 z-10 overflow-hidden"
+          >
+            <button 
+              @click="emit('delete'); showMenu = false"
+              class="w-full px-4 py-2 text-left text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
+            >
+              <Trash2 :size="14" />
+              Delete Story
+            </button>
+          </div>
+        </div>
 
       </div>
 
@@ -66,3 +100,12 @@ defineProps<{
 
   </div>
 </template>
+
+<style scoped>
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>

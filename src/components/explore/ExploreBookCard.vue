@@ -1,150 +1,159 @@
 <template>
     <router-link
         :to="`/book-detail/${book.id}`"
-        class="group block bg-white
-            rounded-[24px] overflow-hidden
-            border border-gray-100
-            shadow-sm hover:shadow-xl
-            hover:-translate-y-1.5
-            transition-all duration-300
-            flex flex-col h-full"
+        class="group block rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
     >
-
-    <div
-        :class="getHeaderColor(book.category)"
-            class="h-[240px] md:h-[300px]
-                w-full flex items-end
-                justify-center pt-8 md:pt-10
-                pb-0 relative overflow-hidden shrink-0"
-    >
-
-        <img
-            :src="book.coverImage"
-            class="h-full aspect-[2/3]
-                object-cover object-center
-                rounded-t-[8px] md:rounded-t-[12px]
-                shadow-[0_-5px_20px_rgba(0,0,0,0.25)]
-                transition-transform duration-500
-                group-hover:scale-[1.03]"
-        />
-
-    </div>
-
-    <div
-        class="p-5 md:p-8
-            flex flex-col flex-grow text-left"
-    >
-
+        <!-- Cover area -->
         <div
-            class="flex justify-between
-                items-start gap-3
-                mb-1.5 h-[54px] md:h-[58px]"
+            class="relative h-[220px] shrink-0 overflow-hidden"
+            :style="{ background: headerGradient }"
         >
+            <!-- Cover image -->
+            <img
+                v-if="book.coverImage"
+                :src="book.coverImage"
+                :alt="book.title"
+                @error="imgError = true"
+                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                :class="imgError ? 'hidden' : ''"
+            />
 
-            <h3
-                class="text-[18px] md:text-[20px]
-                    xl:text-[21px]
-                    font-sans font-bold
-                    text-[#093A3F]
-                    leading-snug
-                    group-hover:text-[#B4690E]
-                    transition-colors
-                    line-clamp-2 pr-2"
+            <!-- Fallback when no cover or broken image -->
+            <div
+                v-if="!book.coverImage || imgError"
+                class="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4"
+            >
+                <svg
+                    class="w-14 h-14 text-white/60"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                 >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477
+                   3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5
+                   1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477
+                   4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746
+                   0-3.332.477-4.5 1.253"
+                    />
+                </svg>
+                <span
+                    class="text-white/80 text-xs font-semibold text-center line-clamp-2 max-w-[140px]"
+                >
+                    {{ book.title }}
+                </span>
+            </div>
+
+            <!-- Bottom gradient overlay -->
+            <div
+                class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/50 to-transparent"
+            />
+
+            <!-- Category badge pinned to top-left -->
+            <span
+                class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-sm text-white border border-white/30"
+            >
+                {{ book.category }}
+            </span>
+
+            <!-- Rating pinned to top-right -->
+            <div
+                class="absolute top-3 right-3 flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/30"
+            >
+                <span class="text-yellow-300 text-xs leading-none">★</span>
+                <span class="text-white text-[11px] font-bold leading-none">
+                    {{ book.rating > 0 ? book.rating.toFixed(1) : "New" }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Card body -->
+        <div class="flex flex-col flex-grow p-5">
+            <!-- Title -->
+            <h3
+                class="text-[16px] font-bold text-[#093A3F] leading-snug line-clamp-2 group-hover:text-[#B4690E] transition-colors mb-1"
+            >
                 {{ book.title }}
             </h3>
 
+            <!-- Author -->
+            <p
+                class="text-[11px] font-semibold uppercase tracking-widest text-gray-400 mb-3"
+            >
+                By {{ book.author }}
+            </p>
+
+            <!-- Description (clean plain text) -->
+            <p
+                class="text-[13px] text-gray-500 leading-relaxed line-clamp-3 flex-grow mb-4"
+            >
+                {{ book.description || "No description available." }}
+            </p>
+
+            <!-- Footer: lang badge + read button -->
             <div
-                class="flex items-center gap-1
-                    text-[12px] md:text-[13px]
-                    font-bold text-[#B4690E]
-                    shrink-0 mt-1"
+                class="flex items-center justify-between mt-auto pt-3 border-t border-gray-100"
             >
+                <div class="flex gap-2">
+                    <span
+                        class="px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 text-[10px] font-bold uppercase tracking-wider"
+                    >
+                        {{ book.lang }}
+                    </span>
+                    <span
+                        class="px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 text-[10px] font-bold uppercase tracking-wider"
+                    >
+                        E-Book
+                    </span>
+                </div>
 
-                <span>★</span>
-
-                <span>{{ book.rating }}</span>
-
+                <span
+                    class="flex items-center gap-1 text-[12px] font-semibold text-[#B4690E] group-hover:gap-2 transition-all"
+                >
+                    Read
+                    <svg
+                        class="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2.5"
+                            d="M9 5l7 7-7 7"
+                        />
+                    </svg>
+                </span>
             </div>
-
         </div>
-
-        <p
-            class="text-[9px] md:text-[10px]
-                font-bold uppercase
-                tracking-[0.1em]
-                text-gray-400 mb-4"
-            >
-            By {{ book.author }}
-        </p>
-
-        <p
-            class="text-[12px] md:text-[13px]
-                text-gray-500 line-clamp-3
-                leading-relaxed mb-4 md:mb-6
-                font-medium
-                min-h-[60px] md:min-h-[66px]"
-            >
-            {{ book.description }}
-        </p>
-
-        <div
-            class="flex flex-wrap gap-2
-                md:gap-2.5 mt-auto pt-4"
-            >
-
-            <span
-                class="px-3 md:px-3.5 py-1.5
-                    bg-[#FDE9D0]
-                    text-[#B4690E]
-                    text-[9px] md:text-[10px]
-                    font-bold rounded-md
-                    uppercase tracking-wider"
-                >
-                E-book
-            </span>
-
-            <span
-                class="px-3 md:px-3.5 py-1.5
-                    bg-[#FDE9D0]
-                    text-[#B4690E]
-                    text-[9px] md:text-[10px]
-                    font-bold rounded-md
-                    uppercase tracking-wider"
-                >
-                {{ book.lang }}
-            </span>
-
-        </div>
-
-    </div>
-
     </router-link>
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from "vue";
 import type { ExploreBook } from "../../types/exploreBook";
 
-defineProps<{
-    book: ExploreBook;
-}>();
+const props = defineProps<{ book: ExploreBook }>();
 
-function getHeaderColor(category: string) {
-    switch (category) {
-        case "Khmer Literature":
-            return "bg-[#4A7274]";
+const imgError = ref(false);
 
-        case "Novels":
-            return "bg-[#1A1A1A]";
+const CATEGORY_GRADIENTS: Record<string, string> = {
+    "Khmer Literature": "linear-gradient(135deg, #4A7274 0%, #2d5456 100%)",
+    Novels: "linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)",
+    Education: "linear-gradient(135deg, #1C4E5C 0%, #0a2e38 100%)",
+    "Sci-Fi": "linear-gradient(135deg, #1a1a5e 0%, #0d0d3b 100%)",
+    Romance: "linear-gradient(135deg, #7c3a5c 0%, #4a1a35 100%)",
+    Mystery: "linear-gradient(135deg, #2d3561 0%, #1a1f40 100%)",
+    Fantasy: "linear-gradient(135deg, #3d1a5c 0%, #1f0a30 100%)",
+};
 
-        case "Education":
-            return "bg-[#1C4E5C]";
-
-        case "Sci-Fi":
-            return "bg-[#191970]";
-
-        default:
-            return "bg-[#093A3F]";
-    }
-}
+const headerGradient = computed(
+    () =>
+        CATEGORY_GRADIENTS[props.book.category] ??
+        "linear-gradient(135deg, #093A3F 0%, #042326 100%)",
+);
 </script>

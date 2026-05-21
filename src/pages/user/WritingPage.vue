@@ -1,466 +1,581 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-// @ts-ignore
-import { QuillEditor } from '@vueup/vue-quill'
-import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import WritingNavbar from '../../components/common/WritingNavbar.vue'
-import WritingSidebar from '../../components/common/WritingSidebar.vue'
-import { Clock } from 'lucide-vue-next'
+import { ref, computed, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import QuillEditor from "@/components/common/QuillEditor.vue";
+import WritingNavbar from "../../components/common/WritingNavbar.vue";
+import WritingSidebar from "../../components/common/WritingSidebar.vue";
+import CoverImageUploader from "@/components/common/CoverImageUploader.vue";
+import { Clock, Eye, EyeOff } from "lucide-vue-next";
+import {
+    getBookDetail,
+    createBook,
+    updateBook,
+    uploadBookCover,
+    type Book,
+} from "@/services/bookApi";
+import {
+    getChapters,
+    getChapterContent,
+    createChapter,
+    updateChapter,
+    type Chapter,
+    type ChapterContent,
+} from "@/services/chapterApi";
+import { useToast } from "vue-toastification";
+import { apiBaseUrl } from "@/services/api";
 
-interface Chapter {
-  id: string
-  title: string
-  status: 'draft' | 'published'
-  wordCount: number
-}
+const route = useRoute();
+const router = useRouter();
+const toast = useToast();
 
-interface BookMetadata {
-  title: string
-  genre: string
-  language: string
-  tags: string[]
-  readyToPublish: boolean
-  lastUpdated: string
-  wordCount: number
-}
+const bookId = computed(() => route.params.id as string);
+const isNewBook = computed(() => bookId.value === "new");
 
-// Quill editor configuration for book writing
-const toolbarConfig = [
-  ['bold', 'italic', 'underline', 'strike'],
-  ['blockquote', 'code-block'],
-  [{ 'header': [1, 2, 3, false] }],
-  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-  [{ 'script': 'sub'}, { 'script': 'super' }],
-  [{ 'indent': '-1'}, { 'indent': '+1' }],
-  [{ 'size': ['small', false, 'large', 'huge'] }],
-  [{ 'color': [] }, { 'background': [] }],
-  [{ 'font': [] }],
-  [{ 'align': [] }],
-  ['clean'],
-  ['link', 'image', 'video']
-]
+const book = ref<Book | null>(null);
+const chapters = ref<Chapter[]>([]);
+const activeChapterId = ref<string | null>(null);
+const activeChapterContent = ref<ChapterContent | null>(null);
 
-const quillModules: any = {
-  toolbar: toolbarConfig
-}
+const editorRef = ref<any>(null);
+const editorContent = ref("");
+const isSaved = ref(true);
+const lastSavedTime = ref("never");
+const isEditingTitle = ref(false);
+const titleInput = ref("Untitled Masterpiece");
+const isLoading = ref(true);
+const statusFilter = ref<"DRAFT" | "PUBLISHED">("DRAFT");
+const showPreview = ref(false);
+const coverPreviewUrl = ref<string | null>(null);
+const coverUploadError = ref<string | null>(null);
+const isUploadingCover = ref(false);
 
-const editorRef = ref<any>(null)
-const editorContent = ref(`<p>Here is the Khmer text placeholder.</p>
+const resolveCoverUrl = (url?: string | null) => {
+    if (!url) return null;
+    if (url.startsWith("http")) return url;
+    return `${apiBaseUrl}${url}`;
+};
 
-<p>The sun hung low in the horizon, casting long, amber shadows across the loom. Arun's fingers moved with a rhythmic grace, a dance perfected over decades of solitary labor. Every thread was a memory, every knot a promise kept to the earth that provided the silk.</p>
+const fetchBookData = async () => {
+    if (isNewBook.value) {
+        book.value = {
+            id: "new",
+            title: "Untitled Masterpiece",
+            content: "",
+            status: "DRAFT",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+        titleInput.value = book.value.title;
+        isLoading.value = false;
+        return;
+    }
 
-<p>It wasn't just a garment he was weaving; it was a map of the spirit. The villagers called him the Weaver of Echoes, for they said his patterns could sing if one listened closely enough during the monsoon rains.</p>`)
+    try {
+        isLoading.value = true;
+        const [bookData, chaptersData] = await Promise.all([
+            getBookDetail(bookId.value),
+            getChapters(bookId.value),
+        ]);
+        book.value = bookData;
+        chapters.value = chaptersData;
+        titleInput.value = book.value.title;
+        coverPreviewUrl.value = book.value.coverImageUrl || null;
 
-const activeChapterId = ref('1')
-const isSaved = ref(true)
-const lastSavedTime = ref('2 mins ago')
-const isEditingTitle = ref(false)
-const titleInput = ref('Untitled Masterpiece')
+        if (chapters.value.length > 0) {
+            await handleSelectChapter(chapters.value[0].id);
+        }
+    } catch (error) {
+        toast.error("Failed to load book data");
+        router.push("/dashboard/manuscripts");
+    } finally {
+        isLoading.value = false;
+    }
+};
 
-const chapters: Chapter[] = [
-  { id: '1', title: 'Introduction', status: 'draft', wordCount: 0 },
-  { id: '2', title: 'Chapter 1: The Beginning', status: 'draft', wordCount: 1200 },
-  { id: '3', title: 'Chapter 2: Rising Action', status: 'draft', wordCount: 850 },
-  { id: '4', title: 'Chapter 3: The Climax', status: 'draft', wordCount: 0 }
-]
+const handleSelectChapter = async (chapterId: string) => {
+    if (!isSaved.value) {
+        await handleSaveDraft();
+    }
 
-const bookMetadata = ref<BookMetadata>({
-  title: titleInput.value,
-  genre: 'your name',
-  language: 'English (EN)',
-  tags: ['Funny', 'Drama'],
-  readyToPublish: true,
-  lastUpdated: lastSavedTime.value,
-  wordCount: 1420
-})
+    try {
+        const content = await getChapterContent(chapterId);
+        activeChapterContent.value = content;
+        activeChapterId.value = chapterId;
+        editorContent.value = content.content || "";
+        isSaved.value = true;
 
-// Calculate word count from editor content
-const wordCount = computed(() => {
-  if (!editorRef.value) return 0
-  // Get plain text from HTML content
-  const div = document.createElement('div')
-  div.innerHTML = editorContent.value
-  const text = div.textContent || ''
-  return text.trim().split(/\s+/).filter(w => w.length > 0).length
-})
+        // Sync content into editor
+        if (editorRef.value) {
+            editorRef.value.setContent(editorContent.value);
+        }
+    } catch (error) {
+        toast.error("Failed to load chapter content");
+    }
+};
 
-// Handle content updates
 const handleEditorChange = () => {
-  if (editorRef.value) {
-    editorContent.value = editorRef.value.getHTML()
-    isSaved.value = false
-  }
-}
+    if (editorRef.value) {
+        const newContent = editorRef.value.getContent();
+        if (newContent !== editorContent.value) {
+            editorContent.value = newContent;
+            isSaved.value = false;
+        }
+    }
+};
 
-const handleSelectChapter = (chapterId: string) => {
-  activeChapterId.value = chapterId
-  // Load chapter content here
-}
+// Autosave logic
+let autosaveTimeout: any = null;
+watch(editorContent, () => {
+    if (!isSaved.value) {
+        if (autosaveTimeout) clearTimeout(autosaveTimeout);
+        autosaveTimeout = setTimeout(() => {
+            handleSaveDraft();
+        }, 5000); // 5 seconds debounce
+    }
+});
 
-const handleNewChapter = () => {
-  console.log('Create new chapter')
-}
+const handleSaveDraft = async () => {
+    if (!book.value) return;
 
-const handleTitleChange = () => {
-  bookMetadata.value.title = titleInput.value
-  isSaved.value = false
-  isEditingTitle.value = false
-}
+    try {
+        if (isNewBook.value) {
+            const newBook = await createBook({
+                title: titleInput.value,
+                content: "", // Book summary/content
+            });
+            toast.success("Book created!");
+            router.push(`/${newBook.id}/write`);
+            return;
+        }
+
+        if (activeChapterId.value) {
+            await updateChapter(activeChapterId.value, {
+                content: editorContent.value,
+                title: activeChapterContent.value?.title,
+            });
+
+            // Update word count in sidebar
+            const chIndex = chapters.value.findIndex(
+                (c) => c.id === activeChapterId.value,
+            );
+            if (chIndex !== -1) {
+                chapters.value[chIndex].wordCount = wordCount.value;
+            }
+        } else {
+            // Update book metadata
+            await updateBook(bookId.value, {
+                title: titleInput.value,
+            });
+        }
+
+        isSaved.value = true;
+        lastSavedTime.value = new Date().toLocaleTimeString();
+    } catch (error) {
+        toast.error("Failed to save draft");
+    }
+};
+
+const handleNewChapter = async () => {
+    if (isNewBook.value) {
+        toast.info("Please save the book title first");
+        return;
+    }
+
+    try {
+        const nextNum = chapters.value.length + 1;
+        const newCh = await createChapter({
+            bookId: bookId.value,
+            title: `Chapter ${nextNum}`,
+            chapterNumber: nextNum,
+            order: nextNum,
+            content: " ",
+            type: "CHAPTER",
+            status: "DRAFT",
+        });
+        chapters.value.push(newCh);
+        await handleSelectChapter(newCh.id);
+        toast.success("New chapter created");
+    } catch (error) {
+        toast.error("Failed to create chapter");
+    }
+};
+
+const handleTitleChange = async () => {
+    if (book.value) {
+        book.value.title = titleInput.value;
+        if (!isNewBook.value) {
+            await updateBook(bookId.value, { title: titleInput.value });
+            toast.success("Title updated");
+        }
+        isSaved.value = false;
+        isEditingTitle.value = false;
+    }
+};
 
 const startEditingTitle = () => {
-  isEditingTitle.value = true
-}
+    isEditingTitle.value = true;
+};
 
 const cancelEditingTitle = () => {
-  titleInput.value = bookMetadata.value.title
-  isEditingTitle.value = false
-}
+    titleInput.value = book.value?.title || "Untitled Masterpiece";
+    isEditingTitle.value = false;
+};
 
-const handleSaveDraft = () => {
-  // Save all the data
-  bookMetadata.value.title = titleInput.value
-  bookMetadata.value.wordCount = wordCount.value || bookMetadata.value.wordCount
+const handleCoverSelected = async (file: File) => {
+    if (isNewBook.value) {
+        toast.info("Save the book first to upload a cover.");
+        return;
+    }
 
-  isSaved.value = true
-  lastSavedTime.value = 'just now'
-  bookMetadata.value.lastUpdated = lastSavedTime.value
-  console.log('Draft saved:', {
-    title: bookMetadata.value.title,
-    genre: bookMetadata.value.genre,
-    language: bookMetadata.value.language,
-    tags: bookMetadata.value.tags,
-    wordCount: bookMetadata.value.wordCount,
-    content: editorContent.value.substring(0, 100) + '...'
-  })
-}
+    isUploadingCover.value = true;
+    coverUploadError.value = null;
 
-const handlePublish = () => {
-  // Save before publishing
-  handleSaveDraft()
-  console.log('Publishing book:', bookMetadata.value.title)
-}
+    try {
+        const previewUrl = URL.createObjectURL(file);
+        coverPreviewUrl.value = previewUrl;
 
-const removeTag = (index: number) => {
-  bookMetadata.value.tags.splice(index, 1)
-}
+        const response = await uploadBookCover(file);
+        await updateBook(bookId.value, { coverImageUrl: response.url });
 
-const uploadCover = () => {
-  console.log('Upload cover clicked')
-}
+        if (book.value) {
+            book.value.coverImageUrl = response.url;
+        }
+
+        toast.success("Cover updated");
+    } catch (error) {
+        coverUploadError.value = "Failed to upload cover. Please try again.";
+        toast.error(coverUploadError.value);
+    } finally {
+        isUploadingCover.value = false;
+    }
+};
+
+const clearCover = async () => {
+    coverPreviewUrl.value = null;
+    coverUploadError.value = null;
+
+    if (!isNewBook.value && book.value) {
+        await updateBook(bookId.value, { coverImageUrl: null });
+        book.value.coverImageUrl = undefined;
+    }
+};
+
+const handleToggleChapterStatus = async () => {
+    if (!activeChapterId.value || !activeChapterContent.value) return;
+
+    const nextStatus =
+        activeChapterContent.value.status === "PUBLISHED"
+            ? "DRAFT"
+            : "PUBLISHED";
+
+    try {
+        await updateChapter(activeChapterId.value, { status: nextStatus });
+        activeChapterContent.value.status = nextStatus;
+
+        const index = chapters.value.findIndex(
+            (ch) => ch.id === activeChapterId.value,
+        );
+        if (index !== -1) {
+            chapters.value[index].status = nextStatus;
+        }
+
+        toast.success(`Chapter marked as ${nextStatus.toLowerCase()}`);
+    } catch (error) {
+        toast.error("Failed to update chapter status");
+    }
+};
+
+const wordCount = computed(() => {
+    const div = document.createElement("div");
+    div.innerHTML = editorContent.value;
+    const text = div.textContent || "";
+    return text
+        .trim()
+        .split(/\s+/)
+        .filter((w) => w.length > 0).length;
+});
+
+const handlePublish = async () => {
+    if (!book.value || isNewBook.value) return;
+
+    try {
+        await updateBook(bookId.value, { status: "PUBLISHED" });
+        book.value.status = "PUBLISHED";
+
+        if (chapters.value.length > 0) {
+            await Promise.all(
+                chapters.value.map((chapter) =>
+                    updateChapter(chapter.id, { status: "PUBLISHED" }),
+                ),
+            );
+            chapters.value = chapters.value.map((chapter) => ({
+                ...chapter,
+                status: "PUBLISHED",
+            }));
+        }
+
+        statusFilter.value = "PUBLISHED";
+        toast.success("Book published!");
+    } catch (error) {
+        toast.error("Failed to publish book");
+    }
+};
+
+onMounted(fetchBookData);
 </script>
 
 <template>
-  <div class="flex flex-col h-screen bg-[#F5E6D3]">
-    <!-- Writing Navbar -->
-    <WritingNavbar
-      @saveDraft="handleSaveDraft"
-      @publish="handlePublish"
-    />
-
-    <div class="flex flex-1 overflow-hidden">
-      <!-- Sidebar -->
-      <WritingSidebar
-        :chapters="chapters"
-        :activeChapterId="activeChapterId"
-        @selectChapter="handleSelectChapter"
-        @newChapter="handleNewChapter"
-      />
-
-      <!-- Main Content Area -->
-      <main class="flex-1 overflow-y-auto">
-        <div class="max-w-4xl mx-auto px-12 py-8">
-          <!-- Header Section with Cover and Metadata -->
-          <div class="mb-8 flex gap-8">
-            <!-- Cover Upload Section -->
-            <button
-              @click="uploadCover"
-              class="flex-shrink-0 group relative"
-            >
-              <div class="w-48 h-64 bg-gray-300 rounded border-4 border-dashed border-gray-400 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors relative overflow-hidden"
-              >
-                <div class="absolute inset-0 bg-gradient-to-b from-gray-200 to-gray-300 opacity-50"></div>
-                <div class="relative z-10 text-center">
-                  <div class="mb-3">
-                    <svg class="w-12 h-12 mx-auto text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                  </div>
-                  <p class="text-sm font-medium text-gray-700">Upload Book</p>
-                  <p class="text-sm text-gray-600">Cover</p>
-                  <p class="text-xs text-gray-500 mt-2 font-medium">RECOMMENDED:</p>
-                  <p class="text-xs text-gray-500">1600x2400px</p>
-                </div>
-              </div>
-            </button>
-
-            <!-- Title and Metadata Section -->
-            <div class="flex-1">
-            <!-- Title - Editable -->
-              <div class="mb-8">
-                <!-- Display Mode -->
-                <div v-if="!isEditingTitle" @click="startEditingTitle" class="group cursor-pointer">
-                  <h1 class="text-5xl font-light text-gray-300 leading-tight group-hover:text-gray-400 transition-colors">
-                    {{ bookMetadata.title }}
-                  </h1>
-                  <p class="text-xs text-gray-500 mt-2 group-hover:text-gray-600 transition-colors">Click to edit title</p>
-                </div>
-
-                <!-- Edit Mode -->
-                <div v-else class="mb-4">
-                  <input
-                    v-model="titleInput"
-                    type="text"
-                    @keyup.enter="handleTitleChange"
-                    @keyup.escape="cancelEditingTitle"
-                    class="w-full text-5xl font-light bg-white border-b-2 border-amber-600 focus:outline-none focus:border-amber-700 text-gray-900 pb-2"
-                    placeholder="Enter book title"
-                    autofocus
-                  />
-                  <div class="flex gap-2 mt-4">
-                    <button
-                      @click="handleTitleChange"
-                      class="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded hover:bg-amber-700 transition-colors"
-                    >
-                      Save Title
-                    </button>
-                    <button
-                      @click="cancelEditingTitle"
-                      class="px-4 py-2 bg-gray-300 text-gray-800 text-sm font-medium rounded hover:bg-gray-400 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Metadata Grid -->
-              <div class="grid grid-cols-2 gap-8 mb-6">
-                <!-- Genre -->
-                <div>
-                  <label class="text-xs font-semibold text-gray-600 uppercase tracking-widest mb-2 block">Genre</label>
-                  <input
-                    v-model="bookMetadata.genre"
-                    type="text"
-                    placeholder="your name"
-                    class="w-full px-0 py-1 border-b border-gray-300 bg-transparent text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-amber-600"
-                  />
-                </div>
-
-                <!-- Language -->
-                <div>
-                  <label class="text-xs font-semibold text-gray-600 uppercase tracking-widest mb-2 block">Project Language</label>
-                  <div class="flex gap-4">
-                    <button
-                      class="px-0 py-1 border-b-2 text-sm font-semibold transition-colors"
-                      :class="bookMetadata.language === 'English (EN)' ? 'border-gray-800 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                      @click="bookMetadata.language = 'English (EN)'"
-                    >
-                      English (EN)
-                    </button>
-                    <button
-                      class="px-0 py-1 border-b-2 text-sm font-semibold transition-colors"
-                      :class="bookMetadata.language === 'Khmer (KH)' ? 'border-gray-800 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                      @click="bookMetadata.language = 'Khmer (KH)'"
-                    >
-                      Khmer (KH)
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Tags -->
-              <div class="mb-6">
-                <label class="text-xs font-semibold text-gray-600 uppercase tracking-widest mb-3 block">Tags</label>
-                <div class="flex gap-2 flex-wrap">
-                  <span
-                    v-for="(tag, index) in bookMetadata.tags"
-                    :key="index"
-                    class="bg-amber-200 text-amber-900 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide flex items-center gap-2 hover:bg-amber-300 transition-colors"
-                  >
-                    {{ tag }}
-                    <button @click="removeTag(index)" class="ml-1 font-bold hover:opacity-70">×</button>
-                  </span>
-                </div>
-              </div>
-
-              <!-- Status Line -->
-              <div class="flex items-center gap-4 text-sm text-gray-600 pt-4 border-t border-gray-300">
-                <div class="flex items-center gap-1">
-                  <Clock :size="16" class="text-gray-500" />
-                  <span>Last saved {{ bookMetadata.lastUpdated }}</span>
-                </div>
-                <span>•</span>
-                <span>{{ wordCount || bookMetadata.wordCount }} words</span>
-                <span>•</span>
-                <span v-if="bookMetadata.readyToPublish" class="text-amber-700 font-semibold">Ready to Publish</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Quill Editor -->
-          <div class="mb-4">
-            <QuillEditor
-              ref="editorRef"
-              v-model:content="editorContent"
-              :options="{ modules: quillModules }"
-              content-type="html"
-              @text-change="handleEditorChange"
-              class="quill-editor-container"
-            />
-          </div>
-
-          <!-- Footer spacing -->
-          <div class="mt-8"></div>
+    <div class="flex flex-col h-screen bg-[#F5E6D3]">
+        <div
+            v-if="isLoading"
+            class="flex-1 flex flex-col items-center justify-center bg-[#F5E6D3]"
+        >
+            <div
+                class="animate-spin rounded-full h-16 w-16 border-b-4 border-amber-800 mb-4"
+            ></div>
+            <p class="text-amber-900 font-medium">Loading your manuscript...</p>
         </div>
-      </main>
-    </div>
 
-    <!-- Footer -->
-    <footer class="bg-[#093A3F] text-[#FDE9D0]/70 text-xs px-8 py-4 border-t border-gray-700 flex justify-between">
-      <span>© 2025 THE DIGITAL ATELIER. ALL RIGHTS RESERVED.</span>
-      <div class="flex gap-6">
-        <a href="#" class="hover:text-[#FDE9D0]">EPISODIC NOTES</a>
-        <a href="#" class="hover:text-[#FDE9D0]">WRITING GUIDELINES</a>
-        <a href="#" class="hover:text-[#FDE9D0]">SUPPORT</a>
-      </div>
-    </footer>
-  </div>
+        <template v-else>
+            <!-- Writing Navbar -->
+            <WritingNavbar
+                :isSaved="isSaved"
+                :status="book?.status"
+                @saveDraft="handleSaveDraft"
+                @publish="handlePublish"
+            />
+
+            <div class="flex flex-1 overflow-hidden">
+                <!-- Sidebar -->
+                <WritingSidebar
+                    :chapters="chapters"
+                    :activeChapterId="activeChapterId || undefined"
+                    :statusFilter="statusFilter"
+                    @selectChapter="handleSelectChapter"
+                    @newChapter="handleNewChapter"
+                    @updateStatusFilter="(value) => (statusFilter = value)"
+                />
+
+                <!-- Main Content Area -->
+                <main class="flex-1 overflow-y-auto">
+                    <div class="max-w-4xl mx-auto px-12 py-8">
+                        <!-- Header Section with Cover and Metadata -->
+                        <div class="mb-8 flex gap-8">
+                            <!-- Cover Upload Section -->
+                            <div class="flex-shrink-0 w-48">
+                                <CoverImageUploader
+                                    :model-value="coverPreviewUrl"
+                                    :error="coverUploadError"
+                                    helper-text="JPG or PNG up to 2MB"
+                                    @fileSelected="handleCoverSelected"
+                                    @clear="clearCover"
+                                />
+                                <p
+                                    v-if="isUploadingCover"
+                                    class="text-xs text-amber-700 mt-2"
+                                >
+                                    Uploading cover...
+                                </p>
+                            </div>
+
+                            <!-- Title and Metadata Section -->
+                            <div class="flex-1">
+                                <!-- Title - Editable -->
+                                <div class="mb-8">
+                                    <div
+                                        v-if="!isEditingTitle"
+                                        @click="startEditingTitle"
+                                        class="group cursor-pointer"
+                                    >
+                                        <h1
+                                            class="text-5xl font-light text-[#123C3A] leading-tight group-hover:text-amber-800 transition-colors"
+                                        >
+                                            {{ book?.title }}
+                                        </h1>
+                                        <p class="text-xs text-gray-500 mt-2">
+                                            Click to edit title
+                                        </p>
+                                    </div>
+
+                                    <div v-else class="mb-4">
+                                        <input
+                                            v-model="titleInput"
+                                            type="text"
+                                            @keyup.enter="handleTitleChange"
+                                            @keyup.escape="cancelEditingTitle"
+                                            class="w-full text-5xl font-light bg-transparent border-b-2 border-amber-600 focus:outline-none text-[#123C3A] pb-2"
+                                            placeholder="Enter book title"
+                                            autofocus
+                                        />
+                                        <div class="flex gap-2 mt-4">
+                                            <button
+                                                @click="handleTitleChange"
+                                                class="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded hover:bg-amber-700 transition-colors"
+                                            >
+                                                Save Title
+                                            </button>
+                                            <button
+                                                @click="cancelEditingTitle"
+                                                class="px-4 py-2 bg-gray-300 text-gray-800 text-sm font-medium rounded hover:bg-gray-400 transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Status Line -->
+                                <div
+                                    class="flex items-center gap-4 text-sm text-gray-600 pt-4 border-t border-gray-300"
+                                >
+                                    <div class="flex items-center gap-1">
+                                        <Clock
+                                            :size="16"
+                                            class="text-gray-500"
+                                        />
+                                        <span
+                                            >Last saved
+                                            {{ lastSavedTime }}</span
+                                        >
+                                    </div>
+                                    <span>•</span>
+                                    <span
+                                        >{{ wordCount }} words in active
+                                        chapter</span
+                                    >
+                                    <span>•</span>
+                                    <span
+                                        :class="
+                                            book?.status === 'PUBLISHED'
+                                                ? 'text-green-600 font-bold'
+                                                : 'text-amber-700 font-semibold'
+                                        "
+                                    >
+                                        {{ book?.status }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chapter Title for Editor -->
+                        <div
+                            v-if="activeChapterContent"
+                            class="mb-4 flex flex-wrap items-center justify-between gap-3"
+                        >
+                            <div>
+                                <h2
+                                    class="text-2xl font-semibold text-[#123C3A]"
+                                >
+                                    {{ activeChapterContent.title }}
+                                </h2>
+                                <span
+                                    class="inline-flex mt-2 text-[11px] px-2.5 py-1 rounded-full font-semibold uppercase"
+                                    :class="
+                                        activeChapterContent.status ===
+                                        'PUBLISHED'
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-amber-100 text-amber-700'
+                                    "
+                                >
+                                    {{ activeChapterContent.status }}
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    class="px-3 py-2 rounded-lg text-xs font-semibold border border-amber-200 text-amber-900 hover:bg-amber-50"
+                                    @click="handleToggleChapterStatus"
+                                >
+                                    {{
+                                        activeChapterContent.status ===
+                                        "PUBLISHED"
+                                            ? "Move to Draft"
+                                            : "Publish Chapter"
+                                    }}
+                                </button>
+                                <button
+                                    type="button"
+                                    class="px-3 py-2 rounded-lg text-xs font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                    @click="showPreview = !showPreview"
+                                >
+                                    <Eye v-if="!showPreview" :size="14" />
+                                    <EyeOff v-else :size="14" />
+                                    {{
+                                        showPreview ? "Hide Preview" : "Preview"
+                                    }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Editor / Preview -->
+                        <div
+                            class="mb-4 shadow-sm rounded-lg overflow-hidden border border-amber-200"
+                        >
+                            <div
+                                v-if="showPreview"
+                                class="bg-[#FDFCFB] px-12 py-10 text-[#2A241D] prose max-w-none"
+                                v-html="editorContent"
+                            ></div>
+                            <QuillEditor
+                                v-else
+                                ref="editorRef"
+                                :content="editorContent"
+                                @update:content="editorContent = $event"
+                                @text-change="handleEditorChange"
+                            />
+                        </div>
+
+                        <div
+                            v-if="!activeChapterId && !isNewBook"
+                            class="text-center py-20 bg-white/30 rounded-lg border-2 border-dashed border-amber-300"
+                        >
+                            <p class="text-amber-900 font-medium">
+                                Select a chapter to start writing
+                            </p>
+                            <button
+                                @click="handleNewChapter"
+                                class="mt-4 text-amber-700 font-bold hover:underline"
+                            >
+                                + Or create a new one
+                            </button>
+                        </div>
+                    </div>
+                </main>
+            </div>
+
+            <!-- Footer -->
+            <footer
+                class="bg-[#093A3F] text-[#FDE9D0]/70 text-xs px-8 py-4 border-t border-gray-700 flex justify-between"
+            >
+                <span>© 2025 THE DIGITAL ATELIER. ALL RIGHTS RESERVED.</span>
+                <div class="flex gap-6">
+                    <a href="#" class="hover:text-[#FDE9D0]"
+                        >WRITING GUIDELINES</a
+                    >
+                    <a href="#" class="hover:text-[#FDE9D0]">SUPPORT</a>
+                </div>
+            </footer>
+        </template>
+    </div>
 </template>
 
 <style scoped>
-:deep(.ql-container) {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.8;
-  border-radius: 0.5rem;
+/* TipTap overrides for the full-height writing canvas */
+:deep(.ProseMirror) {
+    min-height: 600px;
+    max-height: 800px;
+    padding: 3rem;
+    background-color: #fdfcfb;
+    color: #2a241d;
+    font-family: "Crimson Pro", Georgia, serif;
+    font-size: 18px;
+    line-height: 1.8;
 }
-
-:deep(.ql-editor) {
-  min-height: 400px;
-  max-height: 500px;
-  overflow-y: auto;
-  padding: 2rem;
-  background-color: white;
-}
-
-:deep(.ql-toolbar) {
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem 0.5rem 0 0;
-  padding: 1rem;
-}
-
-:deep(.ql-container) {
-  border: 1px solid #e5e7eb;
-  border-radius: 0 0 0.5rem 0.5rem;
-  background-color: white;
-}
-
-:deep(.ql-editor.ql-blank::before) {
-  color: #9ca3af;
-  font-style: italic;
-  font-size: 1rem;
-}
-
-:deep(.ql-snow .ql-stroke) {
-  stroke: #6b7280;
-}
-
-:deep(.ql-snow .ql-fill) {
-  fill: #6b7280;
-}
-
-:deep(.ql-snow .ql-picker-label) {
-  color: #6b7280;
-}
-
-:deep(.ql-toolbar.ql-snow button:hover),
-:deep(.ql-toolbar.ql-snow button:focus),
-:deep(.ql-toolbar.ql-snow button.ql-active),
-:deep(.ql-toolbar.ql-snow .ql-picker-label:hover),
-:deep(.ql-toolbar.ql-snow .ql-picker-item:hover),
-:deep(.ql-toolbar.ql-snow .ql-picker-item.ql-selected) {
-  color: #d97706;
-}
-
-:deep(.ql-toolbar.ql-snow button:hover .ql-stroke),
-:deep(.ql-toolbar.ql-snow button:focus .ql-stroke),
-:deep(.ql-toolbar.ql-snow button.ql-active .ql-stroke),
-:deep(.ql-toolbar.ql-snow .ql-picker-label:hover .ql-stroke),
-:deep(.ql-toolbar.ql-snow .ql-picker-item:hover .ql-stroke),
-:deep(.ql-toolbar.ql-snow .ql-picker-item.ql-selected .ql-stroke) {
-  stroke: #d97706;
-}
-
-:deep(.ql-toolbar.ql-snow button:hover .ql-fill),
-:deep(.ql-toolbar.ql-snow button:focus .ql-fill),
-:deep(.ql-toolbar.ql-snow button.ql-active .ql-fill),
-:deep(.ql-toolbar.ql-snow .ql-picker-label:hover .ql-fill),
-:deep(.ql-toolbar.ql-snow .ql-picker-item:hover .ql-fill),
-:deep(.ql-toolbar.ql-snow .ql-picker-item.ql-selected .ql-fill),
-:deep(.ql-toolbar.ql-snow .ql-picker-item.ql-selected .ql-picker-label) {
-  fill: #d97706;
-}
-
-:deep(.ql-editor h1),
-:deep(.ql-editor h2),
-:deep(.ql-editor h3) {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  margin-bottom: 1rem;
-  margin-top: 1.5rem;
-}
-
-:deep(.ql-editor h1) {
-  font-size: 2rem;
-  font-weight: 600;
-}
-
-:deep(.ql-editor h2) {
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-:deep(.ql-editor h3) {
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-:deep(.ql-editor blockquote) {
-  border-left: 4px solid #d97706;
-  margin: 1rem 0;
-  padding-left: 1rem;
-  color: #666;
-}
-
-:deep(.ql-editor code) {
-  background-color: #f3f4f6;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-family: 'Courier New', monospace;
-}
-
-:deep(.ql-editor pre) {
-  background-color: #1f2937;
-  color: #f3f4f6;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  overflow-x: auto;
-  margin: 1rem 0;
-}
-
-:deep(.ql-editor pre code) {
-  background-color: transparent;
-  color: inherit;
-  padding: 0;
-}
-
-:deep(.ql-editor ul),
-:deep(.ql-editor ol) {
-  margin-bottom: 1rem;
-  padding-left: 2rem;
-}
-
-:deep(.ql-editor li) {
-  margin-bottom: 0.5rem;
+:deep(.ProseMirror blockquote) {
+    border-left: 4px solid #d97706;
+    margin: 1rem 0;
+    padding-left: 1rem;
+    color: #666;
 }
 </style>

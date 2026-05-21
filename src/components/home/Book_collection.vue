@@ -1,4 +1,6 @@
 <script>
+import api from '../../services/api'
+
 const module = import.meta.glob('../../assets/images/books/*.{png,jpg,jpeg}', { eager: true })
 
 const images = Object.fromEntries(
@@ -15,47 +17,14 @@ export default {
     return {
       activeDot: 0,
       dotCount: 3,
-      books: [
-        {
-          id: 1,
-          title: 'The Silent Atelier',
-          author: 'Julian Vane',
-          stars: '★★★★☆ 4.5',
-          cover: images['Book1'],
-        },
-        {
-          id: 2,
-          title: 'Midnight Pages',
-          author: 'Elias Thorne',
-          stars: '★★★★★ 5.0',
-          cover: images['Book 2'],
-        },
-        {
-          id: 3,
-          title: 'Ancient Winds',
-          author: 'Sarah Jenkins',
-          stars: '★★★★☆ 4.0',
-          cover: images['Book 5'],
-        },
-        {
-          id: 4,
-          title: 'The Amber Shaft',
-          author: 'Marcus Vane',
-          stars: '★★★★☆ 4.8',
-          cover: images['Book 4'],
-        },
-        {
-          id: 5,
-          title: 'Oceanic Dreams',
-          author: 'Luna Mires',
-          stars: '★★★☆☆ 3.5',
-          cover: images['Book 5'],
-        },
-      ],
+      books: [],
+      loading: false,
+      error: null,
     }
   },
 
   mounted() {
+    this.fetchBooks()
     const el = this.$refs.carousel
     if (el) {
       el.addEventListener('scroll', this.onScroll, { passive: true })
@@ -68,6 +37,19 @@ export default {
   },
 
   methods: {
+    async fetchBooks() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await api.get('/books')
+        this.books = Array.isArray(response.data) ? response.data.slice(0, 12) : []
+      } catch (err) {
+        this.error = 'Failed to load books'
+        console.error('Error fetching books:', err)
+      } finally {
+        this.loading = false
+      }
+    },
     scrollLeft() {
       this.$refs.carousel.scrollBy({ left: -360, behavior: 'smooth' })
     },
