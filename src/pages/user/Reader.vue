@@ -16,6 +16,19 @@
 
     <!-- Main Reader -->
     <div v-else-if="currentChapter" class="bg-white w-full max-w-6xl h-full rounded-lg shadow-2xl flex flex-col overflow-hidden border border-gray-200 ring-4 ring-blue-500/10">
+      <!-- Reading Progress Tracker -->
+      <ReadingProgress
+        :chapter-id="currentChapter.id"
+        :chapter-title="currentChapter.title"
+        :current-chapter-number="currentChapterIndex + 1"
+        :total-chapters="totalChapters"
+        :content-element="mainContentRef"
+        :total-words="currentChapter.wordCount || 2500"
+        :reading-time-minutes="currentChapter.readingTimeMinutes || 10"
+        @progress-update="handleProgressUpdate"
+        @progress-saved="handleProgressSaved"
+        @chapter-changed="handleChapterChanged"
+      />
       <!-- Header -->
       <header class="bg-[#fcfcfc] border-b border-gray-100 flex items-center justify-between px-4 py-3 shrink-0">
         <div class="flex items-center gap-4">
@@ -42,7 +55,7 @@
       </header>
 
       <!-- Main Content -->
-      <main class="flex-1 overflow-y-auto relative">
+      <main class="flex-1 overflow-y-auto relative" ref="mainContentRef">
         <div class="max-w-3xl mx-auto px-8 py-12 md:py-16 relative">
           <!-- Chapter Header -->
           <div class="text-center mb-16 relative">
@@ -164,9 +177,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { onMounted, watch, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useChapterNavigation } from '../../composables/useChapterNavigation';
+import { useReadingProgress } from '../../composables/useReadingProgress';
+import ReadingProgress from '../../components/reader/ReadingProgress.vue';
 
 const route = useRoute();
 
@@ -189,6 +204,9 @@ const {
   goToChapter,
 } = useChapterNavigation();
 
+const { saveChapterProgress, getChapterProgress } = useReadingProgress();
+const mainContentRef = ref<HTMLElement | null>(null);
+
 /**
  * Format chapter content for display
  * Wraps paragraphs in proper elements
@@ -205,6 +223,38 @@ const formatContent = (content: string): string => {
 };
 
 /**
+ * Handle reading progress updates
+ */
+const handleProgressUpdate = (progress: { scroll: number; chapterId?: string; timeSpent: number }) => {
+  // Progress is updated in real-time without saving
+  console.log('Reading progress updated:', progress);
+};
+
+/**
+ * Handle progress saved event
+ */
+const handleProgressSaved = (progress: { scroll: number; chapterId?: string; timeSpent: number }) => {
+  // Save progress data via API or localStorage
+  if (currentChapter.value) {
+    saveChapterProgress(
+      currentChapter.value.id,
+      progress.scroll,
+      progress.timeSpent,
+      Math.round((progress.scroll / 100) * (currentChapter.value.wordCount || 2500))
+    );
+    console.log('Progress saved:', progress);
+  }
+};
+
+/**
+ * Handle chapter changes in progress tracker
+ */
+const handleChapterChanged = (chapterId?: string) => {
+  console.log('Chapter changed in progress tracker:', chapterId);
+  // Reset any chapter-specific UI state if needed
+};
+
+/**
  * Initialize reading on component mount
  * Extract bookId and optional chapterId from route params
  */
@@ -218,6 +268,11 @@ onMounted(async () => {
   }
 
   await initializeReading(bookId, chapterId);
+  
+  // Set main content ref after chapter loads
+  setTimeout(() => {
+    mainContentRef.value = document.querySelector('main');
+  }, 100);
 });
 
 /**
