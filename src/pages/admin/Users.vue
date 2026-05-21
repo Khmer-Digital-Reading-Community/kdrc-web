@@ -410,10 +410,6 @@ const selectAllUsers = (event: Event) => {
   }
 };
 
-const viewUser = (user: User) => {
-  console.log('View user:', user);
-};
-
 const editUser = (user: User) => {
   editingUserId.value = user.id;
   editUserForm.value = {

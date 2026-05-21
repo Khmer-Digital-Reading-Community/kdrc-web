@@ -184,7 +184,6 @@ import { useReadingProgress } from '../../composables/useReadingProgress';
 import ReadingProgress from '../../components/reader/ReadingProgress.vue';
 
 const route = useRoute();
-const router = useRouter();
 
 const {
   chapters,
