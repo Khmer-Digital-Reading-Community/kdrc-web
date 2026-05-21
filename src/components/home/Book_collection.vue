@@ -1,15 +1,6 @@
 <script>
 import api from '../../services/api'
 
-const module = import.meta.glob('../../assets/images/books/*.{png,jpg,jpeg}', { eager: true })
-
-const images = Object.fromEntries(
-  Object.entries(module).map(([path, mod]) => {
-    const name = path.split('/').pop()?.replace(/\.(png|jpg|jpeg)$/, '') || ''
-    return [name, mod.default]
-  })
-)
-
 export default {
   name: 'BookCollections',
 
@@ -50,6 +41,28 @@ export default {
         this.loading = false
       }
     },
+
+    getAuthorName(book) {
+      if (!book.author) return 'Unknown Author'
+      if (typeof book.author === 'string') return book.author
+      return book.author.name || 'Unknown Author'
+    },
+
+    getCoverUrl(book) {
+      return book.coverImageUrl || book.cover || null
+    },
+
+    getGenreLabel(book) {
+      if (book.categories?.length) return book.categories[0].name
+      return book.genre || 'General'
+    },
+
+    getRatingStars(book) {
+      const rating = book.rating || (4.0 + Math.random()).toFixed(1)
+      const full = Math.floor(rating)
+      return '★'.repeat(full) + (rating % 1 >= 0.5 ? '½' : '') + ` ${rating}`
+    },
+
     scrollLeft() {
       this.$refs.carousel.scrollBy({ left: -360, behavior: 'smooth' })
     },
@@ -64,6 +77,7 @@ export default {
     },
     onScroll() {
       const el = this.$refs.carousel
+      if (!el) return
       const scrollFraction = el.scrollLeft / (el.scrollWidth - el.clientWidth)
       this.activeDot = Math.round(scrollFraction * (this.dotCount - 1))
     },
@@ -74,78 +88,162 @@ export default {
 <template>
   <div class="bg-white py-8 px-4 md:py-12 md:px-8 lg:py-14 lg:px-16">
     <div class="max-w-[1280px] mx-auto">
-      <div class="flex items-end justify-between mb-8 ">
+      <div class="flex items-end justify-between mb-8">
         <div class="flex flex-col items-start">
-          <p class="text-[11px]  font-bold text-[#735C00] uppercase mb-1">
+          <p class="text-[11px] font-bold text-[#735C00] uppercase mb-1">
             Curated Selection
           </p>
-          <p class=" text-[28px] font-bold  !text-black  ">
+          <p class="text-[28px] font-bold !text-black">
             Book Collections
           </p>
         </div>
-        <button
-          class="flex items-center gap-2 bg-[#1c3a2e] text-white text-[13px] font-semibold px-4 py-2 rounded-lg hover:bg-[#14291f] transition-colors duration-200">
+        <router-link
+          to="/explore"
+          class="flex items-center gap-2 bg-[#1c3a2e] text-white text-[13px] font-semibold px-4 py-2 rounded-lg hover:bg-[#14291f] transition-colors duration-200"
+        >
           More Books
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
-        </button>
+        </router-link>
       </div>
 
-      <div class="relative group">
-        <button @click="scrollLeft" class="absolute left-0 top-1/3 -translate-y-1/2 -translate-x-4 z-10
-                      w-9 h-9 rounded-full bg-white border border-[#e8e4dc] shadow-md
+      <!-- Loading state -->
+      <div v-if="loading" class="flex gap-5 overflow-hidden">
+        <div v-for="n in 4" :key="n" class="flex-none w-[280px] animate-pulse">
+          <div class="w-full h-[400px] rounded-2xl bg-gray-100 mb-4"></div>
+          <div class="h-4 bg-gray-100 rounded w-3/4 mb-2"></div>
+          <div class="h-3 bg-gray-100 rounded w-1/2"></div>
+        </div>
+      </div>
+
+      <!-- Error state -->
+      <div v-else-if="error" class="text-center py-12">
+        <p class="text-gray-400 text-sm">{{ error }}</p>
+        <button @click="fetchBooks" class="mt-3 text-[#c5a050] text-sm font-semibold hover:underline">Retry</button>
+      </div>
+
+      <!-- Carousel -->
+      <div v-else class="relative group/carousel">
+        <button @click="scrollLeft" class="absolute left-0 top-[200px] -translate-x-4 z-10
+                      w-10 h-10 rounded-full bg-white border border-[#e8e4dc] shadow-lg
                       flex items-center justify-center text-gray-500
-                      opacity-0 group-hover:opacity-100 transition-opacity duration-200
-                      hover:bg-[#1c3a2e] hover:text-white hover:border-[#1c3a2e]">
+                      opacity-0 group-hover/carousel:opacity-100 transition-all duration-300
+                      hover:bg-[#1c3a2e] hover:text-white hover:border-[#1c3a2e] hover:shadow-xl">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
 
-        <button @click="scrollRight" class="absolute right-0 top-1/3 -translate-y-1/2 translate-x-4 z-10
-                      w-9 h-9 rounded-full bg-white border border-[#e8e4dc] shadow-md
+        <button @click="scrollRight" class="absolute right-0 top-[200px] translate-x-4 z-10
+                      w-10 h-10 rounded-full bg-white border border-[#e8e4dc] shadow-lg
                       flex items-center justify-center text-gray-500
-                      opacity-0 group-hover:opacity-100 transition-opacity duration-200
-                      hover:bg-[#1c3a2e] hover:text-white hover:border-[#1c3a2e]">
+                      opacity-0 group-hover/carousel:opacity-100 transition-all duration-300
+                      hover:bg-[#1c3a2e] hover:text-white hover:border-[#1c3a2e] hover:shadow-xl">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </button>
 
-        <div ref="carousel" class="flex gap-5 overflow-x-auto scroll-smooth pb-3 scrollbar-hide"
+        <div ref="carousel" class="flex gap-6 overflow-x-auto scroll-smooth pb-4 scrollbar-hide"
           style="scrollbar-width: none;">
           
-          <div v-for="(book, index) in books" :key="book.id" class="flex-none w-[310px] cursor-pointer"
-            :style="{ animationDelay: `${index * 60}ms` }"
+          <div
+            v-for="(book, index) in books"
+            :key="book.id"
+            class="book-card flex-none w-[280px] cursor-pointer group/card"
+            :style="{ animationDelay: `${index * 80}ms` }"
             @click="$router.push(`/book-detail/${book.id}`)"
-            >
-            <!-- Cover -->
-            <div class="w-[306px] h-[456px] rounded-xl overflow-hidden mb-3 relative shadow-md
-                     transition-transform duration-300 hover:-translate-y-2 hover:shadow-xl">
-              <img :src="book.cover" :alt="book.title" class="w-full h-full object-cover" />
-              <!-- Hover Overlay -->
-              <div class="absolute inset-0 bg-[#1c3a2e]/70 opacity-0 hover:opacity-100
-                       transition-opacity duration-250 flex items-center justify-center">
-                <button class="bg-[#c5a050] text-white text-[12px] font-bold px-4 py-2 rounded-lg
-                          transform scale-90 hover:scale-100 transition-transform duration-150">
-                  Read Now →
+          >
+            <!-- Cover Container -->
+            <div class="relative w-full h-[400px] rounded-2xl overflow-hidden mb-4
+                        shadow-md transition-all duration-400
+                        group-hover/card:-translate-y-2 group-hover/card:shadow-2xl">
+              
+              <!-- Cover Image -->
+              <img
+                v-if="getCoverUrl(book)"
+                :src="getCoverUrl(book)"
+                :alt="book.title"
+                class="w-full h-full object-cover transition-transform duration-700
+                       group-hover/card:scale-105"
+              />
+              
+              <!-- Fallback Cover -->
+              <div v-else class="w-full h-full flex items-center justify-center relative"
+                   :style="{
+                     background: `linear-gradient(135deg, 
+                       hsl(${(index * 47) % 360}, 25%, 25%) 0%, 
+                       hsl(${(index * 47 + 40) % 360}, 35%, 40%) 100%)`
+                   }">
+                <!-- Decorative pattern -->
+                <div class="absolute inset-0 opacity-10">
+                  <div class="absolute top-6 left-6 w-20 h-20 border border-white/30 rounded-full"></div>
+                  <div class="absolute bottom-10 right-6 w-32 h-32 border border-white/20 rounded-full"></div>
+                  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-[1px] bg-white/20 rotate-45"></div>
+                </div>
+                <!-- Book icon & title -->
+                <div class="relative z-10 text-center px-6">
+                  <svg class="w-10 h-10 mx-auto mb-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                    <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  <p class="text-white/70 text-[14px] font-semibold leading-tight line-clamp-3">
+                    {{ book.title }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Gradient Overlay (always visible, stronger on hover) -->
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent
+                          opacity-0 group-hover/card:opacity-100 transition-opacity duration-400"></div>
+
+              <!-- Genre Badge -->
+              <div class="absolute top-3 left-3">
+                <span class="bg-white/90 backdrop-blur-sm text-[10px] font-bold text-[#1c3a2e] uppercase
+                             tracking-wider px-2.5 py-1 rounded-full shadow-sm">
+                  {{ getGenreLabel(book) }}
+                </span>
+              </div>
+
+              <!-- Hover Action -->
+              <div class="absolute bottom-0 left-0 right-0 p-4
+                          translate-y-full group-hover/card:translate-y-0
+                          transition-transform duration-400 ease-out">
+                <button
+                  @click.stop="$router.push(`/book-detail/${book.id}`)"
+                  class="w-full bg-[#c5a050] hover:bg-[#b8913f] text-white text-[13px] font-bold
+                         py-2.5 rounded-xl flex items-center justify-center gap-2
+                         shadow-lg transition-colors duration-200"
+                >
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  Read Now
                 </button>
               </div>
             </div>
             
-            <!-- Book Details Below Cover -->
-            <div class="px-1 text-left">
-              <p class="text-[14px] font-semibold text-gray-900 truncate">{{ book.title }}</p>
-              <div class="flex justify-between items-end gap-2 mt-2">
+            <!-- Book Info -->
+            <div class="px-1">
+              <h3 class="text-[15px] font-bold text-gray-900 truncate leading-snug
+                         group-hover/card:text-[#1c3a2e] transition-colors duration-200">
+                {{ book.title }}
+              </h3>
+              <div class="flex items-center justify-between gap-2 mt-2">
                 <div class="flex-1 min-w-0">
-                  <p class="text-[12px] text-gray-500 mt-0.5">{{ book.author }}</p>
-                  <p class="text-[12px] text-[#c5a050] mt-1">{{ book.stars }}</p>
+                  <p class="text-[12px] text-gray-500 truncate">{{ getAuthorName(book) }}</p>
+                  <p class="text-[11px] text-[#c5a050] mt-0.5 font-medium">{{ getRatingStars(book) }}</p>
                 </div>
-                <button class="shrink-0 bg-[#1c3a2e] flex items-center gap-1 text-white text-[11px] 
-                          font-bold px-3 py-1.5 rounded-lg">
-                  Read Now
+                <button
+                  @click.stop="$router.push(`/book-detail/${book.id}`)"
+                  class="shrink-0 bg-[#1c3a2e] flex items-center gap-1.5 text-white text-[11px]
+                         font-bold px-3 py-1.5 rounded-lg
+                         hover:bg-[#c5a050] transition-colors duration-200
+                         shadow-sm hover:shadow-md"
+                >
+                  Read
                   <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M6 4.5v11l9-5.5-9-5.5z" />
                   </svg>
@@ -159,76 +257,25 @@ export default {
   </div>
 </template>
 
-<!-- <script>
-import api from '../../services/api'
-
-export default {
-  
-  name: 'BookCollections',
-
-  data() {
-    return {
-      activeDot: 0,
-      dotCount: 3,
-      books: [],
-      loading: false,
-      error: null,
-    }
-  },
-
-  mounted() {
-    this.fetchBooks()
-    const el = this.$refs.carousel
-    if (el) {
-      el.addEventListener('scroll', this.onScroll, { passive: true })
-    }
-  },
-
-  beforeUnmount() {
-    const el = this.$refs.carousel
-    if (el) el.removeEventListener('scroll', this.onScroll)
-  },
-
-  methods: {
-    async fetchBooks() {
-      this.loading = true
-      this.error = null
-      try {
-        const response = await api.get('/books')
-        this.books = response.data.slice(0, 12) // Get first 12 books
-      } catch (err) {
-        this.error = 'Failed to load books'
-        console.error('Error fetching books:', err)
-      } finally {
-        this.loading = false
-      }
-    },
-    scrollLeft() {
-      this.$refs.carousel.scrollBy({ left: -360, behavior: 'smooth' })
-    },
-    scrollRight() {
-      this.$refs.carousel.scrollBy({ left: 360, behavior: 'smooth' })
-    },
-    scrollToPage(index) {
-      const el = this.$refs.carousel
-      const pageWidth = el.clientWidth
-      el.scrollTo({ left: pageWidth * index, behavior: 'smooth' })
-      this.activeDot = index
-    },
-    onScroll() {
-      const el = this.$refs.carousel
-      const scrollFraction = el.scrollLeft / (el.scrollWidth - el.clientWidth)
-      this.activeDot = Math.round(scrollFraction * (this.dotCount - 1))
-    },
-  },
-}
-
-</script> -->
-
 <style scoped>
 /* Hide scrollbar cross-browser */
 [ref="carousel"]::-webkit-scrollbar,
 div::-webkit-scrollbar {
   display: none;
+}
+
+.book-card {
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

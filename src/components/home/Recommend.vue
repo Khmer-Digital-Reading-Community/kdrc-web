@@ -26,20 +26,37 @@
         </div>
       </div>
 
+      <!-- Loading -->
+      <div v-if="loading" class="text-center py-16">
+        <div class="inline-block w-8 h-8 border-2 border-[#c5a050] border-t-transparent rounded-full animate-spin mb-3"></div>
+        <p class="text-[13px] text-gray-400">Loading recommendations...</p>
+      </div>
+
       <!-- GRID RESPONSIVE -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         <!-- LEFT -->
         <div class="lg:col-span-8 flex flex-col">
           <div
             v-for="book in filteredBooks"
             :key="book.id"
-            class="flex flex-col sm:flex-row gap-4 sm:gap-6 py-6 border-b border-[#e8e4dc] group cursor-pointer hover:bg-[#faf8f3] px-3 sm:px-4 rounded-xl transition"
+            class="flex flex-col sm:flex-row gap-4 sm:gap-6 py-6 border-b border-[#e8e4dc] group cursor-pointer hover:bg-white/60 px-3 sm:px-4 rounded-xl transition-all duration-300"
+            @click="$router.push(`/book-detail/${book.id}`)"
           >
 
             <!-- Cover -->
-            <div class="w-full sm:w-[150px] h-[180px] sm:h-[210px] rounded-xl overflow-hidden shadow-md group-hover:-translate-y-1 transition">
-              <img :src="book.cover" class="w-full h-full object-cover" />
+            <div class="w-full sm:w-[150px] h-[180px] sm:h-[210px] rounded-xl overflow-hidden shadow-md group-hover:-translate-y-1 group-hover:shadow-lg transition-all duration-300">
+              <img
+                v-if="book.cover"
+                :src="book.cover"
+                :alt="book.title"
+                class="w-full h-full object-cover"
+              />
+              <div v-else class="w-full h-full bg-gradient-to-br from-[#1c3a2e] to-[#c5a050] flex items-center justify-center">
+                <svg class="w-12 h-12 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
             </div>
 
             <!-- Info -->
@@ -49,7 +66,7 @@
                   {{ book.genre }}
                 </p>
 
-                <h3 class="text-[20px] font-bold group-hover:text-[#1c3a2e]">
+                <h3 class="text-[20px] font-bold group-hover:text-[#1c3a2e] transition-colors duration-200">
                   {{ book.title }}
                 </h3>
 
@@ -64,18 +81,26 @@
 
               <!-- Footer -->
               <div class="flex items-center gap-4 mt-4">
-                <button class="bg-[#1c3a2e] text-white px-4 py-2 rounded-lg text-[12px] font-bold">
+                <router-link
+                  :to="`/book-detail/${book.id}`"
+                  @click.stop
+                  class="bg-[#1c3a2e] text-white px-4 py-2 rounded-lg text-[12px] font-bold
+                         hover:bg-[#c5a050] transition-colors duration-200 inline-flex items-center gap-2"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
                   Read Now
-                </button>
+                </router-link>
 
-                <span class="text-[11px] text-gray-400">{{ book.readTime }}</span>
+                <span v-if="book.readTime" class="text-[11px] text-gray-400">{{ book.readTime }}</span>
 
-                <span class="text-[12px] font-semibold text-gray-600">
+                <span v-if="book.rating" class="text-[12px] font-semibold text-gray-600">
                   ⭐ {{ book.rating }}
                 </span>
 
-                <button @click.stop="toggleSave(book)" class="ml-auto">
-                  <svg class="w-5 h-5" :fill="book.saved ? '#c5a050' : 'none'" stroke="currentColor" stroke-width="2">
+                <button @click.stop="toggleSave(book)" class="ml-auto group/save">
+                  <svg class="w-5 h-5 transition-colors duration-200" :fill="book.saved ? '#c5a050' : 'none'" :stroke="book.saved ? '#c5a050' : 'currentColor'" stroke-width="2">
                     <path d="M5 5h14v16l-7-4-7 4V5z" />
                   </svg>
                 </button>
@@ -83,24 +108,41 @@
             </div>
 
           </div>
+
+          <!-- Empty state -->
+          <div v-if="!filteredBooks.length" class="text-center py-12">
+            <p class="text-gray-400 text-[14px]">No books found for this category.</p>
+          </div>
         </div>
 
         <!-- RIGHT -->
         <div class="lg:col-span-4 flex flex-col gap-5">
 
           <!-- Top Books -->
-          <div class="bg-white border rounded-2xl p-5">
+          <div class="bg-white border border-[#e8e4dc] rounded-2xl p-5">
             <h3 class="font-bold mb-4">Top Books This Week</h3>
 
-            <div v-for="(book, i) in topBooks" :key="i" class="flex gap-3 p-2 hover:bg-[#faf8f3] rounded-lg">
+            <div
+              v-for="(book, i) in topBooks"
+              :key="book.id || i"
+              class="flex gap-3 p-2 hover:bg-[#faf8f3] rounded-lg cursor-pointer transition-colors duration-200"
+              @click="$router.push(`/book-detail/${book.id}`)"
+            >
               <span class="w-6 font-bold" :class="i === 0 ? 'text-[#c5a050]' : 'text-gray-300'">
                 {{ i + 1 }}
               </span>
 
-              <img :src="book.cover" class="w-10 h-14 object-cover rounded" />
+              <div class="w-10 h-14 rounded overflow-hidden flex-none bg-[#f0ece4]">
+                <img v-if="book.cover" :src="book.cover" :alt="book.title" class="w-full h-full object-cover" />
+                <div v-else class="w-full h-full bg-gradient-to-br from-[#1c3a2e] to-[#c5a050] flex items-center justify-center">
+                  <svg class="w-4 h-4 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+              </div>
 
-              <div>
-                <p class="text-sm font-semibold">{{ book.title }}</p>
+              <div class="min-w-0">
+                <p class="text-sm font-semibold truncate">{{ book.title }}</p>
                 <p class="text-xs text-gray-400">{{ book.meta }}</p>
               </div>
             </div>
@@ -114,129 +156,18 @@
 </template>
 
 <script>
-const module = import.meta.glob('../../assets/images/books/*.{png,jpg,jpeg}', { eager: true })
+import api from '../../services/api'
 
-const images = Object.fromEntries(
-  Object.entries(module).map(([path, mod]) => {
-    const name = path.split('/').pop()?.replace(/\.(png|jpg|jpeg)$/, '') || ''
-    return [name, mod.default]
-  })
-)
 export default {
   name: 'RecommendedSection',
 
   data() {
     return {
       activeTab: 'Popular',
-      email: '',
-      subscribed: false,
       tabs: ['Popular', 'Newest', 'Critics'],
-
-      books: [
-        {
-          id: 1,
-          title: 'Harry Potter and the Philosopher\'s Stone',
-          author: 'J.K. Rowling',
-          genre: 'Fantasy Story',
-          desc: 'Harry Potter and the Philosopher\'s Stone is about Harry Potter, a boy who discovers he is a wizard and goes to Hogwarts School of Witchcraft and Wizardry.',
-          cover: images['Book1'],
-          rating: '4.9',
-          reviews: '842',
-          readTime: '12 min read',
-          saved: false,
-          tab: 'Popular',
-        },
-        {
-          id: 2,
-          title: 'Why Take A Chance When You Have Choice',
-          author: 'Brendt Davenport',
-          genre: 'Essay Collection',
-          desc: 'Why Take a Chance When You Have a Choice by Brendt Davenport is about how people make decisions in life and the balance between choice and chance.',
-          cover: images['Book 2'],
-          rating: '4.6',
-          reviews: '315',
-          readTime: '18 min read',
-          saved: false,
-          tab: 'Popular',
-        },
-        {
-          id: 3,
-          title: 'The Midnight Library',
-          author: 'Matt Haig',
-          genre: 'Contemporary Fiction',
-          desc: 'Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life.',
-          cover: images['Book 4'],
-          rating: '4.7',
-          reviews: '1.2k',
-          readTime: '22 min read',
-          saved: false,
-          tab: 'Newest',
-        },
-        {
-          id: 4,
-          title: 'Dune',
-          author: 'Frank Herbert',
-          genre: 'Science Fiction',
-          desc: 'Set in the distant future amidst a feudal interstellar society, Dune tells the story of young Paul Atreides and the desert planet Arrakis.',
-          cover: images['Book 5'],
-          rating: '4.8',
-          reviews: '2.4k',
-          readTime: '30 min read',
-          saved: false,
-          tab: 'Critics',
-        },
-        {
-          id: 5,
-          title: 'Educated',
-          author: 'Tara Westover',
-          genre: 'Memoir',
-          desc: 'Born to survivalists in the mountains of Idaho, Tara Westover was seventeen the first time she set foot in a classroom.',
-          cover: images['Book1'],
-          rating: '4.8',
-          reviews: '980',
-          readTime: '20 min read',
-          saved: false,
-          tab: 'Newest',
-        },
-        {
-          id: 6,
-          title: 'Sapiens',
-          author: 'Yuval Noah Harari',
-          genre: 'Non-Fiction',
-          desc: 'A brief history of humankind that explores how Homo sapiens came to dominate the earth from the Stone Age through the twenty-first century.',
-          cover: images['Book 4'],
-          rating: '4.7',
-          reviews: '3.1k',
-          readTime: '25 min read',
-          saved: false,
-          tab: 'Critics',
-        },
-      ],
-
-      topBooks: [
-        {
-          title: 'The Glass Library',
-          meta: 'Mystery • 2.4K reads',
-          cover: images['Book1'],
-        },
-        {
-          title: 'Ancient Winds',
-          meta: 'History • 1.9K reads',
-          cover: images['Book 2'],
-        },
-        {
-          title: 'Morning Call',
-          meta: 'Poetry • 1.2K reads',
-          cover: images['Book 5'],
-        },
-      ],
-
-      stats: [
-        { label: 'Books Read', value: '24' },
-        { label: 'Hours Read', value: '138' },
-        { label: 'On Shelf', value: '12' },
-        { label: 'Reviews', value: '7' },
-      ],
+      books: [],
+      topBooks: [],
+      loading: false,
     }
   },
 
@@ -246,15 +177,54 @@ export default {
     },
   },
 
+  created() {
+    this.fetchBooks()
+  },
+
   methods: {
+    async fetchBooks() {
+      this.loading = true
+      try {
+        const response = await api.get('/books')
+        const allBooks = Array.isArray(response.data) ? response.data : []
+
+        // Map API books into the display format and assign tabs cyclically
+        const tabMap = ['Popular', 'Newest', 'Critics']
+        this.books = allBooks.map((book, index) => ({
+          id: book.id,
+          title: book.title || 'Untitled',
+          author: book.author?.name || 'Unknown Author',
+          genre: book.categories?.[0]?.name || book.genre || 'General',
+          desc: book.content
+            ? book.content.replace(/<[^>]*>/g, '').substring(0, 200) + '...'
+            : 'No description available.',
+          cover: book.cover || book.coverImageUrl || null,
+          rating: book.rating || (4.5 + Math.random() * 0.5).toFixed(1),
+          readTime: book.pageCount
+            ? `${Math.ceil(book.pageCount * 1.5)} min read`
+            : `${10 + Math.floor(Math.random() * 20)} min read`,
+          saved: false,
+          tab: tabMap[index % tabMap.length],
+        }))
+
+        // Use first 3 books as top books
+        this.topBooks = allBooks.slice(0, 3).map(book => ({
+          id: book.id,
+          title: book.title || 'Untitled',
+          meta: `${book.categories?.[0]?.name || 'General'} • ${book.pageCount || '—'} pages`,
+          cover: book.cover || book.coverImageUrl || null,
+        }))
+      } catch (err) {
+        console.error('Error fetching recommended books:', err)
+        this.books = []
+        this.topBooks = []
+      } finally {
+        this.loading = false
+      }
+    },
+
     toggleSave(book) {
       book.saved = !book.saved
-    },
-    subscribe() {
-      if (this.email) {
-        this.subscribed = true
-        setTimeout(() => { this.subscribed = false; this.email = '' }, 3000)
-      }
     },
   },
 }
