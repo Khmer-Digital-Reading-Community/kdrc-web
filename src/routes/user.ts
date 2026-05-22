@@ -21,6 +21,7 @@ export default [
             { path: 'home', name: 'homepage', component: Home },
             { path: 'community', name: 'community', component: Community },
             { path: 'explore', name: 'explore', component: ExplorePage },
+            { path: 'search', name: 'search', component: () => import('../pages/user/SearchResults.vue') },
             { path: 'exchange', name: 'exchange', component: ExchangePage },
             {
                 path: 'book-exchange-detail/:id',
