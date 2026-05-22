@@ -5,6 +5,7 @@ export interface ExploreBook {
     rating: number;
     lang: string;
     category: string;
+    genre?: string | string[];
     description: string;
     coverImage: string;
     createdAt: string;

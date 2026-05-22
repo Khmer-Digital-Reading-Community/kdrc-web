@@ -9,6 +9,7 @@
 
       <ExploreHeader />
 
+      <!-- Mobile Filter Drawer -->
       <div
         v-if="isMobileFilterOpen"
         class="fixed inset-0 z-50 md:hidden"
@@ -37,7 +38,7 @@
               @click="
                 isMobileFilterOpen = false
               "
-              class="text-gray-500 text-xl"
+              class="text-gray-500 text-xl hover:text-gray-700"
             >
               ×
             </button>
@@ -49,14 +50,17 @@
             :categories="categories"
             :activeLanguage="activeLanguage"
             :languages="languages"
-            @updateCategory="
-              activeCategory = $event;
-              isMobileFilterOpen = false;
-            "
-            @updateLanguage="
-              activeLanguage = $event;
-              isMobileFilterOpen = false;
-            "
+            :genres="genres"
+            :selectedGenres="selectedGenres"
+            :authors="authors"
+            :selectedAuthors="selectedAuthors"
+            :minRating="minRating"
+            @updateCategory="updateCategory"
+            @updateLanguage="updateLanguage"
+            @toggleGenre="toggleGenre"
+            @toggleAuthor="toggleAuthor"
+            @updateRating="updateRating"
+            @clearFilters="clearFilters"
           />
 
         </div>
@@ -70,7 +74,7 @@
 
         <!-- Desktop Sidebar -->
         <aside
-          class="hidden md:block w-[200px] shrink-0"
+          class="hidden md:block w-[200px] shrink-0 sticky top-20 max-h-[calc(100vh-80px)] overflow-y-auto"
         >
 
           <SidebarFilters
@@ -78,12 +82,17 @@
             :categories="categories"
             :activeLanguage="activeLanguage"
             :languages="languages"
-            @updateCategory="
-              activeCategory = $event
-            "
-            @updateLanguage="
-              activeLanguage = $event
-            "
+            :genres="genres"
+            :selectedGenres="selectedGenres"
+            :authors="authors"
+            :selectedAuthors="selectedAuthors"
+            :minRating="minRating"
+            @updateCategory="updateCategory"
+            @updateLanguage="updateLanguage"
+            @toggleGenre="toggleGenre"
+            @toggleAuthor="toggleAuthor"
+            @updateRating="updateRating"
+            @clearFilters="clearFilters"
           />
 
         </aside>
@@ -124,6 +133,7 @@
           />
 
           <ExplorePagination
+            v-if="totalPages > 1"
             :currentPage="currentPage"
             :totalPages="totalPages"
             @next="currentPage++"
@@ -141,7 +151,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import ExploreHeader from "@/components/explore/ExploreHeader.vue";
 import SidebarFilters from "@/components/explore/SidebarFilters.vue";
 import ExploreToolbar from "@/components/explore/ExploreToolbar.vue";
@@ -149,6 +159,7 @@ import ExploreGrid from "@/components/explore/ExploreGrid.vue";
 import ExplorePagination from "@/components/explore/ExplorePagination.vue";
 import EmptyExplore from "@/components/explore/EmptyExplore.vue";
 import { useExploreBooks } from "../../composables/useExploreBooks";
+import { useExploreFilters } from "../../composables/useExploreFilters";
 
 const {
   books,
@@ -156,76 +167,34 @@ const {
   error,
 } = useExploreBooks();
 
-const activeCategory = ref("All Categories");
-const activeLanguage = ref("All");
+const {
+  activeCategory,
+  activeLanguage,
+  selectedGenres,
+  selectedAuthors,
+  minRating,
+  categories,
+  genres,
+  authors,
+  languages,
+  filteredBooks,
+  initializeFiltersFromURL,
+  updateCategory,
+  updateLanguage,
+  toggleGenre,
+  toggleAuthor,
+  updateRating,
+  clearFilters,
+} = useExploreFilters(books);
+
 const sortBy = ref("Newest Arrivals");
 const isMobileFilterOpen = ref(false);
 const currentPage = ref(1);
 const itemsPerPage = 6;
 
-const categories = computed(() => {
-  if (!books.value) {
-    return ["All Categories"];
-  }
-
-  const uniqueCategories = [
-    ...new Set(
-      books.value.map(
-        (book) => book.category
-      )
-    ),
-  ];
-
-  return [
-    "All Categories",
-    ...uniqueCategories,
-  ];
-});
-
-const languages = computed(() => {
-  if (!books.value) {
-    return [];
-  }
-
-  const counts: Record<string, number> = {};
-
-  books.value.forEach((book) => {
-    counts[book.lang] =
-      (counts[book.lang] || 0) + 1;
-  });
-
-  return Object.entries(counts).map(
-    ([name, count]) => ({
-      name,
-      count,
-    })
-  );
-});
-
-const filteredBooks = computed(() => {
-  let result = [...books.value];
-
-  // Category
-  if (
-    activeCategory.value !==
-    "All Categories"
-  ) {
-    result = result.filter(
-      (book) =>
-        book.category ===
-        activeCategory.value
-    );
-  }
-
-  // Language
-  if (activeLanguage.value !== "All") {
-    result = result.filter(
-      (book) =>
-        book.lang ===
-        activeLanguage.value
-    );
-  }
-  return result;
+// Initialize filters from URL on component mount
+onMounted(() => {
+  initializeFiltersFromURL();
 });
 
 const totalPages = computed(() =>
@@ -245,4 +214,25 @@ const paginatedBooks = computed(() => {
     start + itemsPerPage
   );
 });
+
+// Reset pagination when filters change
+const resetPagination = () => {
+  currentPage.value = 1;
+};
+
+// Watch for filter changes to reset pagination
+import { watch } from "vue";
+
+watch(
+  [
+    activeCategory,
+    activeLanguage,
+    selectedGenres,
+    selectedAuthors,
+    minRating,
+  ],
+  () => {
+    resetPagination();
+  }
+);
 </script>
