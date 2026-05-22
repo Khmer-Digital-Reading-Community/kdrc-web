@@ -30,6 +30,12 @@
                         />
                     </div>
 
+                    <!-- Sort Dropdown -->
+                    <SortDropdown
+                        v-model="sortOption"
+                        @update:modelValue="handleSortChange"
+                    />
+
                     <!-- View Toggle -->
                     <div class="flex items-center gap-2 bg-gray-100 rounded-[12px] p-1">
                         <button
@@ -167,9 +173,10 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { searchBooks, type SearchResult } from '../../services/searchApi';
+import { searchBooks, type SearchResult, type SortOption } from '../../services/searchApi';
 import SearchResultCard from '../../components/search/SearchResultCard.vue';
 import SearchSkeleton from '../../components/search/SearchSkeleton.vue';
+import SortDropdown from '../../components/search/SortDropdown.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -182,12 +189,16 @@ const pageSize = ref<number>(12);
 const totalPages = ref<number>(0);
 const isLoading = ref<boolean>(false);
 const isListView = ref<boolean>(false);
+const sortOption = ref<SortOption>('recent');
 
 // Initialize from route query
 if (route.query.q) {
     searchQuery.value = String(route.query.q);
     if (route.query.page) {
         currentPage.value = parseInt(String(route.query.page));
+    }
+    if (route.query.sort && ['recent', 'popular', 'trending', 'rating'].includes(String(route.query.sort))) {
+        sortOption.value = String(route.query.sort) as SortOption;
     }
 }
 
@@ -224,6 +235,23 @@ const handleSearch = async () => {
         query: {
             q: searchQuery.value,
             page: currentPage.value,
+            sort: sortOption.value,
+        },
+    });
+};
+
+// Handle sort change
+const handleSortChange = async (newSort: SortOption) => {
+    sortOption.value = newSort;
+    currentPage.value = 1;
+    await performSearch();
+    
+    // Update URL with new sort
+    router.push({
+        query: {
+            q: searchQuery.value,
+            page: currentPage.value,
+            sort: sortOption.value,
         },
     });
 };
@@ -236,7 +264,7 @@ const performSearch = async () => {
 
     isLoading.value = true;
     try {
-        const response = await searchBooks(searchQuery.value, currentPage.value, pageSize.value);
+        const response = await searchBooks(searchQuery.value, currentPage.value, pageSize.value, sortOption.value);
         results.value = response.data;
         totalResults.value = response.total;
         totalPages.value = response.pages;
@@ -257,6 +285,7 @@ const nextPage = async () => {
             query: {
                 q: searchQuery.value,
                 page: currentPage.value,
+                sort: sortOption.value,
             },
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -271,6 +300,7 @@ const previousPage = async () => {
             query: {
                 q: searchQuery.value,
                 page: currentPage.value,
+                sort: sortOption.value,
             },
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -284,6 +314,7 @@ const goToPage = async (pageNum: number) => {
         query: {
             q: searchQuery.value,
             page: currentPage.value,
+            sort: sortOption.value,
         },
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -299,6 +330,11 @@ watch(
                 currentPage.value = parseInt(String(newQuery.page));
             } else {
                 currentPage.value = 1;
+            }
+            if (newQuery.sort && ['recent', 'popular', 'trending', 'rating'].includes(String(newQuery.sort))) {
+                sortOption.value = String(newQuery.sort) as SortOption;
+            } else {
+                sortOption.value = 'recent';
             }
             await performSearch();
         }

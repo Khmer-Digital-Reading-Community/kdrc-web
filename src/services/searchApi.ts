@@ -22,10 +22,13 @@ export interface SearchResponse {
     pages: number;
 }
 
+export type SortOption = 'recent' | 'popular' | 'trending' | 'rating';
+
 export const searchBooks = async (
     query: string,
     page: number = 1,
     limit: number = 12,
+    sort: SortOption = 'recent',
 ): Promise<SearchResponse> => {
     if (!query.trim()) {
         return {
@@ -43,6 +46,7 @@ export const searchBooks = async (
                 q: query,
                 page,
                 limit,
+                sort,
             },
         });
 
