@@ -143,8 +143,7 @@
             :class="
               minRating === rating
                 ? 'bg-[#1c3a2e] text-white shadow-md'
-                : 'bg-white text-gray-600 hover:bg-gray-50
-                   border border-gray-200'
+                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
             "
             class="w-full text-left px-4 py-2 rounded-lg
                    text-sm font-medium transition-all
