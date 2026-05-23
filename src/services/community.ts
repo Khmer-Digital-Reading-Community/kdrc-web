@@ -2,6 +2,9 @@ import api from './api';
 
 function unwrap<T>(response: any): T {
   const body = response.data;
+  if (!body || typeof body !== 'object' || !('status' in body)) {
+    return body as T;
+  }
   if (body.status === 'success') return body.data as T;
   throw new Error(body.data?.message || 'Unknown API error');
 }

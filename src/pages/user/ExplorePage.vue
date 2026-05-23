@@ -26,7 +26,7 @@
                             ×
                         </button>
                     </div>
-
+                    
                     <SidebarFilters
                         :activeCategory="activeCategory"
                         :categories="categories"

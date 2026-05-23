@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref, computed, shallowRef } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../services/api';
 
@@ -20,10 +20,11 @@ export interface Chapter {
 export function useChapterNavigation() {
   const router = useRouter();
 
-  // State
+  // State — shallowRef for large content to avoid deep reactivity overhead
   const chapters = ref<Chapter[]>([]);
   const currentChapter = ref<Chapter | null>(null);
-  const currentChapterContent = ref<string>('');
+  const currentChapterContent = shallowRef<string>('');
+  const contentCacheKey = ref(0);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
 
@@ -116,9 +117,11 @@ export function useChapterNavigation() {
       
       currentChapter.value = chapterData;
       currentChapterContent.value = chapterData.content || '';
+      contentCacheKey.value++;
     } catch (err: any) {
       error.value = err.message || 'Failed to fetch chapter content';
       currentChapterContent.value = '';
+      contentCacheKey.value++;
     } finally {
       isLoading.value = false;
     }
@@ -243,6 +246,7 @@ export function useChapterNavigation() {
     chapters,
     currentChapter,
     currentChapterContent,
+    contentCacheKey,
     isLoading,
     error,
 

@@ -1,12 +1,13 @@
 <template>
   <div
-    class="reader-shell min-h-screen w-full transition-colors duration-300"
-    :class="[currentThemeClass]"
+    class="reader-shell min-h-screen w-full"
+    :style="themeVariables"
   >
-    <!-- Loading State -->
+    <!-- Loading State (initial load) -->
     <div
       v-if="isLoading && !currentChapter"
-      class="fixed inset-0 flex flex-col items-center justify-center gap-4 bg-inherit z-50"
+      class="fixed inset-0 flex flex-col items-center justify-center gap-4 z-50"
+      style="background-color: var(--reader-bg)"
     >
       <div
         class="w-12 h-12 border-4 border-[#093A3F]/20 border-t-[#093A3F] rounded-full animate-spin"
@@ -16,10 +17,32 @@
       </p>
     </div>
 
+    <!-- Skeleton Loading (chapter transition) -->
+    <div
+      v-if="isLoading && currentChapter && showSkeleton"
+      class="fixed inset-0 z-40 flex items-start justify-center pt-32"
+      style="background-color: var(--reader-bg)"
+    >
+      <div class="max-w-3xl mx-auto px-6 sm:px-8 w-full animate-pulse">
+        <div class="text-center mb-16">
+          <div class="h-8 bg-current/10 rounded-lg w-64 mx-auto mb-4"></div>
+          <div class="h-4 bg-current/10 rounded-lg w-32 mx-auto"></div>
+        </div>
+        <div class="space-y-4">
+          <div class="h-4 bg-current/10 rounded w-full"></div>
+          <div class="h-4 bg-current/10 rounded w-5/6"></div>
+          <div class="h-4 bg-current/10 rounded w-4/6"></div>
+          <div class="h-4 bg-current/10 rounded w-full"></div>
+          <div class="h-4 bg-current/10 rounded w-3/4"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Error State -->
     <div
       v-else-if="error && !currentChapter"
-      class="fixed inset-0 flex items-center justify-center p-4 z-50 bg-inherit"
+      class="fixed inset-0 flex items-center justify-center p-4 z-50"
+      style="background-color: var(--reader-bg)"
     >
       <div
         class="bg-red-50 border border-red-200 rounded-2xl p-8 max-w-md text-center shadow-xl"
@@ -69,9 +92,10 @@
         class="fixed top-0 left-0 right-0 z-40 px-4 py-3 flex items-center justify-between transition-all duration-300 backdrop-blur-md"
         :class="[
           isScrolled
-            ? 'translate-y-0 opacity-100 bg-inherit/80 border-b border-white/10'
+            ? 'translate-y-0 opacity-100 border-b border-white/10'
             : 'translate-y-0 opacity-100',
         ]"
+        :style="headerStyle"
       >
         <div class="flex items-center gap-4">
           <button
@@ -115,7 +139,8 @@
       <transition name="slide-fade">
         <div
           v-if="showSettings"
-          class="fixed top-16 right-4 z-50 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 text-gray-800"
+          class="fixed top-16 right-4 z-50 w-72 rounded-2xl shadow-2xl border p-6"
+          style="background-color: var(--reader-bg); color: var(--reader-text); border-color: color-mix(in srgb, var(--reader-text) 15%, transparent)"
         >
           <div class="flex items-center justify-between mb-6">
             <h3 class="font-bold text-lg">Appearance</h3>
@@ -262,12 +287,14 @@
           <article
             class="prose prose-lg max-w-none reader-content leading-relaxed"
             :class="[currentFont === 'serif' ? 'font-serif' : 'font-sans']"
-            :style="{ fontSize: fontSize + 'px' }"
+            :style="contentStyle"
           >
             <div
-              v-html="renderContent(currentChapterContent)"
+              v-html="renderedContent"
               class="article-body"
             ></div>
+            <!-- Sentinel for progressive loading -->
+            <div ref="contentSentinel" class="h-4"></div>
           </article>
 
           <!-- Interaction Footer -->
@@ -316,7 +343,8 @@
         :class="[isScrolled ? 'translate-y-0' : 'translate-y-20 opacity-0']"
       >
         <div
-          class="max-w-xs mx-auto bg-inherit/90 backdrop-blur-md rounded-full border border-white/10 shadow-2xl p-1 flex items-center"
+          class="max-w-xs mx-auto rounded-full border border-white/10 shadow-2xl p-1 flex items-center"
+          :style="{ backgroundColor: themes[currentTheme].bg + 'e6', backdropFilter: 'blur(12px)' }"
         >
           <button
             @click="goToPreviousChapter"
@@ -350,8 +378,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, ref, computed } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { onMounted, onUnmounted, watch, ref, computed, shallowRef, nextTick } from "vue";
+import { useRoute, useRouter, onBeforeRouteLeave } from "vue-router";
 import {
   ArrowLeft,
   Settings,
@@ -382,6 +410,7 @@ const {
   chapters,
   currentChapter,
   currentChapterContent,
+  contentCacheKey,
   isLoading,
   error,
   currentChapterIndex,
@@ -399,6 +428,7 @@ const {
 
 const { saveChapterProgress, getChapterProgress } = useReadingProgress();
 const mainContentRef = ref<HTMLElement | null>(null);
+const contentSentinel = ref<HTMLElement | null>(null);
 const bookTitle = ref("");
 
 // Reader UI State
@@ -407,32 +437,116 @@ const showSettings = ref(false);
 const fontSize = ref(18);
 const currentTheme = ref<keyof typeof themes>("light");
 const currentFont = ref<"serif" | "sans">("serif");
+const showSkeleton = ref(false);
+
+// Progressive content rendering state
+const contentChunks = shallowRef<string[]>([]);
+const visibleChunks = ref(1);
+const CHUNK_SIZE = 50;
 
 const themes = {
   light: {
     name: "Light",
     bg: "#ffffff",
     text: "#1f2937",
-    class: "bg-white text-gray-800",
   },
   sepia: {
     name: "Sepia",
     bg: "#f4ecd8",
     text: "#5b4636",
-    class: "bg-[#f4ecd8] text-[#5b4636]",
   },
   dark: {
     name: "Dark",
     bg: "#1a1a1a",
     text: "#d1d1d1",
-    class: "bg-[#1a1a1a] text-[#d1d1d1]",
   },
 };
 
-const currentThemeClass = computed(() => themes[currentTheme.value].class);
+// CSS custom properties for theme — avoids class-based re-renders
+const themeVariables = computed(() => ({
+  "--reader-bg": themes[currentTheme.value].bg,
+  "--reader-text": themes[currentTheme.value].text,
+  "--reader-font-size": fontSize.value + "px",
+  "--reader-font-family":
+    currentFont.value === "serif" ? "'Georgia', serif" : "'Inter', sans-serif",
+}));
+
+// Header background with transparency when scrolled
+const headerStyle = computed(() => {
+  if (!isScrolled.value) return {};
+  const bg = themes[currentTheme.value].bg;
+  return { backgroundColor: bg + "cc" };
+});
+
+// Memoized rendered content — only re-parses when cache key changes
+const renderedContent = computed(() => {
+  void contentCacheKey.value;
+  void visibleChunks.value;
+
+  if (contentChunks.value.length > 0) {
+    return contentChunks.value.slice(0, visibleChunks.value).join("");
+  }
+
+  const full = renderContent(currentChapterContent.value);
+  if (!full) return "";
+
+  // Split into chunks for progressive rendering
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(
+    `<div id="root">${full}</div>`,
+    "text/html",
+  );
+  const root = doc.getElementById("root");
+  if (!root) return full;
+
+  const blockElements = Array.from(root.children);
+  const chunks: string[] = [];
+  for (let i = 0; i < blockElements.length; i += CHUNK_SIZE) {
+    const slice = Array.from(blockElements).slice(i, i + CHUNK_SIZE);
+    chunks.push(slice.map((el) => el.outerHTML).join(""));
+  }
+
+  contentChunks.value = chunks;
+  visibleChunks.value = 1;
+  return chunks.slice(0, 1).join("");
+});
+
+// Font + font-size as inline style to avoid re-rendering content
+const contentStyle = computed(() => ({
+  fontSize: fontSize.value + "px",
+  fontFamily:
+    currentFont.value === "serif" ? "'Georgia', serif" : "'Inter', sans-serif",
+}));
 
 const changeFontSize = (delta: number) => {
   fontSize.value = Math.min(Math.max(fontSize.value + delta, 14), 32);
+};
+
+// IntersectionObserver for progressive content loading
+let contentObserver: IntersectionObserver | null = null;
+
+const setupContentObserver = () => {
+  contentObserver?.disconnect();
+
+  if (!contentSentinel.value) return;
+
+  contentObserver = new IntersectionObserver(
+    (entries) => {
+      const entry = entries[0];
+      if (
+        entry.isIntersecting &&
+        visibleChunks.value < contentChunks.value.length
+      ) {
+        visibleChunks.value = Math.min(
+          visibleChunks.value + 3,
+          contentChunks.value.length,
+        );
+      }
+    },
+    { rootMargin: "400px" },
+  );
+
+  contentObserver.observe(contentSentinel.value);
 };
 
 // Anti-Copy Logic
@@ -503,12 +617,11 @@ const handleProgressUpdate = (progress: {
   chapterId?: string;
   timeSpent: number;
 }) => {
-  // Sync to backend periodically as they scroll
   syncProgressToBackend(progress.scroll);
 };
 
 /**
- * Handle progress saved event
+ * Handle progress saved event — syncs to both localStorage and backend
  */
 const handleProgressSaved = (progress: {
   scroll: number;
@@ -524,23 +637,29 @@ const handleProgressSaved = (progress: {
         (progress.scroll / 100) * (currentChapter.value.wordCount || 2500),
       ),
     );
+    // Also sync to backend immediately
+    upsertReadingProgress(
+      currentChapter.value.bookId,
+      progress.scroll,
+      currentChapter.value.id,
+    ).catch((err) =>
+      console.warn("Failed to sync reading progress to backend:", err),
+    );
   }
 };
 
 const handleChapterChanged = (chapterId?: string) => {
-  // Attempt to resume progress for the new chapter
   if (chapterId) {
     const saved = getChapterProgress(chapterId);
     if (saved && saved.scroll > 5) {
-      // Give the DOM a moment to render
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         const main = document.querySelector("main");
         if (main) {
           const target =
             (saved.scroll / 100) * (main.scrollHeight - main.clientHeight);
           main.scrollTo({ top: target, behavior: "smooth" });
         }
-      }, 500);
+      });
     }
   }
 };
@@ -549,12 +668,28 @@ const handleScroll = () => {
   isScrolled.value = window.scrollY > 50;
 };
 
+// Flush pending progress sync on tab close or route leave
+const flushProgressSync = () => {
+  syncProgressToBackend.flush();
+};
+
+// Reset chunks when content changes
+watch(contentCacheKey, () => {
+  contentChunks.value = [];
+  visibleChunks.value = 1;
+  showSkeleton.value = true;
+
+  requestAnimationFrame(() => {
+    showSkeleton.value = false;
+    setupContentObserver();
+  });
+});
+
 onMounted(async () => {
   const bookId = route.params.id as string;
   const chapterId = route.query.chapterId as string | undefined;
 
   if (bookId) {
-    // Fetch book title
     getBookBasic(bookId).then((book) => {
       bookTitle.value = book.title || "";
     });
@@ -562,12 +697,24 @@ onMounted(async () => {
   }
 
   window.addEventListener("scroll", handleScroll, { passive: true });
+  window.addEventListener("beforeunload", flushProgressSync);
   const cleanupAntiCopy = setupAntiCopy();
+
+  nextTick(() => {
+    setupContentObserver();
+  });
 
   onUnmounted(() => {
     window.removeEventListener("scroll", handleScroll);
+    window.removeEventListener("beforeunload", flushProgressSync);
     cleanupAntiCopy();
+    contentObserver?.disconnect();
+    syncProgressToBackend.flush();
   });
+});
+
+onBeforeRouteLeave(() => {
+  syncProgressToBackend.flush();
 });
 
 watch(
@@ -575,6 +722,8 @@ watch(
   async (newBookId) => {
     if (newBookId && newBookId !== currentChapter.value?.bookId) {
       const chapterId = route.query.chapterId as string | undefined;
+      contentChunks.value = [];
+      visibleChunks.value = 1;
       await initializeReading(newBookId as string, chapterId);
     }
   },
@@ -584,6 +733,9 @@ watch(
 <style scoped>
 .reader-shell {
   scroll-behavior: smooth;
+  background-color: var(--reader-bg, #ffffff);
+  color: var(--reader-text, #1f2937);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .no-select {
@@ -618,7 +770,7 @@ watch(
   color: inherit;
   opacity: 0.8;
   font-style: italic;
-  background: rgba(0, 0, 0, 0.03);
+  background: color-mix(in srgb, var(--reader-text, #1f2937) 4%, transparent);
   border-radius: 0 1rem 1rem 0;
   margin: 2em 0;
 }
@@ -627,7 +779,7 @@ watch(
   overflow-x: auto;
   margin: 2em 0;
   border-radius: 1rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid color-mix(in srgb, var(--reader-text, #1f2937) 12%, transparent);
 }
 
 .reader-content :deep(table) {
@@ -637,13 +789,13 @@ watch(
 
 .reader-content :deep(th),
 .reader-content :deep(td) {
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid color-mix(in srgb, var(--reader-text, #1f2937) 8%, transparent);
   padding: 1rem;
   text-align: left;
 }
 
 .reader-content :deep(th) {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: color-mix(in srgb, var(--reader-text, #1f2937) 4%, transparent);
   font-weight: 700;
 }
 
@@ -662,6 +814,12 @@ watch(
   transition: font-size 0.2s ease;
 }
 
+/* Skeleton shimmer uses current text color at low opacity */
+:deep(.animate-pulse .bg-current\/10) {
+  background-color: color-mix(in srgb, var(--reader-text, #1f2937) 10%, transparent);
+  border-radius: 0.5rem;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -671,11 +829,11 @@ watch(
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
+  background: color-mix(in srgb, var(--reader-text, #1f2937) 12%, transparent);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--reader-text, #1f2937) 24%, transparent);
 }
 </style>
