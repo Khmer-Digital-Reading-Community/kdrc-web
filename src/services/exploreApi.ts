@@ -24,9 +24,11 @@ export function mapToExploreBook(book: any): ExploreBook {
     title: book.title,
     author: book.author?.name ?? "Unknown Author",
     rating: computeRating(book.reviews),
-    lang: book.language ?? "English",
+    lang: book.metadata?.language ?? book.language ?? "English",
     category: book.categories?.[0]?.name ?? "General",
-    description: extractText(book.content, 160),
+    genre: book.genre?.name,
+    description: extractText(book.description, 160),
+    tags: book.tags?.map((t: any) => t.name),
     coverImage: resolveCoverUrl(book.coverImageUrl),
     createdAt: book.createdAt ?? "",
   };

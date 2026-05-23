@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ChevronDown, Plus, Archive, FileText } from "lucide-vue-next";
+import { ChevronDown, Plus, Archive, FileText, Eye, Share2 } from "lucide-vue-next";
 import type { Chapter } from "@/services/chapterApi";
 
 type StatusFilter = "DRAFT" | "PUBLISHED";
@@ -21,6 +21,8 @@ const emit = defineEmits<{
     selectChapter: [chapterId: string];
     newChapter: [];
     updateStatusFilter: [status: StatusFilter];
+    bulkPublish: [];
+    previewChapter: [chapterId: string];
 }>();
 
 const isArchiveOpen = ref(false);
@@ -31,6 +33,19 @@ const visibleChapters = computed(() =>
 
 const archivedChapters = computed(() =>
     (props.chapters || []).filter((ch) => ch.status === "ARCHIVED"),
+);
+
+const calculateReadingTime = (wordCount?: number): number => {
+    if (!wordCount) return 0;
+    return Math.ceil(wordCount / 225);
+};
+
+const draftChapters = computed(() =>
+    (props.chapters || []).filter((ch) => ch.status === "DRAFT"),
+);
+
+const publishedChapters = computed(() =>
+    (props.chapters || []).filter((ch) => ch.status === "PUBLISHED"),
 );
 </script>
 
@@ -84,12 +99,21 @@ const archivedChapters = computed(() =>
             <span>New Chapter</span>
         </button>
 
+        <!-- Bulk Publish Button (if there are draft chapters) -->
+        <button
+            v-if="draftChapters.length > 0"
+            @click="emit('bulkPublish')"
+            class="mx-5 mt-3 flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg active:scale-95"
+        >
+            <Share2 :size="16" class="flex-shrink-0" />
+            <span>Publish All ({{ draftChapters.length }})</span>
+        </button>
+
         <!-- Chapters List -->
         <nav class="flex-1 overflow-y-auto mt-6 px-4 space-y-3 pr-2">
             <div
                 v-for="chapter in visibleChapters"
                 :key="chapter.id"
-                @click="emit('selectChapter', chapter.id)"
                 :class="[
                     'group p-4 rounded-lg cursor-pointer transition-all duration-200 border-2',
                     activeChapterId === chapter.id
@@ -111,8 +135,9 @@ const archivedChapters = computed(() =>
                     <div class="flex-1">
                         <div class="flex items-start justify-between gap-2">
                             <span
+                                @click="emit('selectChapter', chapter.id)"
                                 :class="[
-                                    'text-sm font-medium transition-colors duration-200 leading-tight',
+                                    'text-sm font-medium transition-colors duration-200 leading-tight hover:text-amber-700',
                                     activeChapterId === chapter.id
                                         ? 'text-amber-950'
                                         : 'text-gray-800',
@@ -132,18 +157,32 @@ const archivedChapters = computed(() =>
                             </span>
                         </div>
                     </div>
+                    <!-- Preview Button -->
+                    <button
+                        @click.stop="emit('previewChapter', chapter.id)"
+                        :class="[
+                            'p-1.5 rounded transition-all opacity-0 group-hover:opacity-100',
+                            activeChapterId === chapter.id
+                                ? 'bg-yellow-200 text-amber-700 hover:bg-yellow-300'
+                                : 'bg-gray-200 text-gray-600 hover:bg-gray-300',
+                        ]"
+                        title="Preview chapter"
+                    >
+                        <Eye :size="16" />
+                    </button>
                 </div>
 
-                <!-- Word Count -->
+                <!-- Word Count & Reading Time -->
                 <div
                     :class="[
-                        'text-xs font-medium ml-8 transition-colors duration-200',
+                        'text-xs font-medium ml-8 transition-colors duration-200 flex gap-4',
                         activeChapterId === chapter.id
                             ? 'text-amber-700'
                             : 'text-gray-600',
                     ]"
                 >
-                    {{ chapter.wordCount ?? 0 }} words
+                    <span>{{ chapter.wordCount ?? 0 }} words</span>
+                    <span>{{ calculateReadingTime(chapter.wordCount) }} min</span>
                 </div>
             </div>
 

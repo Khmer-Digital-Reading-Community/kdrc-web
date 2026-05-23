@@ -1,17 +1,56 @@
 import api from "./api";
 
+export interface BookMetadata {
+  id?: string;
+  subtitle?: string;
+  authorBio?: string;
+  publisher?: string;
+  publishedDate?: string;
+  pageCount?: number;
+  language?: string;
+  ageRating?: 'G' | 'PG' | 'PG-13' | 'R' | 'NC-17';
+  contentWarnings?: string[];
+  seriesName?: string;
+  seriesPosition?: number;
+  estimatedReadingTime?: number;
+}
+
+export interface Genre {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+}
+
 export interface Book {
   id: string;
   title: string;
-  content: string;
+  description: string;
   coverImageUrl?: string;
   language?: string;
-  genre?: string;
+  genre?: Genre;
   pageCount?: number;
   publisher?: string;
-  // Relations loaded by findOne
+  // Relations
   author?: { id: string; name?: string; bio?: string; avatarUrl?: string };
   categories?: Array<{ id: number; slug: string; name: string }>;
+  tags?: Tag[];
+  metadata?: BookMetadata;
   chapters?: Array<{
     id: string;
     title: string;
@@ -33,6 +72,7 @@ export interface Book {
     createdAt: string;
   }>;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED" | "DISCONTINUED";
+  tableOfContents?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -65,12 +105,10 @@ export const createBook = async (data: Partial<Book>): Promise<Book> => {
   return response.data;
 };
 
-export const uploadBookCover = async (file: File): Promise<{ url: string }> => {
+export const uploadBookCover = async (file: File): Promise<{ url: string; publicId: string; width: number; height: number; size: number }> => {
   const formData = new FormData();
   formData.append("file", file);
-  const response = await api.post("/books/cover", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const response = await api.post("/books/cover", formData);
   return response.data;
 };
 
@@ -84,4 +122,22 @@ export const updateBook = async (
 
 export const deleteBook = async (id: string): Promise<void> => {
   await api.delete(`/books/${id}`);
+};
+
+// Genres API
+export const getGenres = async (): Promise<Genre[]> => {
+  const response = await api.get("/genres");
+  return response.data;
+};
+
+// Categories API
+export const getCategories = async (): Promise<Category[]> => {
+  const response = await api.get("/categories");
+  return response.data;
+};
+
+// Tags API
+export const getTags = async (): Promise<Tag[]> => {
+  const response = await api.get("/tags");
+  return response.data;
 };

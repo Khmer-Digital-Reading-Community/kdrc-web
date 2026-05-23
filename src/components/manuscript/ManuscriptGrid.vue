@@ -38,6 +38,7 @@ const handleEdit = (id: string) => {
             :words="`${book.content?.length || 0} chars`"
             :edit="dayjs(book.updatedAt).fromNow()"
             :status="book.status"
+            :coverImageUrl="book.coverImageUrl"
             @edit="handleEdit(book.id)"
             @delete="emit('delete', book.id)"
         />

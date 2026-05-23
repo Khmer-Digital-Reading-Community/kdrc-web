@@ -7,5 +7,7 @@ export interface ExploreBook {
     category: string;
     description: string;
     coverImage: string;
+    genre?: string;
+    tags?: string[];
     createdAt: string;
 }

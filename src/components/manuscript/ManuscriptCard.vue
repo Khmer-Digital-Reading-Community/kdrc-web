@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { MoreVertical, Trash2, Edit3 } from 'lucide-vue-next'
+import { apiBaseUrl } from '@/services/api'
 
 defineProps<{
   title: string
   words: string
   edit: string
   status: string
+  coverImageUrl?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -15,6 +17,14 @@ const emit = defineEmits<{
 }>()
 
 const showMenu = ref(false)
+const imageLoaded = ref(false)
+const imageError = ref(false)
+
+const resolveCoverUrl = (url?: string | null) => {
+  if (!url) return null
+  if (url.startsWith('http')) return url
+  return `${apiBaseUrl}${url}`
+}
 </script>
 
 <template>
@@ -24,8 +34,23 @@ const showMenu = ref(false)
 
     <!-- Cover -->
     <div
-      class="h-64 bg-gradient-to-br from-[#2A241D] to-[#0B0A09] relative"
+      class="h-64 bg-gradient-to-br from-[#2A241D] to-[#0B0A09] relative overflow-hidden"
     >
+      <!-- Cover Image -->
+      <img
+        v-if="coverImageUrl && !imageError"
+        :src="resolveCoverUrl(coverImageUrl)"
+        :alt="title"
+        @load="imageLoaded = true"
+        @error="imageError = true"
+        class="w-full h-full object-cover"
+      />
+
+      <!-- Fallback Gradient (when no image or error) -->
+      <div
+        v-if="!coverImageUrl || imageError"
+        class="w-full h-full bg-gradient-to-br from-[#2A241D] to-[#0B0A09]"
+      />
 
       <!-- Status Badge -->
       <span
