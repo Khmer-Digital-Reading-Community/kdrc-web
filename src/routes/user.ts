@@ -1,4 +1,3 @@
-//import { Component } from "lucide-vue-next";
 import DashboardLayout from "../layouts/DashboardLayout.vue";
 import UserLayout from "../layouts/UserLayout.vue";
 import Home from "../pages/user/Home.vue";
@@ -20,6 +19,11 @@ export default [
       { path: "home", name: "homepage", component: Home },
       { path: "community", name: "community", component: Community },
       { path: "explore", name: "explore", component: ExplorePage },
+      {
+        path: "search",
+        name: "search",
+        component: () => import("../pages/user/SearchResults.vue"),
+      },
       { path: "exchange", name: "exchange", component: ExchangePage },
       {
         path: "book-exchange-detail/:id",

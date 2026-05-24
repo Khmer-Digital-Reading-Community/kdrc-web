@@ -5,9 +5,9 @@ export interface ExploreBook {
     rating: number;
     lang: string;
     category: string;
+    genre?: string | string[];
     description: string;
     coverImage: string;
-    genre?: string;
     tags?: string[];
     createdAt: string;
 }
