@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-white rounded-2xl overflow-hidden border hover:shadow-lg transition"
+    class="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition"
   >
     <div class="relative">
       <img

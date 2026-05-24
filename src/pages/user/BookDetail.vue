@@ -13,104 +13,104 @@ const activeTab = ref<"author" | "reviews">(
   "reviews"
 );
 
-const { book, loading } = useBookDetail();
+//const { book, loading } = useBookDetail();
 
 // Mock data for testing without API
-// const loading = ref(false);
+const loading = ref(false);
 
-// const book = ref({
-//   id: "1",
+const book = ref({
+  id: "1",
 
-//   title: "The Whispering Vellum",
+  title: "The Whispering Vellum",
 
-//   description:
-//     "An atmospheric literary fantasy exploring forgotten memories, sacred manuscripts, and the fragile architecture of storytelling.",
+  description:
+    "A journey through forgotten temples and ancient Khmer wisdom.",
 
-//   coverImage:
-//     "https://images.unsplash.com/photo-1544947950-fa07a98d237f",
+  coverImage:
+    "https://images.unsplash.com/photo-1544947950-fa07a98d237f",
 
-//   language: "English",
+  language: "English",
 
-//   pages: 342,
+  pages: 342,
 
-//   publisher: "Atelier Press",
+  publisher: "Atelier Press",
 
-//   rating: 4.8,
+  rating: 4.8,
 
-//   reviewCount: 1248,
+  reviewCount: 1248,
 
-//   author: {
-//     name: "Elias Thorne",
+  author: {
+    name: "Elias Thorne",
 
-//     bio:
-//       "Elias Thorne writes literary fantasy centered around memory, architecture, and silence. His work has been translated into 14 languages.",
+    bio:
+      "Elias Thorne writes literary fantasy centered around memory, architecture, and silence. His work has been translated into 14 languages.",
 
-//     image:
-//       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-//   },
+    image:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+  },
 
-//   chapters: [
-//     {
-//       id: "1",
-//       title: "The Last Library",
-//       duration: "12 min read",
-//       isPremium: false,
-//       isPublic: true,
-//     },
+  chapters: [
+    {
+      id: "1",
+      title: "The Last Library",
+      duration: "12 min read",
+      isPremium: false,
+      isPublic: true,
+    },
 
-//     {
-//       id: "2",
-//       title: "Ink Between Stones",
-//       duration: "18 min read",
-//       isPremium: true,
-//       isPublic: false,
-//     },
+    {
+      id: "2",
+      title: "Ink Between Stones",
+      duration: "18 min read",
+      isPremium: true,
+      isPublic: false,
+    },
 
-//     {
-//       id: "3",
-//       title: "The Quiet Cathedral",
-//       duration: "14 min read",
-//       isPremium: true,
-//       isPublic: false,
-//     },
-//   ],
+    {
+      id: "3",
+      title: "The Quiet Cathedral",
+      duration: "14 min read",
+      isPremium: true,
+      isPublic: false,
+    },
+  ],
 
-//   reviews: [
-//     {
-//       id: "1",
-//       userName: "Sophia Bennett",
+  reviews: [
+    {
+      id: "1",
+      userName: "Sophia Bennett",
 
-//       userImg:
-//         "https://randomuser.me/api/portraits/women/44.jpg",
+      userImg:
+        "https://randomuser.me/api/portraits/women/44.jpg",
 
-//       date: "May 18, 2026",
+      date: "May 18, 2026",
 
-//       title: "Beautifully Written",
+      title: "Beautifully Written",
 
-//       comment:
-//         "The prose feels cinematic and deeply emotional. Every chapter unfolds like architecture.",
+      comment:
+        "The prose feels cinematic and deeply emotional. Every chapter unfolds like architecture.",
 
-//       helpfulCount: 18,
-//     },
+      helpfulCount: 18,
+    },
 
-//     {
-//       id: "2",
-//       userName: "Daniel Gray",
+    {
+      id: "2",
+      userName: "Daniel Gray",
 
-//       userImg:
-//         "https://randomuser.me/api/portraits/men/32.jpg",
+      userImg:
+        "https://randomuser.me/api/portraits/men/32.jpg",
 
-//       date: "May 16, 2026",
+      date: "May 16, 2026",
 
-//       title: "A Modern Masterpiece",
+      title: "A Modern Masterpiece",
 
-//       comment:
-//         "Rarely does fantasy literature feel this intimate and intelligent.",
+      comment:
+        "Rarely does fantasy literature feel this intimate and intelligent.",
 
-//       helpfulCount: 9,
-//     },
-//   ],
-// });
+      helpfulCount: 9,
+    },
+  ],
+});
 </script>
 
 <template>
