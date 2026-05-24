@@ -52,6 +52,10 @@ function nodeToHtml(node: any): string {
     case 'listItem':    return `<li>${children()}</li>`;
     case 'blockquote':  return `<blockquote>${children()}</blockquote>`;
     case 'codeBlock':   return `<pre><code>${children()}</code></pre>`;
+    case 'table':       return `<div class="table-wrapper"><table><tbody>${children()}</tbody></table></div>`;
+    case 'tableRow':    return `<tr>${children()}</tr>`;
+    case 'tableCell':   return `<td>${children()}</td>`;
+    case 'tableHeader': return `<th>${children()}</th>`;
     case 'hardBreak':   return '<br>';
     case 'horizontalRule': return '<hr>';
     case 'text':        return applyMarks(

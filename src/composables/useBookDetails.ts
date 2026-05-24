@@ -13,7 +13,7 @@ function mapToBookDetails(raw: any): BookDetails {
   return {
     id: raw.id,
     title: raw.title,
-    description: extractText(raw.content, 500),
+    description: extractText(raw.description, 500),
     coverImage: resolveCoverUrl(raw.coverImageUrl),
     language: raw.language ?? "English",
     pages: raw.pageCount ?? chapters.length,

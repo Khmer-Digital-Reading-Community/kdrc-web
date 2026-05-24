@@ -100,6 +100,11 @@ export const getBookDetail = async (id: string): Promise<Book> => {
   return response.data;
 };
 
+export const getBookBasic = async (id: string): Promise<Partial<Book>> => {
+  const response = await api.get(`/books/${id}/basic`);
+  return response.data;
+};
+
 export const createBook = async (data: Partial<Book>): Promise<Book> => {
   const response = await api.post("/books", data);
   return response.data;

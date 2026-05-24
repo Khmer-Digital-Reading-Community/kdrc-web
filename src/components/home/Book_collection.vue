@@ -1,5 +1,6 @@
 <script>
 import api from '../../services/api'
+import { extractText } from '../../utils/content'
 
 export default {
   name: 'BookCollections',
@@ -61,6 +62,10 @@ export default {
       const rating = book.rating || (4.0 + Math.random()).toFixed(1)
       const full = Math.floor(rating)
       return '★'.repeat(full) + (rating % 1 >= 0.5 ? '½' : '') + ` ${rating}`
+    },
+
+    formatDescription(desc) {
+      return extractText(desc, 100)
     },
 
     scrollLeft() {
@@ -154,7 +159,7 @@ export default {
             :key="book.id"
             class="book-card flex-none w-[280px] cursor-pointer group/card"
             :style="{ animationDelay: `${index * 80}ms` }"
-            @click="$router.push(`/book-detail/${book.id}`)"
+            @click="$router.push(`/reading/${book.id}`)"
           >
             <!-- Cover Container -->
             <div class="relative w-full h-[400px] rounded-2xl overflow-hidden mb-4
@@ -211,7 +216,7 @@ export default {
                           translate-y-full group-hover/card:translate-y-0
                           transition-transform duration-400 ease-out">
                 <button
-                  @click.stop="$router.push(`/book-detail/${book.id}`)"
+                  @click.stop="$router.push(`/reading/${book.id}`)"
                   class="w-full bg-[#c5a050] hover:bg-[#b8913f] text-white text-[13px] font-bold
                          py-2.5 rounded-xl flex items-center justify-center gap-2
                          shadow-lg transition-colors duration-200"
@@ -231,13 +236,16 @@ export default {
                          group-hover/card:text-[#1c3a2e] transition-colors duration-200">
                 {{ book.title }}
               </h3>
+              <p class="text-[11px] text-gray-500 line-clamp-2 mt-1 leading-relaxed">
+                {{ formatDescription(book.description) || 'No description available' }}
+              </p>
               <div class="flex items-center justify-between gap-2 mt-2">
                 <div class="flex-1 min-w-0">
                   <p class="text-[12px] text-gray-500 truncate">{{ getAuthorName(book) }}</p>
                   <p class="text-[11px] text-[#c5a050] mt-0.5 font-medium">{{ getRatingStars(book) }}</p>
                 </div>
                 <button
-                  @click.stop="$router.push(`/book-detail/${book.id}`)"
+                  @click.stop="$router.push(`/reading/${book.id}`)"
                   class="shrink-0 bg-[#1c3a2e] flex items-center gap-1.5 text-white text-[11px]
                          font-bold px-3 py-1.5 rounded-lg
                          hover:bg-[#c5a050] transition-colors duration-200

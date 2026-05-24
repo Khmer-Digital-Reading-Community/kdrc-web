@@ -110,8 +110,10 @@
                     </span>
                 </div>
 
-                <span
-                    class="flex items-center gap-1 text-[12px] font-semibold text-[#B4690E] group-hover:gap-2 transition-all"
+                <router-link
+                    :to="`/reading/${book.id}`"
+                    @click.stop
+                    class="flex items-center gap-1 text-[12px] font-bold text-[#B4690E] hover:text-[#8a510b] transition-all bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100"
                 >
                     Read
                     <svg
@@ -127,7 +129,7 @@
                             d="M9 5l7 7-7 7"
                         />
                     </svg>
-                </span>
+                </router-link>
             </div>
         </div>
     </router-link>

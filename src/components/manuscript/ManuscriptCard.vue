@@ -5,6 +5,7 @@ import { apiBaseUrl } from '@/services/api'
 
 defineProps<{
   title: string
+  description?: string
   words: string
   edit: string
   status: string
@@ -69,13 +70,18 @@ const resolveCoverUrl = (url?: string | null) => {
 
       <!-- Title -->
       <h2
-        class="font-bold text-[#123C3A] text-lg leading-snug mb-2 line-clamp-1"
+        class="font-bold text-[#123C3A] text-lg leading-snug mb-1 line-clamp-1"
       >
         {{ title }}
       </h2>
 
+      <!-- Description -->
+      <p class="text-xs text-gray-500 line-clamp-2 mb-3 leading-relaxed">
+        {{ description || 'No description available' }}
+      </p>
+
       <!-- Meta -->
-      <div class="text-sm text-gray-500 space-y-1 mb-4">
+      <div class="text-[11px] text-gray-400 space-y-1 mb-4 font-medium uppercase tracking-wider">
 
         <p>{{ words }}</p>
 

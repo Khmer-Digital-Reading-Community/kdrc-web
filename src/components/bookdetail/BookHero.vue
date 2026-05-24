@@ -96,7 +96,7 @@
       </div>
 
       <!-- Buttons -->
-      <BookActionButtons />
+      <BookActionButtons @read="$emit('read')" />
 
       <!-- Stats -->
       <BookMetaStats

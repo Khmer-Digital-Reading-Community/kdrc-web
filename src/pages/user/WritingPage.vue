@@ -211,8 +211,8 @@ const fetchBookData = async () => {
         titleInput.value = book.value.title;
         coverPreviewUrl.value = resolveCoverUrl(book.value.coverImageUrl);
 
-        // Auto-create Chapter 1 for formal books with no chapters
-        if (projectType.value === "formal-book" && chapters.value.length === 0) {
+        // Auto-create Chapter 1 for books with no chapters
+        if (chapters.value.length === 0) {
             const newCh = await createChapter({
                 bookId: bookId.value,
                 title: "Chapter 1",
@@ -224,11 +224,8 @@ const fetchBookData = async () => {
             });
             chapters.value.push(newCh);
             await handleSelectChapter(newCh.id);
-        } else if (projectType.value === "short-story" && chapters.value.length > 0) {
-            // For short stories, load the single chapter
-            await handleSelectChapter(chapters.value[0].id);
-        } else if (projectType.value === "formal-book" && chapters.value.length > 0) {
-            // For formal books, select first draft chapter
+        } else {
+            // Select appropriate chapter
             const firstDraft = chapters.value.find((c) => c.status === "DRAFT") || chapters.value[0];
             if (firstDraft) await handleSelectChapter(firstDraft.id);
         }
@@ -242,7 +239,8 @@ const fetchBookData = async () => {
 
 // Chapter Management
 const handleSelectChapter = async (chapterId: string) => {
-    if (!isSaved.value) {
+    // Save current work if needed
+    if (!isSaved.value && activeChapterId.value) {
         await handleSaveDraft();
     }
 
@@ -314,11 +312,23 @@ const handleSaveDraft = async () => {
             return;
         }
 
+        // Generate Table of Contents from chapters
+        const toc = chapters.value
+            .sort((a, b) => (a.order - b.order) || (a.chapterNumber - b.chapterNumber))
+            .map(c => `${c.chapterNumber}. ${c.title}`)
+            .join('\n');
+
         if (activeChapterId.value && activeChapterContent.value) {
-            await updateChapter(activeChapterId.value, {
-                content: editorContent.value,
-                title: activeChapterContent.value.title,
-            });
+            await Promise.all([
+                updateChapter(activeChapterId.value, {
+                    content: editorContent.value,
+                    title: activeChapterContent.value.title,
+                }),
+                updateBook(bookId.value, {
+                    title: titleInput.value,
+                    tableOfContents: toc
+                })
+            ]);
 
             const chIndex = chapters.value.findIndex(
                 (c) => c.id === activeChapterId.value,
@@ -329,12 +339,14 @@ const handleSaveDraft = async () => {
         } else {
             await updateBook(bookId.value, {
                 title: titleInput.value,
+                tableOfContents: toc
             });
         }
 
         isSaved.value = true;
         lastSavedTime.value = new Date().toLocaleTimeString();
     } catch (error) {
+        console.error("Save error:", error);
         toast.error("Failed to save draft");
     }
 };
