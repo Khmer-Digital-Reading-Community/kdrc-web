@@ -260,9 +260,9 @@ export default {
           id: book.id,
           title: book.title || "Untitled",
           author: book.author?.name || "Unknown Author",
-          genre: book.categories?.[0]?.name || book.genre || "General",
-          desc: book.content
-            ? book.content.replace(/<[^>]*>/g, "").substring(0, 200) + "..."
+          genre: book.categories?.[0]?.name || book.genre?.name || book.genre || "General",
+          desc: book.description
+            ? book.description.replace(/<[^>]*>/g, "").substring(0, 200) + "..."
             : "No description available.",
           cover: book.cover || book.coverImageUrl || null,
           rating: book.rating || (4.5 + Math.random() * 0.5).toFixed(1),
