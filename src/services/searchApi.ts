@@ -22,6 +22,26 @@ export interface SearchResponse {
     pages: number;
 }
 
+export interface SuggestionItem {
+    id: string;
+    title?: string;
+    name?: string;
+    coverImage?: string;
+    author?: {
+        id: string;
+        name: string;
+    };
+}
+
+export interface SuggestionsResponse {
+    books: SuggestionItem[];
+    authors: SuggestionItem[];
+    categories?: Array<{
+        id: string;
+        name: string;
+    }>;
+}
+
 export type SortOption = 'recent' | 'popular' | 'trending' | 'rating';
 
 export const searchBooks = async (
@@ -53,6 +73,35 @@ export const searchBooks = async (
         return response.data;
     } catch (error) {
         console.error('Search error:', error);
+        throw error;
+    }
+};
+
+/**
+ * Fetch search suggestions for autocomplete
+ * @param query - Search query string
+ * @returns Promise with suggestions for books, authors, and categories
+ */
+export const getSearchSuggestions = async (query: string): Promise<SuggestionsResponse> => {
+    if (!query.trim()) {
+        return {
+            books: [],
+            authors: [],
+            categories: [],
+        };
+    }
+
+    try {
+        const response = await api.get<SuggestionsResponse>('/search/suggestions', {
+            params: {
+                q: query,
+                limit: 10,
+            },
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error('Suggestions error:', error);
         throw error;
     }
 };
