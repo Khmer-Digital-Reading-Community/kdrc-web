@@ -122,7 +122,7 @@ export function useExploreBooks() {
 
                 author: "MIRA KENT",
 
-                rating: 4.6,
+                rating: 3.0,
 
                 lang: "French",
 

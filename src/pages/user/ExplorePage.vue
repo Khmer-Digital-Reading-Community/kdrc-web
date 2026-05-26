@@ -1,53 +1,37 @@
 <template>
-  <div
-    class="bg-[#F8F9F8] min-h-screen pb-20"
-  >
-
-    <div
-      class="max-w-[1320px] mx-auto px-4 sm:px-8 md:px-12 pt-4 sm:pt-16"
-    >
-
+  <div class="min-h-screen bg-[#fbfaf7] pb-20">
+    <div class="mx-auto max-w-[1280px] px-4 pt-4 sm:px-6 sm:pt-5 lg:px-8">
       <ExploreHeader />
 
       <div
         v-if="isMobileFilterOpen"
-        class="fixed inset-0 z-50 md:hidden"
+        class="fixed inset-0 z-50 lg:hidden"
       >
-
         <div
           class="absolute inset-0 bg-black/40"
-          @click="
-            isMobileFilterOpen = false
-          "
+          @click="isMobileFilterOpen = false"
         />
 
         <div
-          class="absolute left-0 top-0 h-full w-[280px] bg-white p-6 overflow-y-auto"
+          class="absolute left-0 top-0 h-full w-[280px] overflow-y-auto bg-[#fbfaf7] p-6"
         >
-
-          <div
-            class="flex items-center justify-between mb-8"
-          >
-            <h2
-              class="font-bold text-lg text-[#093A3F]"
-            >
+          <div class="mb-8 flex items-center justify-between">
+            <h2 class="text-lg font-bold text-[#093A3F]">
               Filters
             </h2>
             <button
-              @click="
-                isMobileFilterOpen = false
-              "
-              class="text-gray-500 text-xl"
+              class="text-xl text-gray-500"
+              @click="isMobileFilterOpen = false"
             >
-              ×
+              &times;
             </button>
-
           </div>
 
           <SidebarFilters
             :activeCategory="activeCategory"
             :categories="categories"
             :activeLanguage="activeLanguage"
+            :activeMinRating="activeMinRating"
             :languages="languages"
             @updateCategory="
               activeCategory = $event;
@@ -57,65 +41,55 @@
               activeLanguage = $event;
               isMobileFilterOpen = false;
             "
+            @updateMinRating="
+              activeMinRating = $event;
+              isMobileFilterOpen = false;
+            "
           />
-
         </div>
-
       </div>
 
-      <!-- Main Layout -->
-      <div
-        class="flex flex-col md:flex-row gap-6 sm:gap-10 md:gap-16"
-      >
-
-        <!-- Desktop Sidebar -->
-        <aside
-          class="hidden md:block w-[200px] shrink-0"
-        >
-
-          <SidebarFilters
-            :activeCategory="activeCategory"
-            :categories="categories"
-            :activeLanguage="activeLanguage"
-            :languages="languages"
-            @updateCategory="
-              activeCategory = $event
-            "
-            @updateLanguage="
-              activeLanguage = $event
-            "
-          />
-
+      <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
+        <aside class="hidden lg:block lg:w-[200px] lg:shrink-0">
+          <div class="sticky top-24">
+            <SidebarFilters
+              :activeCategory="activeCategory"
+              :categories="categories"
+              :activeLanguage="activeLanguage"
+              :activeMinRating="activeMinRating"
+              :languages="languages"
+              @updateCategory="activeCategory = $event"
+              @updateLanguage="activeLanguage = $event"
+              @updateMinRating="activeMinRating = $event"
+            />
+          </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="flex-1">
-
+        <main class="min-w-0 flex-1 pb-6">
           <ExploreToolbar
             :sortBy="sortBy"
-            @toggleFilter="
-              isMobileFilterOpen = true
-            "
+            :activeCategory="activeCategory"
+            :activeLanguage="activeLanguage"
+            @toggleFilter="isMobileFilterOpen = true"
+            @updateSort="sortBy = $event"
           />
 
           <div
             v-if="loading"
-            class="text-center py-24"
+            class="py-24 text-center"
           >
             Loading books...
           </div>
 
           <div
             v-else-if="error"
-            class="text-center py-24 text-red-500"
+            class="py-24 text-center text-red-500"
           >
             {{ error }}
           </div>
 
           <EmptyExplore
-            v-else-if="
-              paginatedBooks.length === 0
-            "
+            v-else-if="paginatedBooks.length === 0"
           />
 
           <ExploreGrid
@@ -130,18 +104,14 @@
             @prev="currentPage--"
             @go="currentPage = $event"
           />
-
         </main>
-
       </div>
-
     </div>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { computed, ref, watch } from "vue";
 import ExploreHeader from "@/components/explore/ExploreHeader.vue";
 import SidebarFilters from "@/components/explore/SidebarFilters.vue";
 import ExploreToolbar from "@/components/explore/ExploreToolbar.vue";
@@ -150,14 +120,11 @@ import ExplorePagination from "@/components/explore/ExplorePagination.vue";
 import EmptyExplore from "@/components/explore/EmptyExplore.vue";
 import { useExploreBooks } from "../../composables/useExploreBooks";
 
-const {
-  books,
-  loading,
-  error,
-} = useExploreBooks();
+const { books, loading, error } = useExploreBooks();
 
 const activeCategory = ref("All Categories");
 const activeLanguage = ref("All");
+const activeMinRating = ref<number | null>(null);
 const sortBy = ref("Newest Arrivals");
 const isMobileFilterOpen = ref(false);
 const currentPage = ref(1);
@@ -168,17 +135,9 @@ const categories = computed(() => {
     return ["All Categories"];
   }
 
-  const uniqueCategories = [
-    ...new Set(
-      books.value.map(
-        (book) => book.category
-      )
-    ),
-  ];
-
   return [
     "All Categories",
-    ...uniqueCategories,
+    ...new Set(books.value.map((book) => book.category)),
   ];
 });
 
@@ -190,59 +149,82 @@ const languages = computed(() => {
   const counts: Record<string, number> = {};
 
   books.value.forEach((book) => {
-    counts[book.lang] =
-      (counts[book.lang] || 0) + 1;
+    counts[book.lang] = (counts[book.lang] || 0) + 1;
   });
 
-  return Object.entries(counts).map(
-    ([name, count]) => ({
-      name,
-      count,
-    })
-  );
+  return Object.entries(counts).map(([name, count]) => ({
+    name,
+    count,
+  }));
 });
 
 const filteredBooks = computed(() => {
   let result = [...books.value];
 
-  // Category
-  if (
-    activeCategory.value !==
-    "All Categories"
-  ) {
+  if (activeCategory.value !== "All Categories") {
     result = result.filter(
-      (book) =>
-        book.category ===
-        activeCategory.value
+      (book) => book.category === activeCategory.value
     );
   }
 
-  // Language
   if (activeLanguage.value !== "All") {
     result = result.filter(
-      (book) =>
-        book.lang ===
-        activeLanguage.value
+      (book) => book.lang === activeLanguage.value
     );
   }
+
+  if (activeMinRating.value !== null) {
+    const minRating = activeMinRating.value;
+
+    result = result.filter(
+      (book) => book.rating >= minRating
+    );
+  }
+
   return result;
 });
 
+const sortedBooks = computed(() => {
+  const result = [...filteredBooks.value];
+
+  if (sortBy.value === "Popular") {
+    return result.sort((a, b) => b.rating - a.rating);
+  }
+
+  if (sortBy.value === "Latest") {
+    return result.sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() -
+        new Date(b.createdAt).getTime()
+    );
+  }
+
+  return result.sort(
+    (a, b) =>
+      new Date(b.createdAt).getTime() -
+      new Date(a.createdAt).getTime()
+  );
+});
+
+watch(
+  [
+    activeCategory,
+    activeLanguage,
+    activeMinRating,
+    sortBy,
+  ],
+  () => {
+    currentPage.value = 1;
+  }
+);
+
 const totalPages = computed(() =>
-  Math.ceil(
-    filteredBooks.value.length /
-      itemsPerPage
-  )
+  Math.ceil(sortedBooks.value.length / itemsPerPage)
 );
 
 const paginatedBooks = computed(() => {
-  const start =
-    (currentPage.value - 1) *
-    itemsPerPage;
+  const start = (currentPage.value - 1) * itemsPerPage;
 
-  return filteredBooks.value.slice(
-    start,
-    start + itemsPerPage
-  );
+  return sortedBooks.value.slice(start, start + itemsPerPage);
 });
 </script>

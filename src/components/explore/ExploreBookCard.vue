@@ -1,124 +1,54 @@
 <template>
     <router-link
         :to="`/book-detail/${book.id}`"
-        class="group block bg-white
-            rounded-[24px] overflow-hidden
-            border border-gray-100
-            shadow-sm hover:shadow-xl
-            hover:-translate-y-1.5
-            transition-all duration-300
-            flex flex-col h-full"
+        class="group flex h-full flex-col overflow-hidden rounded-[10px] border border-[#efe8db] bg-white shadow-[0_2px_8px_rgba(17,24,39,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(17,24,39,0.08)]"
     >
-
-    <div
-        :class="getHeaderColor(book.category)"
-            class="h-[240px] md:h-[300px]
-                w-full flex items-end
-                justify-center pt-8 md:pt-10
-                pb-0 relative overflow-hidden shrink-0"
-    >
-
-        <img
-            :src="book.coverImage"
-            class="h-full aspect-[2/3]
-                object-cover object-center
-                rounded-t-[8px] md:rounded-t-[12px]
-                shadow-[0_-5px_20px_rgba(0,0,0,0.25)]
-                transition-transform duration-500
-                group-hover:scale-[1.03]"
-        />
-
-    </div>
-
-    <div
-        class="p-5 md:p-8
-            flex flex-col flex-grow text-left"
-    >
-
         <div
-            class="flex justify-between
-                items-start gap-3
-                mb-1.5 h-[54px] md:h-[58px]"
+            :class="getHeaderColor(book.category)"
+            class="relative flex h-[230px] w-full shrink-0 items-end justify-center overflow-hidden pt-6 md:h-[255px] md:pt-8"
         >
+            <img
+                :src="book.coverImage"
+                :alt="book.title"
+                class="h-[90%] aspect-[2/3] object-cover object-center rounded-t-[4px] shadow-[0_-5px_20px_rgba(0,0,0,0.18)] transition-transform duration-500 group-hover:scale-[1.03]"
+            />
+        </div>
 
-            <h3
-                class="text-[18px] md:text-[20px]
-                    xl:text-[21px]
-                    font-sans font-bold
-                    text-[#093A3F]
-                    leading-snug
-                    group-hover:text-[#B4690E]
-                    transition-colors
-                    line-clamp-2 pr-2"
+        <div class="flex flex-grow flex-col p-4 text-left md:p-5">
+            <div class="mb-1.5 flex min-h-[42px] items-start justify-between gap-3">
+                <h3
+                    class="pr-2 text-[15px] font-bold leading-snug text-[#093A3F] transition-colors group-hover:text-[#B4690E] md:text-[16px]"
                 >
-                {{ book.title }}
-            </h3>
+                    {{ book.title }}
+                </h3>
 
-            <div
-                class="flex items-center gap-1
-                    text-[12px] md:text-[13px]
-                    font-bold text-[#B4690E]
-                    shrink-0 mt-1"
-            >
-
-                <span>★</span>
-
-                <span>{{ book.rating }}</span>
-
+                <div class="mt-1 shrink-0 text-[11px] font-bold text-[#B4690E]">
+                    &#9733; {{ book.rating }}
+                </div>
             </div>
 
-        </div>
+            <p class="mb-3 text-[9px] font-bold uppercase tracking-[0.12em] text-gray-400">
+                By {{ book.author }}
+            </p>
 
-        <p
-            class="text-[9px] md:text-[10px]
-                font-bold uppercase
-                tracking-[0.1em]
-                text-gray-400 mb-4"
-            >
-            By {{ book.author }}
-        </p>
+            <p class="mb-4 min-h-[88px] text-[11px] font-medium leading-6 text-gray-500 line-clamp-4 md:text-[12px]">
+                {{ book.description }}
+            </p>
 
-        <p
-            class="text-[12px] md:text-[13px]
-                text-gray-500 line-clamp-3
-                leading-relaxed mb-4 md:mb-6
-                font-medium
-                min-h-[60px] md:min-h-[66px]"
-            >
-            {{ book.description }}
-        </p>
-
-        <div
-            class="flex flex-wrap gap-2
-                md:gap-2.5 mt-auto pt-4"
-            >
-
-            <span
-                class="px-3 md:px-3.5 py-1.5
-                    bg-[#FDE9D0]
-                    text-[#B4690E]
-                    text-[9px] md:text-[10px]
-                    font-bold rounded-md
-                    uppercase tracking-wider"
+            <div class="mt-auto flex flex-wrap gap-2 pt-2">
+                <span
+                    class="rounded-[4px] bg-[#FDE9D0] px-2.5 py-1 text-[8px] font-bold uppercase tracking-[0.12em] text-[#B4690E]"
                 >
-                E-book
-            </span>
+                    E-book
+                </span>
 
-            <span
-                class="px-3 md:px-3.5 py-1.5
-                    bg-[#FDE9D0]
-                    text-[#B4690E]
-                    text-[9px] md:text-[10px]
-                    font-bold rounded-md
-                    uppercase tracking-wider"
+                <span
+                    class="rounded-[4px] bg-[#FDE9D0] px-2.5 py-1 text-[8px] font-bold uppercase tracking-[0.12em] text-[#B4690E]"
                 >
-                {{ book.lang }}
-            </span>
-
+                    {{ book.lang }}
+                </span>
+            </div>
         </div>
-
-    </div>
-
     </router-link>
 </template>
 
