@@ -80,7 +80,7 @@ async function handleLogout() {
 
 <template>
     <nav class="w-full bg-[#093A3F] border-b border-gray-700 relative">
-        <div v-if="isAuthed" class="w-full px-6 py-4 flex flex-wrap items-center justify-between gap-6">
+        <div v-if="isAuthed" class="flex w-full flex-wrap items-center justify-between gap-4 px-4 py-4 pl-20 sm:px-6 sm:pl-24 lg:gap-6 lg:px-6 lg:pl-6">
             <div class="flex items-center gap-8">
                 <router-link to="/home" class="flex items-center gap-2 no-underline">
                     <span class="inline-flex items-center justify-start">
@@ -102,7 +102,7 @@ async function handleLogout() {
                 </div>
             </div>
 
-            <div class="w-full max-w-md h-10 relative order-3 lg:order-none lg:flex-1 lg:max-w-lg">
+            <div class="relative order-3 h-10 w-full max-w-none lg:order-none lg:max-w-lg lg:flex-1">
                 <div class="w-full h-10 bg-white rounded-md overflow-hidden flex items-center pl-12 pr-4">
                     <input
                         type="search"
@@ -115,7 +115,7 @@ async function handleLogout() {
                 </div>
             </div>
 
-            <div class="flex items-center gap-4">
+            <div class="ml-auto flex items-center gap-3 sm:gap-4 lg:ml-0">
                 <div class="relative">
                     <button type="button" class="px-3 py-1.5 bg-cyan-950 rounded-xl flex items-center gap-2" @click="langOpen = !langOpen">
                         <span class="w-2 h-2 bg-orange-300 rounded-xl"></span>

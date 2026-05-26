@@ -1,9 +1,11 @@
 <template>
-  <div>
+  <div class="contents">
     <!-- Mobile hamburger toggle -->
     <button
       @click="mobileOpen = !mobileOpen"
-      class="lg:hidden fixed top-10 left-4 z-50 p-2 rounded-lg bg-[#1c3a2e] text-white shadow-lg transition-colors hover:bg-[#c5a050]"
+      class="fixed left-4 top-4 z-[70] rounded-lg bg-[#1c3a2e] p-2 text-white shadow-lg transition-colors hover:bg-[#c5a050] lg:hidden"
+      aria-label="Toggle sidebar"
+      :aria-expanded="mobileOpen"
     >
       <svg v-if="!mobileOpen" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -23,8 +25,12 @@
     <!-- Sidebar -->
     <aside
       :class="[
-        'flex flex-col h-screen bg-[#f0ece4] border-r border-[#e0dbd0] transition-all duration-300 ease-in-out relative z-50',
-        isMobile ? 'fixed top-0 left-0 w-[260px]' : (collapsed ? 'w-[64px]' : 'w-[200px]')
+        'border-r border-[#e0dbd0] bg-[#f0ece4] transition-all duration-300 ease-in-out z-50',
+        'flex h-screen flex-col',
+        isMobile
+          ? 'fixed left-0 top-0 w-[min(260px,82vw)] shadow-2xl'
+          : 'relative shrink-0',
+        !isMobile && (collapsed ? 'w-[64px]' : 'w-[200px]')
       ]"
       :style="isMobile ? { transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)' } : {}"
     >
@@ -144,8 +150,6 @@
 </template>
 
 <script>
-import Dashboard from '../../pages/user/Dashboard.vue';
-
 export default {
   name: 'DashboardSidebar',
 
@@ -263,6 +267,9 @@ export default {
       if (val) {
         this.mobileOpen = false
       }
+    },
+    '$route.path'() {
+      this.mobileOpen = false
     },
   },
 
