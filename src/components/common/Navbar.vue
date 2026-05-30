@@ -6,10 +6,11 @@ import icon from "../../assets/images/Icon.png";
 import Profile from "../../assets/images/Profile.png";
 import NotificationIcon from "../../assets/images/NotificationIcon.png";
 import ChatIcon from "../../assets/images/ChatIcon.png";
-import SearchIcon from "../../assets/images/SearchIcon.png";
+// Search icon removed (not used in navbar when ExchangeFilter is active)
 import { useAuth, token } from "../../stores/useAuth";
 import { authState } from "../../services/auth";
 import NotificationPopup from "./NotificationPopup.vue";
+import ExchangeFilter from "../exchange/ExchangeFilter.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -23,7 +24,11 @@ const showNotifications = ref(false);
 
 // Derive auth state only from the session token.
 const isAuthed = computed(() => Boolean(token.value));
-const isAdmin = computed(() => authState.user?.role === "ADMIN");
+const isAdmin = computed(() => authState.user.value?.role === "ADMIN");
+const showSearch = computed(() => {
+  // hide navbar exchange search when on the Exchange_v2 page
+  return route.name !== 'exchange-v2';
+});
 
 // Debug logging
 watch(
@@ -43,7 +48,7 @@ const publicNavLinks = [
 const authenticatedNavLinks = [
   { label: "Home", path: "/home" },
   { label: "Explore", path: "/explore" },
-  { label: "Library", path: "/exchange" },
+  { label: "Library", path: "/exchange-v2" },
   // { label: 'Stories', path: '/reading/1' },
   { label: "Community", path: "/community" },
 ];
@@ -122,7 +127,7 @@ async function handleLogout() {
         </div>
       </div>
 
-      <div
+      <!-- <div
         class="w-full max-w-md h-10 relative order-3 lg:order-none lg:flex-1 lg:max-w-lg"
       >
         <div
@@ -141,6 +146,10 @@ async function handleLogout() {
             />
           </span>
         </div>
+      </div> -->
+      <!-- NEW EXCHANGE FILTER SEARCH (hidden on exchange-v2 page) -->
+      <div v-if="showSearch" class="w-full max-w-md relative order-3 lg:order-none lg:flex-1 lg:max-w-lg flex items-center">
+        <ExchangeFilter />
       </div>
 
       <div class="flex items-center gap-4">

@@ -5,10 +5,10 @@ import LandingPage from "../pages/user/landingPage.vue";
 import WritingPage from "../pages/user/WritingPage.vue";
 import Community from "../pages/user/Community.vue";
 import ExplorePage from "../pages/user/ExplorePage.vue";
-import BookExchangeDetail from "../pages/user/BookExchangeDetail.vue";
-import ExchangePage from "../pages/user/ExchangePage.vue";
+// ExchangePage removed; use exchange-v2 route and redirect from /exchange
 import Reader from "../pages/user/Reader.vue";
 import BookDetail from "../pages/user/BookDetail.vue";
+import BookExchangeDetail from "../pages/user/BookExchangeDetail.vue";
 
 export default [
   {
@@ -24,16 +24,41 @@ export default [
         name: "search",
         component: () => import("../pages/user/SearchResults.vue"),
       },
-      { path: "exchange", name: "exchange", component: ExchangePage },
+      { path: "exchange", redirect: "/exchange-v2" },
+      {
+        path: "exchange-v2",
+        name: "exchange-v2",
+        component: () => import("../pages/user/Exchange_v2.vue"),
+      },
       {
         path: "book-exchange-detail/:id",
         name: "book-exchange-detail",
         component: BookExchangeDetail,
       },
       {
+        path: "book-exchange-detail-v2/:id",
+        name: "book-exchange-detail-v2",
+        component: () => import("../pages/user/BookExchangeDetail_v2.vue"),
+      },
+      {
         path: "about",
         name: "about",
         component: () => import("../pages/user/AboutUs.vue"),
+      },
+      {
+        path: "post-exchange",
+        name: "post-exchange",
+        component: () => import("../pages/user/ExchangeForm_v2.vue"),
+      },
+      {
+        path: "exchange-v2/create",
+        name: "exchange-v2-create",
+        component: () => import("../pages/user/ExchangeForm_v2.vue"),
+      },
+      {
+        path: "exchange-dashboard-v2",
+        name: "exchange-dashboard-v2",
+        component: () => import("../pages/user/exchangeDashboard_v2.vue"),
       },
       { path: "book-detail/:id", name: "book-detail", component: BookDetail },
     ],
