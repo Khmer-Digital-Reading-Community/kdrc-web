@@ -24,12 +24,20 @@ const displayedExchanges = computed(() => results.value);
                             Exchange <span class="text-[#8B5CF6]">Showcase</span>
                         </h1>
                     </div>
-                                        <router-link
-                                            :to="{ name: 'post-exchange' }"
-                                            class="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white px-6 py-2.5 rounded-xl font-medium transition-all"
-                                        >
-                                            Post a Book
-                                        </router-link>
+                    <div class="flex items-center gap-3">
+                        <router-link
+                            :to="{ name: 'exchange-dashboard-v2' }"
+                            class="bg-white border border-[#8B5CF6] text-[#8B5CF6] hover:bg-purple-50 px-6 py-2.5 rounded-xl font-medium transition-all"
+                        >
+                            Trade Center
+                        </router-link>
+                        <router-link
+                            :to="{ name: 'post-exchange' }"
+                            class="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white px-6 py-2.5 rounded-xl font-medium transition-all"
+                        >
+                            Post a Book
+                        </router-link>
+                    </div>
                 </div>
                 <p class="text-gray-600 max-w-xl text-lg">
                     Explore our curated collection of community book listings. Connect with fellow readers in <span class="font-semibold text-[#B58E2C]">Phnom Penh</span> and swap your favorite stories.

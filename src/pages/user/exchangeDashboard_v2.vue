@@ -20,7 +20,7 @@
           </div>
           <div>
             <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Active Exchanges</p>
-            <h3 class="text-3xl font-extrabold text-gray-900">5</h3>
+            <h3 class="text-3xl font-extrabold text-gray-900">{{ activeExchangesCount }}</h3>
           </div>
         </div>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 relative overflow-hidden">
@@ -30,7 +30,7 @@
           </div>
           <div>
             <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Karma Points</p>
-            <h3 class="text-3xl font-extrabold text-gray-900">1,250</h3>
+            <h3 class="text-3xl font-extrabold text-gray-900">{{ incomingCount + proposalsCount }}</h3>
           </div>
         </div>
       </div>
@@ -78,10 +78,9 @@
         </div>
 
         <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-          
           <div class="flex border-b border-gray-100 px-6 pt-4 gap-8">
-            <button 
-              v-for="tab in tabs" 
+            <button
+              v-for="tab in tabs"
               :key="tab.id"
               @click="activeTab = tab.id"
               class="pb-4 text-sm font-bold transition-colors relative"
@@ -92,7 +91,7 @@
             </button>
           </div>
 
-          <div class="overflow-x-auto">
+          <div v-if="activeTab === 'incoming'" class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-50">
@@ -105,7 +104,6 @@
               </thead>
               <tbody class="divide-y divide-gray-50">
                 <tr v-for="req in incomingRequests" :key="req.id" class="hover:bg-gray-50 transition-colors">
-                  
                   <td class="px-8 py-4">
                     <div class="flex items-center gap-4">
                       <div class="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
@@ -117,7 +115,7 @@
                       </div>
                     </div>
                   </td>
-                  
+
                   <td class="px-6 py-4">
                     <div class="flex items-center gap-2">
                       <span class="font-bold text-gray-900 text-sm">{{ req.member }}</span>
@@ -130,34 +128,105 @@
                   </td>
 
                   <td class="px-6 py-4">
-                    <span v-if="req.status === 'PENDING'" class="px-3 py-1 bg-orange-50 text-orange-600 text-xs font-extrabold uppercase tracking-widest rounded-full flex w-fit items-center gap-1.5">
-                      <div class="w-1.5 h-1.5 bg-orange-500 rounded-full"></div> Pending
-                    </span>
-                    <span v-else-if="req.status === 'ACCEPTED'" class="px-3 py-1 bg-purple-50 text-[#8B5CF6] text-xs font-extrabold uppercase tracking-widest rounded-full flex w-fit items-center gap-1.5">
-                      <div class="w-1.5 h-1.5 bg-[#8B5CF6] rounded-full"></div> Accepted
+                    <span class="status-pill" :class="getStatusClasses(req.status)">
+                      <span class="status-dot" :class="getStatusDotClasses(req.status)"></span>
+                      {{ getStatusLabel(req.status) }}
                     </span>
                   </td>
 
                   <td class="px-8 py-4 text-right">
                     <div v-if="req.status === 'PENDING'" class="flex items-center justify-end gap-2">
-                      <button class="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-red-500 hover:bg-red-50 hover:border-red-100 transition-colors">
+                      <button @click="rejectIncomingRequest(req.id)" class="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-red-500 hover:bg-red-50 hover:border-red-100 transition-colors" title="Reject request">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                       </button>
-                      <button class="w-8 h-8 rounded-full bg-[#8B5CF6] flex items-center justify-center text-white hover:bg-[#7C3AED] transition-colors shadow-sm">
+                      <button @click="acceptIncomingRequest(req.id)" class="w-8 h-8 rounded-full bg-[#8B5CF6] flex items-center justify-center text-white hover:bg-[#7C3AED] transition-colors shadow-sm" title="Accept request">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                       </button>
                     </div>
-                    <button v-else-if="req.status === 'ACCEPTED'" class="text-[#8B5CF6] hover:text-[#7C3AED] font-bold text-sm underline-offset-4 hover:underline transition-all">
+                    <router-link
+                      v-else-if="req.status === 'ACCEPTED'"
+                      :to="{ name: 'manage-trade', params: { tradeId: req.id } }"
+                      class="text-[#8B5CF6] hover:text-[#7C3AED] font-bold text-sm underline-offset-4 hover:underline transition-all"
+                    >
                       Manage Pickup
-                    </button>
+                    </router-link>
+                    <span v-else class="text-sm font-semibold text-gray-400">No action needed</span>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-          
+
+          <div v-else class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-50">
+                  <th class="px-8 py-5">Requested Book</th>
+                  <th class="px-6 py-5">Owner</th>
+                  <th class="px-6 py-5">Submitted</th>
+                  <th class="px-6 py-5">Status</th>
+                  <th class="px-8 py-5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-50">
+                <tr v-for="proposal in myProposals" :key="proposal.id" class="hover:bg-gray-50 transition-colors">
+                  <td class="px-8 py-4">
+                    <div class="flex items-center gap-4">
+                      <div class="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                        <img :src="proposal.cover" class="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <p class="font-bold text-gray-900 text-sm">{{ proposal.title }}</p>
+                        <p class="text-xs text-gray-500">{{ proposal.author }}</p>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td class="px-6 py-4">
+                    <span class="font-bold text-gray-900 text-sm">{{ proposal.member }}</span>
+                  </td>
+
+                  <td class="px-6 py-4 text-sm text-gray-500">
+                    {{ proposal.date }}
+                  </td>
+
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-2">
+                      <span v-if="proposal.status === 'PENDING'" class="px-2 py-1 rounded-full text-xs font-bold bg-yellow-50 text-yellow-600">Pending</span>
+                      <span v-else-if="proposal.status === 'ACCEPTED'" class="px-2 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600">Accepted</span>
+                      <span v-else-if="proposal.status === 'COMPLETED'" class="px-2 py-1 rounded-full text-xs font-bold bg-green-50 text-green-600">Completed</span>
+                      <span v-else-if="proposal.status === 'CANCELLED'" class="px-2 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600">Cancelled</span>
+                    </div>
+                  </td>
+
+                  <td class="px-8 py-4 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                      <button
+                        v-if="proposal.status === 'PENDING'"
+                        @click="cancelProposal(proposal.id)"
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-red-200 text-red-600 font-semibold hover:bg-red-50 transition-colors"
+                      >
+                        Cancel Request
+                      </button>
+
+                      <router-link
+                        v-else-if="proposal.status === 'ACCEPTED'"
+                        :to="{ name: 'manage-trade', params: { tradeId: proposal.id } }"
+                        class="text-[#8B5CF6] hover:text-[#7C3AED] font-bold text-sm underline-offset-4 hover:underline transition-all"
+                      >
+                        Manage Pickup →
+                      </router-link>
+
+                      <span v-else class="text-sm font-semibold text-gray-400">Request closed</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
           <div class="px-8 py-4 border-t border-gray-50 flex items-center justify-between text-sm text-gray-500">
-            <span>Showing 3 of 12 incoming requests</span>
+            <span>{{ activeTab === 'incoming' ? `Showing ${incomingRequests.length} incoming requests` : `Showing ${myProposals.length} proposals` }}</span>
             <div class="flex gap-4 font-bold">
               <button class="text-gray-300 cursor-not-allowed">Previous</button>
               <button class="text-[#093A3F] hover:text-[#0d4d54]">Next</button>
@@ -172,18 +241,153 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
+type TradeStatus = 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED';
+
+type ExchangeItem = {
+  id: number;
+  title: string;
+  author: string;
+  cover: string;
+  date: string;
+  status: TradeStatus;
+  member?: string;
+  rating?: string;
+};
+
 // Tabs State
-const activeTab = ref('incoming');
-const tabs = [
+const activeTab = ref<'incoming' | 'proposals'>('incoming');
+const tabs: Array<{ id: 'incoming' | 'proposals'; name: string }> = [
   { id: 'incoming', name: 'Incoming Requests (3)' },
   { id: 'proposals', name: 'My Proposals (2)' },
-  { id: 'history', name: 'Trade History' }
 ];
+
+const incomingRequests = ref<ExchangeItem[]>([
+  {
+    id: 101,
+    title: 'The Great Gatsby',
+    author: 'F. Scott Fitzgerald',
+    cover: 'https://covers.openlibrary.org/b/isbn/9780743273565-M.jpg',
+    member: 'Sophea K.',
+    rating: '4.9',
+    date: '2 hours ago',
+    status: 'PENDING',
+  },
+  {
+    id: 102,
+    title: 'Atomic Habits',
+    author: 'James Clear',
+    cover: 'https://covers.openlibrary.org/b/isbn/9780735211292-M.jpg',
+    member: 'David Miller',
+    rating: '5.0',
+    date: 'Yesterday',
+    status: 'ACCEPTED',
+  },
+  {
+    id: 103,
+    title: 'Thinking, Fast and Slow',
+    author: 'Daniel Kahneman',
+    cover: 'https://covers.openlibrary.org/b/isbn/9780374533557-M.jpg',
+    member: 'Borey Van',
+    rating: '4.7',
+    date: '3 days ago',
+    status: 'COMPLETED',
+  },
+]);
+
+const myProposals = ref<ExchangeItem[]>([
+  {
+    id: 201,
+    title: 'Meditations',
+    author: 'Marcus Aurelius',
+    cover: 'https://covers.openlibrary.org/b/isbn/9780812968255-M.jpg',
+    member: 'Sokha R.',
+    date: 'Today',
+    status: 'PENDING',
+  },
+  {
+    id: 202,
+    title: 'Deep Work',
+    author: 'Cal Newport',
+    cover: 'https://covers.openlibrary.org/b/isbn/9781455586691-M.jpg',
+    member: 'Maly S.',
+    date: '2 days ago',
+    status: 'ACCEPTED',
+  },
+  {
+    id: 203,
+    title: 'The Almanack of Naval Ravikant',
+    author: 'Eric Jorgenson',
+    cover: 'https://covers.openlibrary.org/b/isbn/9781544514222-M.jpg',
+    member: 'Srey Pov',
+    date: 'Last week',
+    status: 'CANCELLED',
+  },
+]);
+
+const getStatusLabel = (status: TradeStatus) => {
+  const labels: Record<TradeStatus, string> = {
+    PENDING: 'Pending',
+    ACCEPTED: 'Accepted',
+    COMPLETED: 'Completed',
+    CANCELLED: 'Cancelled',
+  };
+
+  return labels[status];
+};
+
+const getStatusClasses = (status: TradeStatus) => {
+  const classes: Record<TradeStatus, string> = {
+    PENDING: 'bg-yellow-50 text-yellow-600',
+    ACCEPTED: 'bg-blue-50 text-blue-600',
+    COMPLETED: 'bg-green-50 text-green-600',
+    CANCELLED: 'bg-red-50 text-red-600',
+  };
+
+  return classes[status];
+};
+
+const getStatusDotClasses = (status: TradeStatus) => {
+  const classes: Record<TradeStatus, string> = {
+    PENDING: 'bg-yellow-500',
+    ACCEPTED: 'bg-blue-500',
+    COMPLETED: 'bg-green-500',
+    CANCELLED: 'bg-red-500',
+  };
+
+  return classes[status];
+};
+
+const rejectIncomingRequest = (requestId: number) => {
+  incomingRequests.value = incomingRequests.value.map((request) =>
+    request.id === requestId ? { ...request, status: 'CANCELLED' } : request,
+  );
+};
+
+const acceptIncomingRequest = (requestId: number) => {
+  incomingRequests.value = incomingRequests.value.map((request) =>
+    request.id === requestId ? { ...request, status: 'ACCEPTED' } : request,
+  );
+};
+
+const cancelProposal = (proposalId: number) => {
+  myProposals.value = myProposals.value.map((proposal) =>
+    proposal.id === proposalId ? { ...proposal, status: 'CANCELLED' } : proposal,
+  );
+};
+
+const incomingCount = computed(() => incomingRequests.value.length);
+const proposalsCount = computed(() => myProposals.value.length);
+const activeExchangesCount = computed(
+  () =>
+    [...incomingRequests.value, ...myProposals.value].filter(
+      (item) => item.status === 'ACCEPTED' || item.status === 'PENDING',
+    ).length,
+);
 
 // Mock Data: Archived Books (Personal Library)
 const archivedBooks = ref([
@@ -210,40 +414,6 @@ const archivedBooks = ref([
   }
 ]);
 
-// Mock Data: Incoming Trade Requests
-const incomingRequests = ref([
-  {
-    id: 101,
-    title: 'The Great Gatsby',
-    author: 'F. Scott Fitzgerald',
-    cover: 'https://covers.openlibrary.org/b/isbn/9780743273565-M.jpg',
-    member: 'Sophea K.',
-    rating: '4.9',
-    date: '2 hours ago',
-    status: 'PENDING'
-  },
-  {
-    id: 102,
-    title: 'Atomic Habits',
-    author: 'James Clear',
-    cover: 'https://covers.openlibrary.org/b/isbn/9780735211292-M.jpg',
-    member: 'David Miller',
-    rating: '5.0',
-    date: 'Yesterday',
-    status: 'ACCEPTED'
-  },
-  {
-    id: 103,
-    title: 'Thinking, Fast and Slow',
-    author: 'Daniel Kahneman',
-    cover: 'https://covers.openlibrary.org/b/isbn/9780374533557-M.jpg',
-    member: 'Borey Van',
-    rating: '4.7',
-    date: '3 days ago',
-    status: 'PENDING'
-  }
-]);
-
 // 🚨 Smart Routing: This passes the exact book info to your ExchangeForm!
 const postToExchange = (book: any) => {
   router.push({
@@ -255,3 +425,23 @@ const postToExchange = (book: any) => {
   });
 };
 </script>
+
+<style scoped>
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+}
+</style>

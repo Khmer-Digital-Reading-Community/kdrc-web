@@ -27,6 +27,7 @@ const router = createRouter({
 		{ path: '/reset-password', name: 'reset-password', component: ResetPassword },
 		{ path: '/verify-otp', name: 'verify-otp', component: VerifyOTP },
 		{ path: '/chatbox', name: 'chatbox', component: ChatBox },
+		{ path: '/exchange-v2/manage/:id', name: 'ManageTrade', component: () => import('../pages/ManageTrade.vue') },
 
 		...adminRoutes,
 		...userRoutes,
