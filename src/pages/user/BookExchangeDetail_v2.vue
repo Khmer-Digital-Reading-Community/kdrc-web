@@ -186,15 +186,85 @@
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
             Message
           </button>
-          <router-link
-            :to="{ name: 'exchange-dashboard-v2' }"
-            class="flex-1 md:flex-none bg-[#093A3F] hover:bg-[#0d4d54] text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-md"
+          <button
+            type="button"
+            @click="hasPendingRequest ? showToast('You already have a pending request for this book.', 'error') : (showModal = true)"
+            class="flex-1 md:flex-none bg-[#093A3F] hover:bg-[#0d4d54] text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-md disabled:opacity-60"
+            :disabled="hasPendingRequest"
           >
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-            Propose Exchange
-          </router-link>
+            {{ hasPendingRequest ? 'Request Pending' : 'Propose Exchange' }}
+          </button>
         </div>
       </div>
+
+      <Transition name="fade">
+        <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50">
+          <div class="w-full max-w-2xl rounded-3xl bg-white shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <div>
+                <h3 class="text-xl font-bold text-gray-900">Propose Exchange</h3>
+                <p class="text-sm text-gray-500">Choose one of your books and add a message to the owner.</p>
+              </div>
+              <button type="button" @click="closeModal" class="text-gray-400 hover:text-gray-700 transition-colors">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div class="px-6 py-6 space-y-6">
+              <div>
+                <h4 class="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3">Select a book to offer</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label
+                    v-for="offer in offeredBooks"
+                    :key="offer.id"
+                    class="flex items-start gap-3 rounded-2xl border px-4 py-4 cursor-pointer transition-all"
+                    :class="selectedOffer === offer.id ? 'border-[#8B5CF6] bg-purple-50' : 'border-gray-200 hover:border-gray-300'"
+                  >
+                    <input v-model="selectedOffer" type="radio" :value="offer.id" class="mt-1 text-[#8B5CF6] focus:ring-[#8B5CF6]" />
+                    <div>
+                      <p class="font-semibold text-gray-900">{{ offer.title }}</p>
+                      <p class="text-sm text-gray-500">{{ offer.author }}</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Message to Owner (Optional)</label>
+                <textarea
+                  v-model="customMessage"
+                  rows="4"
+                  class="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition-all focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20"
+                  placeholder="Write a short note about your offer..."
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 px-6 py-5 border-t border-gray-100 bg-gray-50">
+              <button type="button" @click="closeModal" class="px-5 py-2.5 rounded-xl font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+                Cancel
+              </button>
+              <button
+                type="button"
+                @click="submitProposal"
+                :disabled="isSubmitting || !selectedOffer"
+                class="px-6 py-2.5 rounded-xl bg-[#093A3F] text-white font-semibold hover:bg-[#0d4d54] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {{ isSubmitting ? 'Sending...' : 'Send Proposal' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
+      <Transition name="fade">
+        <div v-if="toast.show" class="fixed top-5 right-5 px-6 py-3 rounded-xl shadow-lg z-50 flex items-center gap-3 text-white font-medium" :class="toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'">
+          <svg v-if="toast.type === 'success'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+          <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          {{ toast.message }}
+        </div>
+      </Transition>
 
       <div class="mt-16 pt-10 border-t border-gray-200">
         <div class="flex items-center justify-between mb-8">
@@ -251,7 +321,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '../../services/api';
 
@@ -261,6 +331,53 @@ const router = useRouter();
 const book = ref<any>(null);
 const loading = ref(true);
 const error = ref(false);
+const showModal = ref(false);
+const isSubmitting = ref(false);
+const selectedOffer = ref<number | null>(null);
+const customMessage = ref('');
+const hasPendingRequest = ref(false);
+
+const offeredBooks = [
+  { id: 1, title: 'Atomic Habits', author: 'James Clear' },
+  { id: 2, title: 'The Alchemist', author: 'Paulo Coelho' },
+  { id: 3, title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman' },
+  { id: 4, title: 'Deep Work', author: 'Cal Newport' },
+];
+
+const toast = reactive({
+  show: false,
+  message: '',
+  type: 'success' as 'success' | 'error',
+});
+
+const showToast = (msg: string, type: 'success' | 'error') => {
+  toast.message = msg;
+  toast.type = type;
+  toast.show = true;
+  setTimeout(() => { toast.show = false; }, 3000);
+};
+
+const closeModal = () => {
+  showModal.value = false;
+};
+
+const submitProposal = () => {
+  isSubmitting.value = true;
+
+  console.log('Sending trade offer:', {
+    offeredBookId: selectedOffer.value,
+    message: customMessage.value,
+  });
+
+  setTimeout(() => {
+    isSubmitting.value = false;
+    closeModal();
+    showToast('Proposal sent successfully!', 'success');
+    hasPendingRequest.value = true;
+    selectedOffer.value = null;
+    customMessage.value = '';
+  }, 1200);
+};
 
 const onImgError = (e: Event) => {
   const t = e.target as HTMLImageElement | null;

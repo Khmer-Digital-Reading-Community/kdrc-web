@@ -107,6 +107,11 @@ export default [
         name: "bookmarks",
         component: () => import("../pages/user/BookmarkPage.vue"),
       },
+      {
+        path: "manage-trade/:tradeId",
+        name: "manage-trade",
+        component: () => import("../pages/user/ManageTrade.vue"),
+      },
     ],
   },
   {
