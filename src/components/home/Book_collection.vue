@@ -188,7 +188,6 @@ export default {
           </svg>
         </button>
 
-<<<<<<< HEAD
         <div
           ref="carousel"
           class="flex gap-6 overflow-x-auto scroll-smooth pb-4 scrollbar-hide"
@@ -204,14 +203,6 @@ export default {
             <!-- Cover Container -->
             <div
               class="relative w-full h-[400px] rounded-2xl overflow-hidden mb-4 shadow-md transition-all duration-400 group-hover/card:-translate-y-2 group-hover/card:shadow-2xl"
-=======
-        <div ref="carousel" class="flex gap-5 overflow-x-auto scroll-smooth pb-3 scrollbar-hide"
-          style="scrollbar-width: none;">
-          
-          <div v-for="(book, index) in books" :key="book.id" class="flex-none w-[310px] cursor-pointer"
-            :style="{ animationDelay: `${index * 60}ms` }"
-            @click="$router.push(`/reading/${book.id}`)"
->>>>>>> 3ef959b (test with api get all books)
             >
               <!-- Cover Image -->
               <img

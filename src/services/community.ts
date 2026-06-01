@@ -74,6 +74,21 @@ export async function upsertReadingProgress(bookId: string, percentageCompleted:
   return unwrap<any>(res);
 }
 
+export async function fetchChapterProgress(bookId: string) {
+  const res = await api.get(`/chapter-progress/book/${bookId}`);
+  return unwrap<any[]>(res);
+}
+
+export async function fetchSingleChapterProgress(chapterId: string) {
+  const res = await api.get(`/chapter-progress/${chapterId}`);
+  return unwrap<any>(res);
+}
+
+export async function upsertChapterProgress(bookId: string, chapterId: string, scrollPercentage: number) {
+  const res = await api.post('/chapter-progress', { bookId, chapterId, scrollPercentage });
+  return unwrap<any>(res);
+}
+
 export async function fetchCommunityStats() {
   const res = await api.get('/community/stats');
   return unwrap<{ totalChallenges: number; activeReaders: number; totalBooksRead: number }>(res);

@@ -22,10 +22,14 @@ import writingImage from '../../assets/images/Writing.png'
           community built on the craftsmanship of the written word.
         </p>
         <div class="mt-6 flex gap-4">
-          <button
-            class="bg-gradient-to-r from-[#012D1D] to-[#1B4332] text-sm w-40  text-white px-6 py-3 rounded-lg">Start
-            Reading</button>
-          <button class="bg-[#D4AF38] text-white px-6 py-3  text-sm rounded-lg w-40 ">Start Writing</button>
+          <router-link to="/explore">
+            <button
+              class="bg-gradient-to-r from-[#012D1D] to-[#1B4332] text-sm w-40  text-white px-6 py-3 rounded-lg">Start
+              Reading</button>
+          </router-link>
+          <a href="http://localhost:5173/dashboard/books/new">
+            <button class="bg-[#D4AF38] text-white px-6 py-3  text-sm rounded-lg w-40 ">Start Writing</button>
+          </a>
         </div>
       </div>
       <div class="relative flex-shrink-0 max-w-md">

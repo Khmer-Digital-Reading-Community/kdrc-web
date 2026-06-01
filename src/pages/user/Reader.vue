@@ -400,7 +400,7 @@ import { renderContent } from "../../utils/content";
 import { useReadingProgress } from "../../composables/useReadingProgress";
 import ReadingProgress from "../../components/reader/ReadingProgress.vue";
 import { getBookBasic } from "../../services/bookApi";
-import { upsertReadingProgress } from "../../services/community";
+import { upsertReadingProgress, upsertChapterProgress, fetchSingleChapterProgress } from "../../services/community";
 import debounce from "lodash/debounce";
 
 const route = useRoute();
@@ -428,6 +428,7 @@ const {
 
 const { saveChapterProgress, getChapterProgress } = useReadingProgress();
 const mainContentRef = ref<HTMLElement | null>(null);
+const chapterScrollMap = ref<Map<string, number>>(new Map());
 const contentSentinel = ref<HTMLElement | null>(null);
 const bookTitle = ref("");
 
@@ -594,18 +595,39 @@ const setupAntiCopy = () => {
 };
 
 /**
- * Debounced function to sync progress with the backend
+ * Debounced function to sync book-level progress with the backend
  */
 const syncProgressToBackend = debounce(async (scroll: number) => {
-  if (!currentChapter.value) return;
+  if (!currentChapter.value || !totalChapters.value) return;
   try {
+    const chapterWeight = 100 / totalChapters.value;
+    const bookPercentage = Math.min(
+      Math.round(currentChapterIndex.value * chapterWeight + (scroll / 100) * chapterWeight),
+      100,
+    );
     await upsertReadingProgress(
       currentChapter.value.bookId,
-      scroll,
+      bookPercentage,
       currentChapter.value.id,
     );
   } catch (err) {
     console.warn("Failed to sync reading progress to backend:", err);
+  }
+}, 5000);
+
+/**
+ * Debounced function to sync chapter-level scroll position to backend
+ */
+const syncChapterScrollToBackend = debounce(async (scroll: number) => {
+  if (!currentChapter.value) return;
+  try {
+    await upsertChapterProgress(
+      currentChapter.value.bookId,
+      currentChapter.value.id,
+      scroll,
+    );
+  } catch (err) {
+    console.warn("Failed to sync chapter scroll to backend:", err);
   }
 }, 5000);
 
@@ -618,6 +640,7 @@ const handleProgressUpdate = (progress: {
   timeSpent: number;
 }) => {
   syncProgressToBackend(progress.scroll);
+  syncChapterScrollToBackend(progress.scroll);
 };
 
 /**
@@ -637,31 +660,68 @@ const handleProgressSaved = (progress: {
         (progress.scroll / 100) * (currentChapter.value.wordCount || 2500),
       ),
     );
-    // Also sync to backend immediately
-    upsertReadingProgress(
-      currentChapter.value.bookId,
-      progress.scroll,
-      currentChapter.value.id,
-    ).catch((err) =>
+    const chapterWeight = 100 / totalChapters.value;
+    const bookPercentage = Math.min(
+      Math.round(currentChapterIndex.value * chapterWeight + (progress.scroll / 100) * chapterWeight),
+      100,
+    );
+    // Sync to backend immediately
+    Promise.all([
+      upsertReadingProgress(
+        currentChapter.value.bookId,
+        bookPercentage,
+        currentChapter.value.id,
+      ),
+      upsertChapterProgress(
+        currentChapter.value.bookId,
+        currentChapter.value.id,
+        progress.scroll,
+      ),
+    ]).catch((err) =>
       console.warn("Failed to sync reading progress to backend:", err),
     );
   }
 };
 
-const handleChapterChanged = (chapterId?: string) => {
-  if (chapterId) {
-    const saved = getChapterProgress(chapterId);
-    if (saved && saved.scroll > 5) {
-      requestAnimationFrame(() => {
-        const main = document.querySelector("main");
-        if (main) {
-          const target =
-            (saved.scroll / 100) * (main.scrollHeight - main.clientHeight);
-          main.scrollTo({ top: target, behavior: "smooth" });
-        }
-      });
+/**
+ * Load chapter scroll from backend and restore position
+ */
+const loadChapterScrollFromBackend = async (chapterId: string) => {
+  try {
+    const data = await fetchSingleChapterProgress(chapterId);
+    if (data && data.scrollPercentage > 5) {
+      chapterScrollMap.value.set(chapterId, data.scrollPercentage);
+      return data.scrollPercentage;
     }
+  } catch (err) {
+    console.warn("Failed to fetch chapter progress:", err);
   }
+  return null;
+};
+
+const handleChapterChanged = async (chapterId?: string) => {
+  if (!chapterId) return;
+
+  // ReadingProgress.vue already restores from localStorage in loadSavedProgress.
+  // Only fall back to backend if localStorage has no data.
+  const local = getChapterProgress(chapterId);
+  if (local && local.scroll > 5) return;
+
+  const backendScroll = await loadChapterScrollFromBackend(chapterId);
+  if (backendScroll) {
+    restoreScrollPosition(backendScroll);
+  }
+};
+
+const restoreScrollPosition = (scrollPercentage: number) => {
+  requestAnimationFrame(() => {
+    const main = document.querySelector("main");
+    if (main) {
+      const target =
+        (scrollPercentage / 100) * (main.scrollHeight - main.clientHeight);
+      main.scrollTo({ top: target, behavior: "smooth" });
+    }
+  });
 };
 
 const handleScroll = () => {
@@ -671,6 +731,7 @@ const handleScroll = () => {
 // Flush pending progress sync on tab close or route leave
 const flushProgressSync = () => {
   syncProgressToBackend.flush();
+  syncChapterScrollToBackend.flush();
 };
 
 // Reset chunks when content changes
@@ -694,6 +755,9 @@ onMounted(async () => {
       bookTitle.value = book.title || "";
     });
     await initializeReading(bookId, chapterId);
+    if (currentChapter.value) {
+      handleChapterChanged(currentChapter.value.id);
+    }
   }
 
   window.addEventListener("scroll", handleScroll, { passive: true });
@@ -710,11 +774,13 @@ onMounted(async () => {
     cleanupAntiCopy();
     contentObserver?.disconnect();
     syncProgressToBackend.flush();
+    syncChapterScrollToBackend.flush();
   });
 });
 
 onBeforeRouteLeave(() => {
   syncProgressToBackend.flush();
+  syncChapterScrollToBackend.flush();
 });
 
 watch(

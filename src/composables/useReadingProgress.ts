@@ -38,7 +38,7 @@ export const useReadingProgress = () => {
     timeSpent: number,
     wordsRead: number
   ) => {
-    const progressData: ReadingProgressData = {
+    const data: ReadingProgressData = {
       chapterId,
       scroll,
       timestamp: new Date().toISOString(),
@@ -47,10 +47,10 @@ export const useReadingProgress = () => {
     }
 
     // Save to localStorage
-    localStorage.setItem(`reading_progress_${chapterId}`, JSON.stringify(progressData))
+    localStorage.setItem(`reading_progress_${chapterId}`, JSON.stringify(data))
 
     // Update in-memory cache
-    progressData.value.set(chapterId, progressData)
+    progressData.value.set(chapterId, data)
 
     // Update stats
     updateStats()
