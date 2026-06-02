@@ -2,6 +2,9 @@ import api from './api';
 
 function unwrap<T>(response: any): T {
   const body = response.data;
+  if (!body || typeof body !== 'object' || !('status' in body)) {
+    return body as T;
+  }
   if (body.status === 'success') return body.data as T;
   throw new Error(body.data?.message || 'Unknown API error');
 }
@@ -68,6 +71,21 @@ export async function deleteChallenge(id: string) {
 
 export async function upsertReadingProgress(bookId: string, percentageCompleted: number, chapterId?: string) {
   const res = await api.post('/reading-progress', { bookId, percentageCompleted, chapterId });
+  return unwrap<any>(res);
+}
+
+export async function fetchChapterProgress(bookId: string) {
+  const res = await api.get(`/chapter-progress/book/${bookId}`);
+  return unwrap<any[]>(res);
+}
+
+export async function fetchSingleChapterProgress(chapterId: string) {
+  const res = await api.get(`/chapter-progress/${chapterId}`);
+  return unwrap<any>(res);
+}
+
+export async function upsertChapterProgress(bookId: string, chapterId: string, scrollPercentage: number) {
+  const res = await api.post('/chapter-progress', { bookId, chapterId, scrollPercentage });
   return unwrap<any>(res);
 }
 

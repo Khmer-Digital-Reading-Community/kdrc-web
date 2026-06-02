@@ -167,15 +167,37 @@ const timeSpentMinutes = computed(() => {
 })
 
 /**
+ * Get the actual scroll container element
+ */
+const getScrollContainer = (): Element => {
+  if (props.contentElement) return props.contentElement
+  const main = document.querySelector('main')
+  if (main) {
+    const style = getComputedStyle(main)
+    if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+      return main
+    }
+  }
+  return document.documentElement
+}
+
+/**
+ * Get scroll metrics from the container element
+ */
+const getScrollMetrics = (container: Element) => {
+  return {
+    scrollTop: container.scrollTop,
+    scrollHeight: container.scrollHeight,
+    clientHeight: container.clientHeight,
+  }
+}
+
+/**
  * Calculate scroll progress based on scroll position
  */
 const calculateScrollProgress = () => {
-  const mainContent = props.contentElement || document.querySelector('main')
-  if (!mainContent) return
-
-  const scrollTop = mainContent.scrollTop
-  const scrollHeight = mainContent.scrollHeight
-  const clientHeight = mainContent.clientHeight
+  const container = getScrollContainer()
+  const { scrollTop, scrollHeight, clientHeight } = getScrollMetrics(container)
   const scrollableHeight = scrollHeight - clientHeight
 
   if (scrollableHeight <= 0) {
@@ -260,10 +282,12 @@ const loadSavedProgress = () => {
         lastSavedTime.value = `${diffHours}h ago`
       }
 
-      // Scroll to saved position after a brief delay
-      setTimeout(() => {
-        scrollToProgress(data.scroll)
-      }, 300)
+      // Scroll to saved position after layout settles
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          scrollToProgress(data.scroll)
+        })
+      })
     }
   } catch (error) {
     console.error('Failed to load progress:', error)
@@ -274,15 +298,12 @@ const loadSavedProgress = () => {
  * Scroll to a specific progress percentage
  */
 const scrollToProgress = (percentage: number) => {
-  const mainContent = props.contentElement || document.querySelector('main')
-  if (!mainContent) return
-
-  const scrollHeight = mainContent.scrollHeight
-  const clientHeight = mainContent.clientHeight
+  const container = getScrollContainer()
+  const { scrollHeight, clientHeight } = getScrollMetrics(container)
   const scrollableHeight = scrollHeight - clientHeight
 
   const targetScroll = (percentage / 100) * scrollableHeight
-  mainContent.scrollTop = targetScroll
+  container.scrollTop = targetScroll
 }
 
 /**
@@ -312,21 +333,22 @@ onMounted(() => {
   loadSavedProgress()
 
   // Setup scroll listener
-  const mainContent = props.contentElement || document.querySelector('main')
-  if (mainContent) {
-    mainContent.addEventListener('scroll', calculateScrollProgress, { passive: true })
+  const scrollEl = getScrollContainer()
+  scrollEl.addEventListener('scroll', calculateScrollProgress, { passive: true })
+
+  // Save progress on page leave
+  const saveOnLeave = () => {
+    if (scrollProgress.value > 0) saveProgress()
   }
-  window.addEventListener('scroll', calculateScrollProgress, { passive: true })
+  window.addEventListener('beforeunload', saveOnLeave)
 
   // Setup auto-save
   const autoSaveInterval = setupAutoSave()
 
   // Cleanup
   onUnmounted(() => {
-    if (mainContent) {
-      mainContent.removeEventListener('scroll', calculateScrollProgress)
-    }
-    window.removeEventListener('scroll', calculateScrollProgress)
+    scrollEl.removeEventListener('scroll', calculateScrollProgress)
+    window.removeEventListener('beforeunload', saveOnLeave)
     clearInterval(autoSaveInterval)
   })
 })
