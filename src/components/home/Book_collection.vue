@@ -21,14 +21,34 @@ export default {
     if (el) {
       el.addEventListener("scroll", this.onScroll, { passive: true });
     }
+    this.initReveal();
   },
 
   beforeUnmount() {
     const el = this.$refs.carousel;
     if (el) el.removeEventListener("scroll", this.onScroll);
+    if (this._revealObserver) this._revealObserver.disconnect();
   },
 
   methods: {
+    initReveal() {
+      const root = this.$refs.sectionRoot;
+      if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        root?.classList.add("reveal-visible");
+        return;
+      }
+      this._revealObserver = new IntersectionObserver(
+        ([entry]) => {
+          if (entry?.isIntersecting) {
+            root.classList.add("reveal-visible");
+            this._revealObserver?.disconnect();
+          }
+        },
+        { threshold: 0.08, rootMargin: "0px 0px -40px 0px" },
+      );
+      this._revealObserver.observe(root);
+    },
+
     async fetchBooks() {
       this.loading = true;
       this.error = null;
@@ -89,7 +109,7 @@ export default {
     },
     onScroll() {
       const el = this.$refs.carousel;
-      if (!el) return;
+      if (!el || el.scrollWidth <= el.clientWidth) return;
       const scrollFraction = el.scrollLeft / (el.scrollWidth - el.clientWidth);
       this.activeDot = Math.round(scrollFraction * (this.dotCount - 1));
     },
@@ -98,18 +118,30 @@ export default {
 </script>
 
 <template>
-  <div class="bg-white py-8 px-4 md:py-12 md:px-8 lg:py-14 lg:px-16">
+  <section
+    ref="sectionRoot"
+    class="reveal-on-scroll bg-white py-10 px-4 md:py-16 md:px-8 lg:px-16 border-y border-[#e8e4dc]/50"
+  >
     <div class="max-w-[1280px] mx-auto">
-      <div class="flex items-end justify-between mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
         <div class="flex flex-col items-start">
-          <p class="text-[11px] font-bold text-[#735C00] uppercase mb-1">
+          <p class="text-[11px] font-bold text-[#c5a050] uppercase tracking-[0.16em] mb-2">
             Curated Selection
           </p>
-          <p class="text-[28px] font-bold !text-black">Book Collections</p>
+          <h2
+            class="font-['Playfair_Display',Georgia,serif] text-[28px] md:text-[32px] font-bold text-[#012D1D]"
+          >
+            Book Collections
+          </h2>
+          <p class="text-sm text-gray-500 mt-2 max-w-md">
+            Hand-picked titles from our community — swipe to explore.
+          </p>
         </div>
         <router-link
           to="/explore"
-          class="flex items-center gap-2 bg-[#1c3a2e] text-white text-[13px] font-semibold px-4 py-2 rounded-lg hover:bg-[#14291f] transition-colors duration-200"
+          class="group flex items-center gap-2 bg-[#1c3a2e] text-white text-[13px] font-semibold
+                 px-5 py-2.5 rounded-xl hover:bg-[#c5a050] transition-all duration-300
+                 hover:shadow-lg shrink-0"
         >
           More Books
           <svg
@@ -334,10 +366,11 @@ export default {
         </div>
       </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <style scoped>
+@import '../../assets/style/home.css';
 /* Hide scrollbar cross-browser */
 [ref="carousel"]::-webkit-scrollbar,
 div::-webkit-scrollbar {
