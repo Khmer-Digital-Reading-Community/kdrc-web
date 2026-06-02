@@ -3,7 +3,6 @@ import { ref, onMounted, computed } from 'vue'
 import Sidebar from '@/components/common/Sidebar.vue'
 import Navbar from '@/components/common/Navbar.vue'
 
-import ManuscriptHeader from '@/components/manuscript/ManuscriptHeader.vue'
 import ManuscriptFilters from '@/components/manuscript/ManuscriptFilters.vue'
 import ManuscriptGrid from '@/components/manuscript/ManuscriptGrid.vue'
 import { getMyBooks, deleteBook, type Book } from '@/services/bookApi'
@@ -39,7 +38,7 @@ const handleDeleteBook = async (id: string) => {
   if (confirm('Are you sure you want to delete this book? This action cannot be undone.')) {
     try {
       await deleteBook(id)
-      books.value = books.value.filter(b => b.id !== id)
+      books.value = books.value.filter((b: Book) => b.id !== id)
     } catch (error) {
       alert('Failed to delete book')
     }

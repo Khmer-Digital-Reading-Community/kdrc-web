@@ -78,10 +78,10 @@ watch(
     if (!editor.value || !incoming) return;
     try {
       const json = JSON.parse(incoming);
-      editor.value.commands.setContent(json, false);
+      editor.value.commands.setContent(json, { emitUpdate: false });
     } catch {
       if (editor.value.getHTML() !== incoming) {
-        editor.value.commands.setContent(incoming, false);
+        editor.value.commands.setContent(incoming, { emitUpdate: false });
       }
     }
   },
@@ -102,9 +102,9 @@ const getContent = (): string => {
 const setContent = (raw: string) => {
   if (!editor.value || !raw) return;
   try {
-    editor.value.commands.setContent(JSON.parse(raw), false);
+    editor.value.commands.setContent(JSON.parse(raw), { emitUpdate: false });
   } catch {
-    editor.value.commands.setContent(raw, false);
+    editor.value.commands.setContent(raw, { emitUpdate: false });
   }
 };
 

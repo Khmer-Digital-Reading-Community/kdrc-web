@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Sidebar from "@/components/common/Sidebar.vue";
 import Navbar from "@/components/common/Navbar.vue";
@@ -10,7 +10,7 @@ import {
   getGenres,
   getCategories,
   getTags,
-  type Book,
+  type BookMetadata,
   type Genre,
   type Category,
   type Tag
@@ -27,7 +27,7 @@ const subtitle = ref("");
 const description = ref("");
 const authorBio = ref("");
 const language = ref("English");
-const ageRating = ref<string>("");
+const ageRating = ref<BookMetadata["ageRating"] | "">("");
 
 // Relationships
 const selectedGenre = ref<string>("");
@@ -124,7 +124,7 @@ const handleCoverSelected = async (file: File) => {
     const previewUrl = URL.createObjectURL(file);
     coverPreviewUrl.value = previewUrl;
 
-    const response = await uploadBookCover(file);
+    await uploadBookCover(file);
     toast.success("Cover uploaded");
   } catch (error) {
     coverUploadError.value = "Failed to upload cover. Please try again.";
@@ -201,7 +201,7 @@ const handleSubmit = async () => {
         subtitle: subtitle.value || undefined,
         authorBio: authorBio.value || undefined,
         language: language.value,
-        ageRating: ageRating.value || undefined,
+        ageRating: (ageRating.value || undefined) as BookMetadata["ageRating"] | undefined,
         publisher: publisher.value || undefined,
         pageCount: pageCount.value || undefined,
         contentWarnings: contentWarnings.value.length > 0 ? contentWarnings.value : undefined,

@@ -1,8 +1,8 @@
-import { ref, computed } from "vue";
+import { ref, computed, type Ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { ExploreBook } from "../types/exploreBook";
 
-export function useExploreFilters(books: any) {
+export function useExploreFilters(books: Ref<ExploreBook[]>) {
   const route = useRoute();
   const router = useRouter();
 
@@ -39,7 +39,7 @@ export function useExploreFilters(books: any) {
   };
 
   // Computed properties
-  const categories = computed(() => {
+  const categories = computed<string[]>(() => {
     if (!books.value || books.value.length === 0) {
       return ["All Categories"];
     }
@@ -51,7 +51,7 @@ export function useExploreFilters(books: any) {
     return ["All Categories", ...uniqueCategories];
   });
 
-  const genres = computed(() => {
+  const genres = computed<string[]>(() => {
     if (!books.value || books.value.length === 0) {
       return [];
     }
@@ -67,7 +67,7 @@ export function useExploreFilters(books: any) {
     return Array.from(allGenres).sort();
   });
 
-  const authors = computed(() => {
+  const authors = computed<string[]>(() => {
     if (!books.value || books.value.length === 0) {
       return [];
     }
@@ -79,7 +79,7 @@ export function useExploreFilters(books: any) {
     return uniqueAuthors.sort();
   });
 
-  const languages = computed(() => {
+  const languages = computed<Array<{ name: string; count: number }>>(() => {
     if (!books.value || books.value.length === 0) {
       return [];
     }
@@ -182,7 +182,7 @@ export function useExploreFilters(books: any) {
   };
 
   // Apply filters to books
-  const filteredBooks = computed(() => {
+  const filteredBooks = computed<ExploreBook[]>(() => {
     let result = [...(books.value || [])];
 
     // Category filter

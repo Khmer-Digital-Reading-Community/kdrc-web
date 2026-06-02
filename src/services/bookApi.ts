@@ -41,9 +41,13 @@ export interface Book {
   id: string;
   title: string;
   description: string;
+  content?: string;
   coverImageUrl?: string;
   language?: string;
   genre?: Genre;
+  genreSlug?: string;
+  categorySlugs?: string[];
+  tagSlugs?: string[];
   pageCount?: number;
   publisher?: string;
   // Relations

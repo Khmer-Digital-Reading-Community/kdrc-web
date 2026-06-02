@@ -3,6 +3,7 @@ import api from './api';
 export interface SearchResult {
     id: string;
     title: string;
+    category?: string;
     author: {
         id: string;
         name: string;

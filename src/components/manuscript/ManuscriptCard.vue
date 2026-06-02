@@ -22,7 +22,7 @@ const imageLoaded = ref(false)
 const imageError = ref(false)
 
 const resolveCoverUrl = (url?: string | null) => {
-  if (!url) return null
+  if (!url) return undefined
   if (url.startsWith('http')) return url
   return `${apiBaseUrl}${url}`
 }

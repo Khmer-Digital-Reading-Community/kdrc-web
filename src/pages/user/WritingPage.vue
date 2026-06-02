@@ -4,7 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import QuillEditor from "@/components/common/QuillEditor.vue";
 import WritingSidebar from "../../components/common/WritingSidebar.vue";
 import CoverImageUploader from "@/components/common/CoverImageUploader.vue";
-import { Clock, Settings, ArrowLeft, Eye, Save } from "lucide-vue-next";
+import { Settings, ArrowLeft, Eye, Save } from "lucide-vue-next";
 import {
     getBookDetail,
     createBook,
@@ -42,8 +42,6 @@ const lastSavedTime = ref("never");
 const isEditingTitle = ref(false);
 const titleInput = ref("Untitled Masterpiece");
 const isLoading = ref(true);
-const showPreview = ref(false);
-
 // Project Type & Conversion
 const projectTypeChoice = ref<"formal-book" | "short-story">("formal-book");
 const showTypeConversionDialog = ref(false);
@@ -507,13 +505,6 @@ const goBack = () => {
     router.push("/dashboard/manuscripts");
 };
 
-const togglePreview = () => {
-    showPreviewModal.value = !showPreviewModal.value;
-    if (!showPreviewModal.value) {
-        showPreviewModal.value = false;
-    }
-};
-
 const handlePreviewChapter = async (chapterId: string) => {
     try {
         isLoadingPreview.value = true;
@@ -571,7 +562,7 @@ const handleBulkPublish = async () => {
     <div v-if="projectType === 'formal-book'" class="w-80 bg-white border-r border-amber-200 overflow-y-auto">
       <WritingSidebar
         :chapters="chapters"
-        :activeChapterId="activeChapterId"
+        :activeChapterId="activeChapterId || undefined"
         :statusFilter="statusFilter"
         @selectChapter="handleSelectChapter"
         @newChapter="handleNewChapter"
@@ -889,7 +880,7 @@ const handleBulkPublish = async () => {
           <!-- Templates List -->
           <div class="px-6 py-6 max-h-96 overflow-y-auto space-y-3">
             <button
-              v-for="(template, name) in getAvailableTemplates()"
+              v-for="(_, name) in getAvailableTemplates()"
               :key="name"
               @click="selectedTemplate = name"
               :class="[

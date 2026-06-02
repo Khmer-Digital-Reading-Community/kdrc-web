@@ -44,9 +44,6 @@ const draftChapters = computed(() =>
     (props.chapters || []).filter((ch) => ch.status === "DRAFT"),
 );
 
-const publishedChapters = computed(() =>
-    (props.chapters || []).filter((ch) => ch.status === "PUBLISHED"),
-);
 </script>
 
 <template>

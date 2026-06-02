@@ -82,6 +82,8 @@
                 <main class="flex-1">
                     <ExploreToolbar
                         :sortBy="sortBy"
+                        :activeCategory="activeCategory"
+                        :activeLanguage="activeLanguage"
                         @toggleFilter="isMobileFilterOpen = true"
                         @toggleSort="
                             sortBy = sortBy === 'Newest Arrivals'

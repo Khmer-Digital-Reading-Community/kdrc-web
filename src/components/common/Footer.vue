@@ -110,7 +110,6 @@
 import { useRoute } from 'vue-router'
 import Icon from '../../assets/images/Icon.png'
 import { computed } from 'vue'
-import router from '../../routes/index';
 
 const route = useRoute()
 const isExchangePage = computed(() => route.path.startsWith('/exchange-v2'))

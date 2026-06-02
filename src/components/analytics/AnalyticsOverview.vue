@@ -41,8 +41,6 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowUpRight, ArrowDownLeft } from 'lucide-vue-next'
-
 defineProps<{
   stats: Array<{
     title: string

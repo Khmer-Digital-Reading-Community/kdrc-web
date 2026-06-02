@@ -36,7 +36,7 @@ const handleEdit = (id: string) => {
             :key="book.id"
             :title="book.title"
             :description="book.description"
-            :words="`${(book.chapters || []).reduce((acc, ch) => acc + (ch.wordCount || 0), 0)} words`"
+            :words="`${(book.chapters || []).reduce((acc: number, ch) => acc + (ch.wordCount || 0), 0)} words`"
             :edit="dayjs(book.updatedAt).fromNow()"
             :status="book.status"
             :coverImageUrl="book.coverImageUrl"

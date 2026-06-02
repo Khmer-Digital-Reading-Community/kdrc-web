@@ -58,7 +58,7 @@
           <input
             type="checkbox"
             :checked="selectedGenres.includes(genre)"
-            @change="(e) => emit('toggleGenre', genre)"
+            @change="() => emit('toggleGenre', genre)"
             class="w-4 h-4 accent-[#B4690E] cursor-pointer
                    rounded transition-all"
           />
@@ -91,7 +91,7 @@
           <input
             type="checkbox"
             :checked="selectedAuthors.includes(author)"
-            @change="(e) => emit('toggleAuthor', author)"
+            @change="() => emit('toggleAuthor', author)"
             class="w-4 h-4 accent-[#B4690E] cursor-pointer
                    rounded transition-all"
           />

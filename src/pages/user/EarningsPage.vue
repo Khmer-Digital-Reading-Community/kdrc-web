@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import Sidebar from '@/components/common/Sidebar.vue'
 import Navbar from '@/components/common/Navbar.vue'
 import EarningsOverview from '@/components/earnings/EarningsOverview.vue'
@@ -62,7 +62,16 @@ const topBooks = ref([
   },
 ])
 
-const transactions = ref([
+type Transaction = {
+  id: number
+  type: 'sale' | 'chapter' | 'withdrawal' | 'donation' | 'sponsorship'
+  description: string
+  amount: number
+  date: string
+  status: 'completed' | 'pending'
+}
+
+const transactions = ref<Transaction[]>([
   {
     id: 1,
     type: 'sale',

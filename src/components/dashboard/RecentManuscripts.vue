@@ -43,7 +43,7 @@ const viewAll = () => {
                     </h3>
 
                     <p class="text-sm text-gray-500">
-                        {{ book.content?.length || 0 }} characters
+                        {{ book.content?.length || book.description?.length || 0 }} characters
                     </p>
                 </div>
 

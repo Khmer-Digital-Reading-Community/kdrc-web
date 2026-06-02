@@ -384,7 +384,6 @@ const route = useRoute();
 const router = useRouter();
 
 const {
-  chapters,
   currentChapter,
   currentChapterContent,
   isLoading,
@@ -392,19 +391,14 @@ const {
   currentChapterIndex,
   hasNextChapter,
   hasPreviousChapter,
-  nextChapter,
-  previousChapter,
   totalChapters,
-  progressPercentage,
   initializeReading,
   goToNextChapter,
   goToPreviousChapter,
-  goToChapter,
 } = useChapterNavigation();
 
 const { saveChapterProgress, getChapterProgress } = useReadingProgress();
 const { isBookmarked, toggleChapterBookmark } = useBookmarks();
-const mainContentRef = ref<HTMLElement | null>(null);
 const bookTitle = ref("");
 
 // Reader UI State

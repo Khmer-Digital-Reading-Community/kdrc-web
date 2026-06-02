@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { ArrowUpRight, ArrowDownLeft, TrendingUp, Users, Eye, BookOpen } from 'lucide-vue-next'
+import { TrendingUp, Users, Eye, BookOpen } from 'lucide-vue-next'
 import Sidebar from '@/components/common/Sidebar.vue'
 import Navbar from '@/components/common/Navbar.vue'
 import AnalyticsOverview from '@/components/analytics/AnalyticsOverview.vue'
