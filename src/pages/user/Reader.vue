@@ -103,10 +103,14 @@
           </button>
 
           <button
+            @click="handleChapterBookmark"
             class="p-2 rounded-full hover:bg-black/10 transition-colors"
             title="Bookmark"
           >
-            <BookmarkIcon :size="20" />
+            <BookmarkIcon
+              :size="20"
+              :fill="chapterSaved ? 'currentColor' : 'none'"
+            />
           </button>
         </div>
       </header>
@@ -373,6 +377,7 @@ import { useReadingProgress } from "../../composables/useReadingProgress";
 import ReadingProgress from "../../components/reader/ReadingProgress.vue";
 import { getBookBasic } from "../../services/bookApi";
 import { upsertReadingProgress } from "../../services/community";
+import { useBookmarks } from "../../composables/useBookmarks";
 import debounce from "lodash/debounce";
 
 const route = useRoute();
@@ -398,6 +403,7 @@ const {
 } = useChapterNavigation();
 
 const { saveChapterProgress, getChapterProgress } = useReadingProgress();
+const { isBookmarked, toggleChapterBookmark } = useBookmarks();
 const mainContentRef = ref<HTMLElement | null>(null);
 const bookTitle = ref("");
 
@@ -430,9 +436,20 @@ const themes = {
 };
 
 const currentThemeClass = computed(() => themes[currentTheme.value].class);
+const chapterSaved = computed(() => {
+  return currentChapter.value ? isBookmarked(currentChapter.value.id, "CHAPTER") : false;
+});
 
 const changeFontSize = (delta: number) => {
   fontSize.value = Math.min(Math.max(fontSize.value + delta, 14), 32);
+};
+
+const handleChapterBookmark = async () => {
+  if (!currentChapter.value) {
+    return;
+  }
+
+  await toggleChapterBookmark(currentChapter.value.id);
 };
 
 // Anti-Copy Logic

@@ -218,9 +218,20 @@
 
 <script>
 import api from "../../services/api";
+import { useBookmarks } from "../../composables/useBookmarks";
 
 export default {
   name: "RecommendedSection",
+
+  setup() {
+    const { fetchBookmarks, isBookmarked, toggleBookBookmark } = useBookmarks();
+
+    return {
+      fetchBookmarks,
+      isBookmarked,
+      toggleBookBookmark,
+    };
+  },
 
   data() {
     return {
@@ -238,8 +249,9 @@ export default {
     },
   },
 
-  created() {
-    this.fetchBooks();
+  async created() {
+    await this.fetchBookmarks();
+    await this.fetchBooks();
   },
 
   methods: {
@@ -269,7 +281,7 @@ export default {
           readTime: book.pageCount
             ? `${Math.ceil(book.pageCount * 1.5)} min read`
             : `${10 + Math.floor(Math.random() * 20)} min read`,
-          saved: false,
+          saved: this.isBookmarked(book.id),
           tab: tabMap[index % tabMap.length],
         }));
 
@@ -289,8 +301,9 @@ export default {
       }
     },
 
-    toggleSave(book) {
-      book.saved = !book.saved;
+    async toggleSave(book) {
+      await this.toggleBookBookmark(book.id);
+      book.saved = this.isBookmarked(book.id);
     },
   },
 };
