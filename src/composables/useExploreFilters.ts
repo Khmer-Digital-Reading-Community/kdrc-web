@@ -188,38 +188,38 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
     // Category filter
     if (activeCategory.value !== "All Categories") {
       result = result.filter(
-        (book: ExploreBook) => book.category === activeCategory.value
+        (book: ExploreBook) => book.category === activeCategory.value,
       );
     }
 
     // Language filter
     if (activeLanguage.value !== "All") {
       result = result.filter(
-        (book: ExploreBook) => book.lang === activeLanguage.value
+        (book: ExploreBook) => book.lang === activeLanguage.value,
       );
     }
 
     // Genre filter
     if (selectedGenres.value.length > 0) {
       result = result.filter((book: ExploreBook) => {
-        const bookGenres = Array.isArray(book.genre) ? book.genre : [book.genre];
-        return selectedGenres.value.some((genre) =>
-          bookGenres.includes(genre)
-        );
+        const bookGenres = Array.isArray(book.genre)
+          ? book.genre
+          : [book.genre];
+        return selectedGenres.value.some((genre) => bookGenres.includes(genre));
       });
     }
 
     // Author filter
     if (selectedAuthors.value.length > 0) {
       result = result.filter((book: ExploreBook) =>
-        selectedAuthors.value.includes(book.author)
+        selectedAuthors.value.includes(book.author),
       );
     }
 
     // Rating filter
     if (minRating.value > 0) {
       result = result.filter(
-        (book: ExploreBook) => (book.rating || 0) >= minRating.value
+        (book: ExploreBook) => (book.rating || 0) >= minRating.value,
       );
     }
 

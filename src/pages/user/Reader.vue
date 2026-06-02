@@ -431,7 +431,9 @@ const themes = {
 
 const currentThemeClass = computed(() => themes[currentTheme.value].class);
 const chapterSaved = computed(() => {
-  return currentChapter.value ? isBookmarked(currentChapter.value.id, "CHAPTER") : false;
+  return currentChapter.value
+    ? isBookmarked(currentChapter.value.id, "CHAPTER")
+    : false;
 });
 
 const changeFontSize = (delta: number) => {

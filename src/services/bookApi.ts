@@ -8,7 +8,7 @@ export interface BookMetadata {
   publishedDate?: string;
   pageCount?: number;
   language?: string;
-  ageRating?: 'G' | 'PG' | 'PG-13' | 'R' | 'NC-17';
+  ageRating?: "G" | "PG" | "PG-13" | "R" | "NC-17";
   contentWarnings?: string[];
   seriesName?: string;
   seriesPosition?: number;
@@ -114,7 +114,15 @@ export const createBook = async (data: Partial<Book>): Promise<Book> => {
   return response.data;
 };
 
-export const uploadBookCover = async (file: File): Promise<{ url: string; publicId: string; width: number; height: number; size: number }> => {
+export const uploadBookCover = async (
+  file: File,
+): Promise<{
+  url: string;
+  publicId: string;
+  width: number;
+  height: number;
+  size: number;
+}> => {
   const formData = new FormData();
   formData.append("file", file);
   const response = await api.post("/books/cover", formData);
