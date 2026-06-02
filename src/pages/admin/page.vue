@@ -1,205 +1,248 @@
 <template>
   <section class="admin-page">
-    <div class="dashboard-grid">
-      <!-- Statistics Cards -->
-      <div class="stat-card">
-        <div class="stat-icon">
-          <BookOpen :size="32" />
-        </div>
-        <div class="stat-content">
-          <p class="stat-label">Total Books</p>
-          <p class="stat-value">1,234</p>
-        </div>
-      </div>
+    <div v-if="loading" class="admin-loading">Loading dashboard…</div>
 
-      <div class="stat-card">
-        <div class="stat-icon">
-          <Users :size="32" />
-        </div>
-        <div class="stat-content">
-          <p class="stat-label">Active Users</p>
-          <p class="stat-value">567</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">
-          <MessageSquare :size="32" />
-        </div>
-        <div class="stat-content">
-          <p class="stat-label">Comments</p>
-          <p class="stat-value">2,891</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">
-          <TrendingUp :size="32" />
-        </div>
-        <div class="stat-content">
-          <p class="stat-label">Growth Rate</p>
-          <p class="stat-value">+12.5%</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent Activity -->
-    <div class="recent-section">
-      <h2>Recent Activity</h2>
-      <div class="activity-list">
-        <div class="activity-item">
-          <div class="activity-dot"></div>
-          <div class="activity-content">
-            <p class="activity-title">New book added</p>
-            <p class="activity-time">2 hours ago</p>
+    <template v-else>
+      <div class="admin-stats-grid">
+        <div v-for="card in statCards" :key="card.label" class="admin-stat-card">
+          <div class="admin-stat-icon" :class="card.tone">
+            <component :is="card.icon" :size="22" />
           </div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-dot"></div>
-          <div class="activity-content">
-            <p class="activity-title">User registration</p>
-            <p class="activity-time">4 hours ago</p>
-          </div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-dot"></div>
-          <div class="activity-content">
-            <p class="activity-title">Comment reported</p>
-            <p class="activity-time">1 day ago</p>
+          <div>
+            <p class="admin-stat-label">{{ card.label }}</p>
+            <p class="admin-stat-value">{{ card.value }}</p>
+            <p v-if="card.hint" class="admin-stat-hint">{{ card.hint }}</p>
           </div>
         </div>
       </div>
-    </div>
+
+      <div class="dashboard-grid">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>Recent activity</h3>
+            <router-link to="/admin/analytics" class="link">View analytics</router-link>
+          </div>
+          <div class="admin-card-body activity-list">
+            <div v-if="!activity.length" class="admin-empty">No recent activity</div>
+            <div v-for="item in activity" :key="`${item.type}-${item.id}`" class="activity-item">
+              <span class="activity-icon" :class="item.type" />
+              <div>
+                <p class="activity-title">{{ item.title }}</p>
+                <p class="activity-sub">{{ item.subtitle }}</p>
+              </div>
+              <span class="activity-time">{{ formatRelative(item.timestamp) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>Quick actions</h3>
+          </div>
+          <div class="admin-card-body quick-actions">
+            <router-link to="/admin/comments" class="quick-card">
+              <MessageSquare :size="20" />
+              <span>Moderate comments</span>
+              <span v-if="stats?.pendingComments" class="quick-badge">{{ stats.pendingComments }} pending</span>
+            </router-link>
+            <router-link to="/admin/reports" class="quick-card">
+              <Flag :size="20" />
+              <span>Review reports</span>
+              <span v-if="stats?.pendingReports" class="quick-badge">{{ stats.pendingReports }} open</span>
+            </router-link>
+            <router-link to="/admin/users" class="quick-card">
+              <Users :size="20" />
+              <span>Manage users</span>
+            </router-link>
+            <router-link to="/admin/books" class="quick-card">
+              <BookOpen :size="20" />
+              <span>Manage books</span>
+            </router-link>
+          </div>
+        </div>
+      </div>
+    </template>
   </section>
 </template>
 
 <script setup lang="ts">
-import { BookOpen, Users, MessageSquare, TrendingUp } from 'lucide-vue-next';
+import { ref, computed, onMounted } from 'vue';
+import {
+  BookOpen,
+  Users,
+  MessageSquare,
+  Flag,
+  Trophy,
+} from 'lucide-vue-next';
+import {
+  fetchAdminStats,
+  fetchAdminActivity,
+  type AdminStats,
+  type AdminActivityItem,
+} from '../../services/adminApi';
+
+const loading = ref(true);
+const stats = ref<AdminStats | null>(null);
+const activity = ref<AdminActivityItem[]>([]);
+
+const statCards = computed(() => {
+  const s = stats.value;
+  if (!s) return [];
+  return [
+    {
+      label: 'Total books',
+      value: s.totalBooks.toLocaleString(),
+      hint: `+${s.newBooksThisMonth} this month`,
+      icon: BookOpen,
+      tone: 'green',
+    },
+    {
+      label: 'Users',
+      value: s.totalUsers.toLocaleString(),
+      hint: `+${s.newUsersThisMonth} this month`,
+      icon: Users,
+      tone: 'blue',
+    },
+    {
+      label: 'Comments',
+      value: s.totalComments.toLocaleString(),
+      hint: `${s.pendingComments} awaiting review`,
+      icon: MessageSquare,
+      tone: 'amber',
+    },
+    {
+      label: 'Challenges',
+      value: s.totalChallenges.toLocaleString(),
+      hint: `${s.totalReviews} reviews`,
+      icon: Trophy,
+      tone: 'green',
+    },
+  ];
+});
+
+const formatRelative = (ts: string) => {
+  const diff = Date.now() - new Date(ts).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+};
+
+onMounted(async () => {
+  try {
+    const [s, a] = await Promise.all([fetchAdminStats(), fetchAdminActivity(8)]);
+    stats.value = s;
+    activity.value = a;
+  } catch (e) {
+    console.error(e);
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <style scoped>
-.admin-page {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 1.25rem;
 }
 
-.stat-card {
-  background: #ffffff;
-  border: 1px solid #e0e4e0;
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  transition: all 0.3s ease;
-}
-
-.stat-card:hover {
-  box-shadow: 0 4px 12px rgba(31, 45, 32, 0.08);
-  border-color: #d0d4d0;
-}
-
-.stat-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-label {
+.link {
   font-size: 0.85rem;
-  color: #8a9f8f;
-  margin: 0;
-  font-weight: 500;
-}
-
-.stat-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1f2d20;
-  margin: 4px 0 0;
-}
-
-.recent-section {
-  background: #ffffff;
-  border: 1px solid #e0e4e0;
-  border-radius: 12px;
-  padding: 24px;
-}
-
-.recent-section h2 {
-  margin: 0 0 20px;
-  font-size: 1.25rem;
-  color: #1f2d20;
   font-weight: 600;
+  color: var(--admin-accent);
+  text-decoration: none;
 }
 
 .activity-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0;
+  padding: 0 !important;
 }
 
 .activity-item {
   display: flex;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 8px;
-  background: #f8f9f7;
-  transition: background 0.2s ease;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid #f0f3f1;
 }
 
-.activity-item:hover {
-  background: #f0f2ee;
+.activity-item:last-child {
+  border-bottom: none;
 }
 
-.activity-dot {
-  width: 8px;
-  height: 8px;
+.activity-icon {
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: #1f2d20;
   margin-top: 6px;
+  flex-shrink: 0;
 }
 
-.activity-content {
-  flex: 1;
-}
+.activity-icon.user_registered { background: var(--admin-accent); }
+.activity-icon.book_added { background: var(--admin-info); }
+.activity-icon.comment { background: var(--admin-warning); }
+.activity-icon.report { background: var(--admin-danger); }
 
 .activity-title {
   margin: 0;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: #1f2d20;
-  font-size: 0.95rem;
+}
+
+.activity-sub {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: var(--admin-muted);
 }
 
 .activity-time {
-  margin: 4px 0 0;
-  font-size: 0.8rem;
-  color: #8a9f8f;
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--admin-muted);
+  white-space: nowrap;
 }
 
-@media (max-width: 768px) {
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.quick-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+  text-decoration: none;
+  color: var(--admin-text);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.quick-card:hover {
+  border-color: var(--admin-accent);
+  background: var(--admin-accent-soft);
+}
+
+.quick-badge {
+  font-size: 0.75rem;
+  color: var(--admin-accent);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
 
-  .admin-page {
-    gap: 16px;
+  .quick-actions {
+    grid-template-columns: 1fr;
   }
 }
 </style>

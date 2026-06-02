@@ -5,6 +5,7 @@ export default [
         path: '/admin',
         component: AdminLayout,
         children: [
+            { path: '', redirect: { name: 'admin-dashboard' } },
             { path: 'dashboard', name: 'admin-dashboard', component: () => import('../pages/admin/page.vue') },
             { path: 'books', name: 'admin-books', component: () => import('../pages/admin/Books.vue') },
             { path: 'challenges', name: 'admin-challenges', component: () => import('../pages/admin/Challenges.vue') },

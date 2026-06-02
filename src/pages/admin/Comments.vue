@@ -338,8 +338,9 @@ const fetchComments = async () => {
     }
 
     const response = await api.get('/comments', { params });
-    comments.value = response.data.data || [];
-    totalComments.value = response.data.total || 0;
+    const payload = response.data as { data?: Comment[]; total?: number };
+    comments.value = payload.data ?? [];
+    totalComments.value = payload.total ?? 0;
   } catch (error) {
     console.error('Error fetching comments:', error);
   }
@@ -469,7 +470,7 @@ const confirmBulkReject = async () => {
 const deleteComment = async (comment: Comment) => {
   if (confirm('Are you sure you want to delete this comment?')) {
     try {
-      await api.delete(`/comments/${comment.id}`);
+      await api.delete(`/comments/${comment.id}/admin`);
       await fetchComments();
     } catch (error) {
       console.error('Error deleting comment:', error);

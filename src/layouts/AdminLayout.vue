@@ -1,46 +1,56 @@
 <template>
-  <div class="admin-layout">
+  <div class="admin-layout" :class="{ 'admin-theme-dark': isDark }">
     <AdminSidebar />
-    <AdminHeader />
-    <main class="admin-content">
-      <router-view />
-    </main>
+    <div class="admin-main">
+      <AdminHeader />
+      <main class="admin-content">
+        <router-view />
+      </main>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue';
+import '../assets/admin.css';
 import AdminSidebar from '../components/admin/AdminSidebar.vue';
 import AdminHeader from '../components/admin/AdminHeader.vue';
+import { useAdminTheme } from '../composables/useAdminTheme';
+
+const { isDark, initTheme } = useAdminTheme();
+
+onMounted(() => initTheme());
 </script>
 
 <style scoped>
 .admin-layout {
   display: flex;
-  height: 100vh;
-  background: #f8f9f7;
+  min-height: 100vh;
+  background: var(--admin-bg);
+}
+
+.admin-main {
+  flex: 1;
+  margin-left: 260px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .admin-content {
   flex: 1;
-  margin-left: 260px;
-  margin-top: 80px;
+  padding: 1.5rem 2rem 2.5rem;
   overflow-y: auto;
-  padding: 32px;
-  height: calc(100vh - 80px);
 }
 
-/* Responsive design for smaller screens */
 @media (max-width: 768px) {
-  .admin-layout {
-    flex-direction: column;
+  .admin-main {
+    margin-left: 0;
   }
 
   .admin-content {
-    margin-left: 0;
-    margin-top: 70px;
-    height: auto;
-    min-height: calc(100vh - 70px);
-    padding: 16px;
+    padding: 1rem;
+    padding-top: 4.5rem;
   }
 }
 </style>
