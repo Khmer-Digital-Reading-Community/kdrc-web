@@ -1,7 +1,7 @@
 <template>
-    <router-link
-        :to="`/book-detail/${book.id}`"
-        class="group block rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
+    <div
+        @click="navigateToBook"
+        class="group block rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full cursor-pointer"
     >
         <!-- Cover area -->
         <div
@@ -132,16 +132,22 @@
                 </router-link>
             </div>
         </div>
-    </router-link>
+    </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
 import type { ExploreBook } from "../../types/exploreBook";
 
 const props = defineProps<{ book: ExploreBook }>();
 
+const router = useRouter();
 const imgError = ref(false);
+
+const navigateToBook = () => {
+    router.push(`/book-detail/${props.book.id}`);
+};
 
 const CATEGORY_GRADIENTS: Record<string, string> = {
     "Khmer Literature": "linear-gradient(135deg, #4A7274 0%, #2d5456 100%)",

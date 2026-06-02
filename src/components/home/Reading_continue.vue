@@ -7,13 +7,6 @@
         <div class="font-['Playfair_Display'] text-[24px] md:text-[28px] font-bold text-gray-900">
           Continue Reading
         </div>
-        <router-link
-          to="/library"
-          class="text-[11px] font-bold tracking-[0.14em] text-[#1c3a2e] uppercase
-                 hover:text-[#c5a050] transition-colors duration-200"
-        >
-          Open Library
-        </router-link>
       </div>
 
       <!-- Loading -->
@@ -22,21 +15,8 @@
         <p class="text-[13px] text-gray-400">Loading your reading progress...</p>
       </div>
 
-      <!-- Empty -->
-      <div v-else-if="!books.length" class="text-center py-12 bg-white border border-[#e8e4dc] rounded-2xl">
-        <div class="w-14 h-14 mx-auto mb-4 bg-[#f5f3ee] rounded-xl flex items-center justify-center">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c0bbb2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
-          </svg>
-        </div>
-        <p class="font-['Playfair_Display'] text-lg font-bold text-gray-900 mb-1">No books in progress</p>
-        <p class="text-[13px] text-gray-400 mb-5">Start reading to see your progress here.</p>
-        <router-link to="/explore" class="inline-block bg-[#1c3a2e] text-white text-[13px] font-bold px-6 py-2.5 rounded-xl hover:bg-[#c5a050] transition-colors">Browse Books</router-link>
-      </div>
-
-      <!-- Reading Card -->
-      <div v-else>
+      <!-- In-Progress Books -->
+      <template v-else-if="inProgressBooks.length > 0">
         <div
           class="bg-white border border-[#e8e4dc] rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6
                  shadow-sm hover:shadow-md transition-shadow duration-300"
@@ -63,8 +43,11 @@
             <p class="font-['Playfair_Display'] font-bold text-[17px] text-gray-900 leading-snug mb-0.5">
               {{ currentBook.title }}
             </p>
-            <p class="text-[11px] font-semibold tracking-[0.1em] text-gray-400 uppercase mb-3">
+            <p class="text-[11px] font-semibold tracking-[0.1em] text-gray-400 uppercase mb-1">
               {{ currentBook.author }} &bull; {{ currentBook.progress }}% complete
+            </p>
+            <p v-if="currentBook.chapterTitle" class="text-[11px] font-semibold tracking-[0.1em] text-gray-400 uppercase mb-3">
+              Left off at {{ currentBook.chapterTitle }}
             </p>
 
             <!-- Progress Label Row -->
@@ -84,7 +67,7 @@
 
           <!-- Resume Button -->
           <router-link
-            :to="'/reading/' + currentBook.id"
+            :to="'/reading/' + currentBook.id + (currentBook.lastChapterId ? '?chapterId=' + currentBook.lastChapterId : '')"
             class="flex-none flex items-center gap-2 bg-[#1c3a2e] text-white
                    text-[13px] font-semibold px-5 py-3 rounded-xl
                    hover:bg-[#c5a050] transition-colors duration-250 whitespace-nowrap
@@ -98,18 +81,18 @@
         </div>
 
         <!-- Recently Read Row -->
-        <div v-if="recentBooks.length" class="mt-6">
+        <div v-if="recentInProgress.length" class="mt-6">
           <p class="text-[11px] font-bold tracking-[0.12em] text-gray-400 uppercase mb-4">
             Recently Read
           </p>
           <div class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide" style="scrollbar-width:none;">
             <div
-              v-for="recent in recentBooks"
+              v-for="recent in recentInProgress"
               :key="recent.id"
               class="flex-none flex items-center gap-3 bg-white border border-[#e8e4dc]
                      rounded-xl px-4 py-3 cursor-pointer
                      hover:border-[#c5a050] hover:shadow-sm transition-all duration-200 min-w-[220px]"
-              @click="$router.push('/reading/' + recent.id)"
+              @click="$router.push('/reading/' + recent.id + (recent.lastChapterId ? '?chapterId=' + recent.lastChapterId : ''))"
             >
               <!-- Mini Cover -->
               <div class="relative w-9 h-12 rounded flex-none overflow-hidden shadow-sm bg-[#f0ece4]">
@@ -127,6 +110,7 @@
                   {{ recent.title }}
                 </p>
                 <p class="text-[11px] text-gray-400 mt-0.5">{{ recent.progress }}% complete</p>
+                <p v-if="recent.chapterTitle" class="text-[10px] text-gray-400 truncate">{{ recent.chapterTitle }}</p>
                 <!-- Mini bar -->
                 <div class="w-full h-[4px] bg-[#f0ece4] rounded-full mt-1.5 overflow-hidden">
                   <div
@@ -138,6 +122,58 @@
             </div>
           </div>
         </div>
+      </template>
+
+      <!-- Completed Books Section -->
+      <div v-if="completedBooks.length > 0" class="mt-10">
+        <div class="flex items-center gap-2 mb-4">
+          <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="text-[11px] font-bold tracking-[0.12em] text-gray-400 uppercase">Finished</p>
+        </div>
+        <div class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide" style="scrollbar-width:none;">
+          <div
+            v-for="book in completedBooks"
+            :key="book.id"
+            class="flex-none flex items-center gap-3 bg-white border border-green-200
+                   rounded-xl px-4 py-3 cursor-pointer
+                   hover:border-green-400 hover:shadow-sm transition-all duration-200 min-w-[220px]"
+            @click="$router.push('/book-detail/' + book.id)"
+          >
+            <!-- Mini Cover -->
+            <div class="relative w-9 h-12 rounded flex-none overflow-hidden shadow-sm bg-[#f0ece4]">
+              <div class="absolute left-0 top-0 h-full w-[5px] bg-green-500"></div>
+              <div v-if="!book.cover" class="w-full h-full flex items-center justify-center">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0bbb2" stroke-width="1.5">
+                  <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+                </svg>
+              </div>
+              <img v-else :src="book.cover" :alt="book.title" class="w-full h-full object-cover" />
+            </div>
+            <div class="min-w-0">
+              <p class="text-[13px] font-semibold text-gray-800 truncate leading-snug">{{ book.title }}</p>
+              <p class="text-[11px] text-gray-400 mt-0.5">Completed</p>
+              <span class="inline-block mt-1.5 text-[10px] font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                Read Again
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty (no books at all) -->
+      <div v-else-if="!loading && inProgressBooks.length === 0 && completedBooks.length === 0" class="text-center py-12 bg-white border border-[#e8e4dc] rounded-2xl">
+        <div class="w-14 h-14 mx-auto mb-4 bg-[#f5f3ee] rounded-xl flex items-center justify-center">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c0bbb2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+          </svg>
+        </div>
+        <p class="font-['Playfair_Display'] text-lg font-bold text-gray-900 mb-1">No books in progress</p>
+        <p class="text-[13px] text-gray-400 mb-5">Start reading to see your progress here.</p>
+        <router-link to="/explore" class="inline-block bg-[#1c3a2e] text-white text-[13px] font-bold px-6 py-2.5 rounded-xl hover:bg-[#c5a050] transition-colors">Browse Books</router-link>
       </div>
 
     </div>
@@ -146,6 +182,7 @@
 
 <script>
 import { fetchMyReadingProgress } from '../../services/community'
+import { getChapters } from '../../services/chapterApi'
 
 export default {
   name: 'ContinueReading',
@@ -156,17 +193,52 @@ export default {
     }
   },
   computed: {
-    currentBook() {
-      return this.books.length ? this.books[0] : null
+    inProgressBooks() {
+      return this.books.filter(b => b.progress < 100)
     },
-    recentBooks() {
-      return this.books.slice(1)
+    completedBooks() {
+      return this.books.filter(b => b.progress >= 100)
+    },
+    currentBook() {
+      return this.inProgressBooks.length ? this.inProgressBooks[0] : null
+    },
+    recentInProgress() {
+      return this.inProgressBooks.slice(1)
     },
   },
   created() {
     this.fetchData()
   },
+  mounted() {
+    // Re-fetch when page becomes visible (e.g. back from reader via history)
+    document.addEventListener('visibilitychange', this.onVisibilityChange)
+  },
+  beforeUnmount() {
+    document.removeEventListener('visibilitychange', this.onVisibilityChange)
+  },
   methods: {
+    onVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        this.fetchData()
+      }
+    },
+    async fetchChapterTitles(books) {
+      const bookIds = [...new Set(books.map(b => b.id).filter(Boolean))]
+      await Promise.all(bookIds.map(async (bookId) => {
+        try {
+          const chapters = await getChapters(bookId)
+          const book = books.find(b => b.id === bookId)
+          if (book && book.lastChapterId) {
+            const chapter = chapters.find(c => c.id === book.lastChapterId)
+            if (chapter) {
+              book.chapterTitle = `Ch ${chapter.chapterNumber}: ${chapter.title}`
+            }
+          }
+        } catch (e) {
+          // Chapter titles are non-critical; silently skip
+        }
+      }))
+    },
     async fetchData() {
       this.loading = true
       try {
@@ -178,7 +250,10 @@ export default {
           progress: Math.round(Number(p.percentageCompleted) || 0),
           cover: p.book?.cover || null,
           lastReadAt: p.lastReadAt,
+          lastChapterId: p.chapterId || p.lastChapterId || null,
+          chapterTitle: null,
         }))
+        await this.fetchChapterTitles(this.books)
       } catch (e) {
         console.warn('Failed to fetch reading progress:', e.message)
         this.books = []

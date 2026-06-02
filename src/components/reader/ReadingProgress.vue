@@ -169,32 +169,26 @@ const timeSpentMinutes = computed(() => {
 /**
  * Get the actual scroll container element
  */
-const getScrollContainer = (): Element | Window => {
+const getScrollContainer = (): Element => {
   if (props.contentElement) return props.contentElement
   const main = document.querySelector('main')
-  if (main && (main.scrollHeight > main.clientHeight || main.scrollTop > 0)) {
-    return main
+  if (main) {
+    const style = getComputedStyle(main)
+    if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+      return main
+    }
   }
-  return window
+  return document.documentElement
 }
 
 /**
- * Get scroll metrics from the appropriate container
+ * Get scroll metrics from the container element
  */
-const getScrollMetrics = (container: Element | Window) => {
-  if (container === window) {
-    const doc = document.documentElement
-    return {
-      scrollTop: window.scrollY || doc.scrollTop,
-      scrollHeight: doc.scrollHeight,
-      clientHeight: window.innerHeight,
-    }
-  }
-  const el = container as Element
+const getScrollMetrics = (container: Element) => {
   return {
-    scrollTop: el.scrollTop,
-    scrollHeight: el.scrollHeight,
-    clientHeight: el.clientHeight,
+    scrollTop: container.scrollTop,
+    scrollHeight: container.scrollHeight,
+    clientHeight: container.clientHeight,
   }
 }
 
@@ -288,10 +282,12 @@ const loadSavedProgress = () => {
         lastSavedTime.value = `${diffHours}h ago`
       }
 
-      // Scroll to saved position after a brief delay
-      setTimeout(() => {
-        scrollToProgress(data.scroll)
-      }, 300)
+      // Scroll to saved position after layout settles
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          scrollToProgress(data.scroll)
+        })
+      })
     }
   } catch (error) {
     console.error('Failed to load progress:', error)
@@ -307,11 +303,7 @@ const scrollToProgress = (percentage: number) => {
   const scrollableHeight = scrollHeight - clientHeight
 
   const targetScroll = (percentage / 100) * scrollableHeight
-  if (container === window) {
-    window.scrollTo({ top: targetScroll, behavior: 'instant' })
-  } else {
-    (container as Element).scrollTop = targetScroll
-  }
+  container.scrollTop = targetScroll
 }
 
 /**
@@ -342,8 +334,7 @@ onMounted(() => {
 
   // Setup scroll listener
   const scrollEl = getScrollContainer()
-  const target = scrollEl === window ? window : (scrollEl as Element)
-  target.addEventListener('scroll', calculateScrollProgress, { passive: true })
+  scrollEl.addEventListener('scroll', calculateScrollProgress, { passive: true })
 
   // Save progress on page leave
   const saveOnLeave = () => {
@@ -356,7 +347,7 @@ onMounted(() => {
 
   // Cleanup
   onUnmounted(() => {
-    target.removeEventListener('scroll', calculateScrollProgress)
+    scrollEl.removeEventListener('scroll', calculateScrollProgress)
     window.removeEventListener('beforeunload', saveOnLeave)
     clearInterval(autoSaveInterval)
   })

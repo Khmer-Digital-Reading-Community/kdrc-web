@@ -67,312 +67,291 @@
     </div>
 
     <!-- Main Reader UI -->
-    <div v-else-if="currentChapter" class="relative flex flex-col min-h-screen">
-      <!-- Anti-copy overlay (invisible) -->
-      <div
-        class="fixed inset-0 pointer-events-none select-none z-[100] print:hidden"
-      ></div>
-
-      <!-- Reading Progress Tracker -->
-      <ReadingProgress
-        :chapter-id="currentChapter.id"
-        :chapter-title="currentChapter.title"
-        :current-chapter-number="currentChapterIndex + 1"
-        :total-chapters="totalChapters"
-        :content-element="null"
-        :total-words="currentChapter.wordCount || 2500"
-        :reading-time-minutes="currentChapter.readingTimeMinutes || 10"
-        @progress-update="handleProgressUpdate"
-        @progress-saved="handleProgressSaved"
-        @chapter-changed="handleChapterChanged"
+    <div v-else-if="currentChapter" class="flex h-screen overflow-hidden">
+      <!-- Chapter Sidebar (inline on desktop, overlay on mobile) -->
+      <ChapterSidebar
+        :chapters="chapters"
+        :active-chapter-id="currentChapter.id"
+        :book-title="bookTitle"
+        :current-theme="currentTheme"
+        :is-open="showSidebar"
+        @select-chapter="handleSelectChapter"
+        @close="showSidebar = false"
       />
 
-      <!-- Floating Top Header (Auto-hide) -->
-      <header
-        class="fixed top-0 left-0 right-0 z-40 px-4 py-3 flex items-center justify-between transition-all duration-300 backdrop-blur-md"
-        :class="[
-          isScrolled
-            ? 'translate-y-0 opacity-100 border-b border-white/10'
-            : 'translate-y-0 opacity-100',
-        ]"
-        :style="headerStyle"
+      <!-- Content area (right of sidebar) -->
+      <div
+        class="flex-1 flex flex-col h-full min-h-0 relative"
       >
-        <div class="flex items-center gap-4">
-          <button
-            @click="router.push('/home')"
-            class="p-2 rounded-full hover:bg-black/10 transition-colors"
-            title="Back to Home"
-          >
-            <ArrowLeft :size="20" />
-          </button>
-          <div class="hidden sm:block">
-            <p
-              class="text-[10px] font-bold uppercase tracking-widest opacity-60"
-            >
-              {{ bookTitle }}
-            </p>
-            <h2 class="text-sm font-bold truncate max-w-[200px]">
-              Ch {{ currentChapter.chapterNumber }}: {{ currentChapter.title }}
-            </h2>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <button
-            @click="showSettings = !showSettings"
-            class="p-2 rounded-full hover:bg-black/10 transition-colors"
-            title="Reader Settings"
-          >
-            <Settings :size="20" />
-          </button>
-
-          <button
-            class="p-2 rounded-full hover:bg-black/10 transition-colors"
-            title="Bookmark"
-          >
-            <BookmarkIcon :size="20" />
-          </button>
-        </div>
-      </header>
-
-      <!-- Settings Modal -->
-      <transition name="slide-fade">
-        <div
-          v-if="showSettings"
-          class="fixed top-16 right-4 z-50 w-72 rounded-2xl shadow-2xl border p-6"
-          style="background-color: var(--reader-bg); color: var(--reader-text); border-color: color-mix(in srgb, var(--reader-text) 15%, transparent)"
+        <!-- Floating Top Header (sticky) -->
+        <header
+          class="sticky top-0 z-40 px-4 py-3 flex items-center justify-between backdrop-blur-md border-b"
+          :class="[isScrolled ? 'border-white/10' : 'border-transparent']"
+          :style="headerStyle"
         >
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="font-bold text-lg">Appearance</h3>
+          <div class="flex items-center gap-4">
             <button
-              @click="showSettings = false"
-              class="text-gray-400 hover:text-gray-600"
+              @click="toggleSidebar"
+              class="p-2 rounded-full hover:bg-black/10 transition-colors"
+              :title="showSidebar ? 'Close chapters' : 'View chapters'"
             >
-              <X :size="20" />
+              <PanelLeft :size="20" />
+            </button>
+            <button
+              @click="router.push('/home')"
+              class="p-2 rounded-full hover:bg-black/10 transition-colors"
+              title="Back to Home"
+            >
+              <ArrowLeft :size="20" />
+            </button>
+            <div class="hidden sm:block">
+              <p
+                class="text-[10px] font-bold uppercase tracking-widest opacity-60"
+              >
+                {{ bookTitle }}
+              </p>
+              <h2 class="text-sm font-bold truncate max-w-[200px]">
+                Ch {{ currentChapter.chapterNumber }}: {{ currentChapter.title }}
+              </h2>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button
+              @click="showSettings = !showSettings"
+              class="p-2 rounded-full hover:bg-black/10 transition-colors"
+              title="Reader Settings"
+            >
+              <Settings :size="20" />
+            </button>
+
+            <button
+              class="p-2 rounded-full hover:bg-black/10 transition-colors"
+              title="Bookmark"
+            >
+              <BookmarkIcon :size="20" />
             </button>
           </div>
+        </header>
 
-          <!-- Themes -->
-          <div class="mb-6">
-            <p
-              class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3"
-            >
-              Theme
-            </p>
-            <div class="grid grid-cols-3 gap-2">
-              <button
-                v-for="(theme, key) in themes"
-                :key="key"
-                @click="currentTheme = key"
-                class="flex flex-col items-center gap-2 p-2 rounded-lg border-2 transition-all"
-                :class="[
-                  currentTheme === key
-                    ? 'border-amber-600 bg-amber-50'
-                    : 'border-gray-100 hover:border-amber-200',
-                ]"
-              >
-                <div
-                  class="w-8 h-8 rounded-full border border-gray-200 shadow-inner"
-                  :style="{ backgroundColor: theme.bg }"
-                ></div>
-                <span class="text-[10px] font-bold">{{ theme.name }}</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Font Size -->
-          <div class="mb-6">
-            <p
-              class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3"
-            >
-              Font Size
-            </p>
-            <div class="flex items-center gap-4 bg-gray-50 rounded-xl p-2">
-              <button
-                @click="changeFontSize(-2)"
-                class="p-2 hover:bg-white rounded-lg transition-all"
-              >
-                <Minus :size="16" />
-              </button>
-              <span class="flex-1 text-center font-bold text-sm"
-                >{{ fontSize }}px</span
-              >
-              <button
-                @click="changeFontSize(2)"
-                class="p-2 hover:bg-white rounded-lg transition-all"
-              >
-                <Plus :size="16" />
-              </button>
-            </div>
-          </div>
-
-          <!-- Font Family -->
-          <div>
-            <p
-              class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3"
-            >
-              Font Style
-            </p>
-            <div class="grid grid-cols-2 gap-2">
-              <button
-                @click="currentFont = 'serif'"
-                class="p-2 rounded-lg border-2 text-sm font-serif transition-all"
-                :class="[
-                  currentFont === 'serif'
-                    ? 'border-amber-600 bg-amber-50'
-                    : 'border-gray-100 hover:border-amber-200',
-                ]"
-              >
-                Serif
-              </button>
-              <button
-                @click="currentFont = 'sans'"
-                class="p-2 rounded-lg border-2 text-sm font-sans transition-all"
-                :class="[
-                  currentFont === 'sans'
-                    ? 'border-amber-600 bg-amber-50'
-                    : 'border-gray-100 hover:border-amber-200',
-                ]"
-              >
-                Sans
-              </button>
-            </div>
-          </div>
-        </div>
-      </transition>
-
-      <!-- Main Content Area -->
-      <main
-        class="flex-1 overflow-x-hidden pt-24 pb-32 no-select"
-        ref="mainContentRef"
-      >
-        <div class="max-w-3xl mx-auto px-6 sm:px-8">
-          <!-- Chapter Header -->
-          <div class="text-center mb-16">
-            <h1
-              class="text-4xl sm:text-5xl font-bold leading-tight"
-              :class="[currentFont === 'serif' ? 'font-serif' : 'font-sans']"
-            >
-              {{ currentChapter.title }}
-            </h1>
-            <div
-              class="flex items-center justify-center gap-2 mt-4 text-[10px] font-bold tracking-[0.3em] uppercase opacity-60"
-            >
-              <Hash :size="12" />
-              Chapter {{ currentChapter.chapterNumber }}
-            </div>
-
-            <div
-              class="flex items-center justify-center gap-4 mt-8 text-xs opacity-50 font-medium"
-            >
-              <span class="flex items-center gap-1"
-                ><BookOpen :size="14" />
-                {{ currentChapter.wordCount || 0 }} words</span
-              >
-              <span>•</span>
-              <span class="flex items-center gap-1"
-                ><Clock :size="14" /> ~{{
-                  currentChapter.readingTimeMinutes || 0
-                }}
-                min read</span
-              >
-            </div>
-
-            <div
-              class="w-12 h-1 bg-amber-600/30 mx-auto mt-8 rounded-full"
-            ></div>
-          </div>
-
-          <!-- Content -->
-          <article
-            class="prose prose-lg max-w-none reader-content leading-relaxed"
-            :class="[currentFont === 'serif' ? 'font-serif' : 'font-sans']"
-            :style="contentStyle"
+        <!-- Settings Modal -->
+        <transition name="slide-fade">
+          <div
+            v-if="showSettings"
+            class="fixed top-16 right-4 z-50 w-72 rounded-2xl shadow-2xl border p-6"
+            style="background-color: var(--reader-bg); color: var(--reader-text); border-color: color-mix(in srgb, var(--reader-text) 15%, transparent)"
           >
-            <div
-              v-html="renderedContent"
-              class="article-body"
-            ></div>
-            <!-- Sentinel for progressive loading -->
-            <div ref="contentSentinel" class="h-4"></div>
-          </article>
-
-          <!-- Interaction Footer -->
-          <div class="mt-20 pt-10 border-t border-black/10 text-center">
-            <p class="text-sm italic opacity-60 mb-8">
-              End of Chapter {{ currentChapter.chapterNumber }}
-            </p>
-
-            <div
-              class="flex flex-col sm:flex-row items-center justify-center gap-4"
-            >
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="font-bold text-lg">Appearance</h3>
               <button
-                @click="goToPreviousChapter"
-                v-if="hasPreviousChapter"
-                class="w-full sm:w-auto px-8 py-3 rounded-full border border-black/10 hover:bg-black/5 transition-all font-bold text-sm flex items-center justify-center gap-2"
+                @click="showSettings = false"
+                class="text-gray-400 hover:text-gray-600"
               >
-                <ChevronLeft :size="18" />
-                Previous
-              </button>
-
-              <button
-                @click="goToNextChapter"
-                v-if="hasNextChapter"
-                class="w-full sm:w-auto px-10 py-3 rounded-full bg-amber-600 text-white hover:bg-amber-700 transition-all font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-600/20"
-              >
-                Next Chapter
-                <ChevronRight :size="18" />
-              </button>
-
-              <button
-                v-else
-                @click="router.push('/home')"
-                class="w-full sm:w-auto px-10 py-3 rounded-full bg-[#123C3A] text-white hover:bg-[#0d2e2c] transition-all font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#123C3A]/20"
-              >
-                Finish Reading
-                <Check :size="18" />
+                <X :size="20" />
               </button>
             </div>
-          </div>
-        </div>
-      </main>
 
-      <!-- Bottom Floating Nav -->
-      <nav
-        class="fixed bottom-0 left-0 right-0 z-40 p-4 transition-all duration-300"
-        :class="[isScrolled ? 'translate-y-0' : 'translate-y-20 opacity-0']"
-      >
-        <div
-          class="max-w-xs mx-auto rounded-full border border-white/10 shadow-2xl p-1 flex items-center"
-          :style="{ backgroundColor: themes[currentTheme].bg + 'e6', backdropFilter: 'blur(12px)' }"
+            <!-- Themes -->
+            <div class="mb-6">
+              <p
+                class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3"
+              >
+                Theme
+              </p>
+              <div class="grid grid-cols-3 gap-2">
+                <button
+                  v-for="(theme, key) in themes"
+                  :key="key"
+                  @click="currentTheme = key"
+                  class="flex flex-col items-center gap-2 p-2 rounded-lg border-2 transition-all"
+                  :class="[
+                    currentTheme === key
+                      ? 'border-amber-600 bg-amber-50'
+                      : 'border-gray-100 hover:border-amber-200',
+                  ]"
+                >
+                  <div
+                    class="w-8 h-8 rounded-full border border-gray-200 shadow-inner"
+                    :style="{ backgroundColor: theme.bg }"
+                  ></div>
+                  <span class="text-[10px] font-bold">{{ theme.name }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Font Size -->
+            <div class="mb-6">
+              <p
+                class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3"
+              >
+                Font Size
+              </p>
+              <div class="flex items-center gap-4 bg-gray-50 rounded-xl p-2">
+                <button
+                  @click="changeFontSize(-2)"
+                  class="p-2 hover:bg-white rounded-lg transition-all"
+                >
+                  <Minus :size="16" />
+                </button>
+                <span class="flex-1 text-center font-bold text-sm"
+                  >{{ fontSize }}px</span
+                >
+                <button
+                  @click="changeFontSize(2)"
+                  class="p-2 hover:bg-white rounded-lg transition-all"
+                >
+                  <Plus :size="16" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Font Family -->
+            <div>
+              <p
+                class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3"
+              >
+                Font Style
+              </p>
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  @click="currentFont = 'serif'"
+                  class="p-2 rounded-lg border-2 text-sm font-serif transition-all"
+                  :class="[
+                    currentFont === 'serif'
+                      ? 'border-amber-600 bg-amber-50'
+                      : 'border-gray-100 hover:border-amber-200',
+                  ]"
+                >
+                  Serif
+                </button>
+                <button
+                  @click="currentFont = 'sans'"
+                  class="p-2 rounded-lg border-2 text-sm font-sans transition-all"
+                  :class="[
+                    currentFont === 'sans'
+                      ? 'border-amber-600 bg-amber-50'
+                      : 'border-gray-100 hover:border-amber-200',
+                  ]"
+                >
+                  Sans
+                </button>
+              </div>
+            </div>
+          </div>
+        </transition>
+
+        <!-- Reading Progress Tracker -->
+        <ReadingProgress
+          :chapter-id="currentChapter.id"
+          :chapter-title="currentChapter.title"
+          :current-chapter-number="currentChapterIndex + 1"
+          :total-chapters="totalChapters"
+          :content-element="null"
+          :total-words="currentChapter.wordCount || 2500"
+          :reading-time-minutes="currentChapter.readingTimeMinutes || 10"
+          @progress-update="handleProgressUpdate"
+          @progress-saved="handleProgressSaved"
+          @chapter-changed="handleChapterChanged"
+        />
+
+        <!-- Main Content Area -->
+        <main
+          class="flex-1 overflow-y-auto overflow-x-hidden no-select"
+          ref="mainContentRef"
         >
-          <button
-            @click="goToPreviousChapter"
-            :disabled="!hasPreviousChapter"
-            class="p-3 rounded-full hover:bg-black/10 disabled:opacity-30 transition-colors"
-          >
-            <ChevronLeft :size="20" />
-          </button>
+          <div class="max-w-3xl mx-auto px-6 sm:px-8 py-8">
+            <!-- Chapter Header -->
+            <div class="text-center mb-16">
+              <h1
+                class="text-4xl sm:text-5xl font-bold leading-tight"
+                :class="[currentFont === 'serif' ? 'font-serif' : 'font-sans']"
+              >
+                {{ currentChapter.title }}
+              </h1>
+              <div
+                class="flex items-center justify-center gap-2 mt-4 text-[10px] font-bold tracking-[0.3em] uppercase opacity-60"
+              >
+                <Hash :size="12" />
+                Chapter {{ currentChapter.chapterNumber }}
+              </div>
 
-          <div class="flex-1 text-center">
-            <span
-              class="text-[10px] font-bold uppercase tracking-widest opacity-60"
-              >Chapter</span
+              <div
+                class="flex items-center justify-center gap-4 mt-8 text-xs opacity-50 font-medium"
+              >
+                <span class="flex items-center gap-1"
+                  ><BookOpen :size="14" />
+                  {{ currentChapter.wordCount || 0 }} words</span
+                >
+                <span>•</span>
+                <span class="flex items-center gap-1"
+                  ><Clock :size="14" /> ~{{
+                    currentChapter.readingTimeMinutes || 0
+                  }}
+                  min read</span
+                >
+              </div>
+
+              <div
+                class="w-12 h-1 bg-amber-600/30 mx-auto mt-8 rounded-full"
+              ></div>
+            </div>
+
+            <!-- Content -->
+            <article
+              class="prose prose-lg max-w-none reader-content leading-relaxed"
+              :class="[currentFont === 'serif' ? 'font-serif' : 'font-sans']"
+              :style="contentStyle"
             >
-            <p class="text-xs font-bold leading-none">
-              {{ currentChapterIndex + 1 }} of {{ totalChapters }}
-            </p>
-          </div>
+              <div
+                v-html="renderedContent"
+                class="article-body"
+              ></div>
+              <!-- Sentinel for progressive loading -->
+              <div ref="contentSentinel" class="h-4"></div>
+            </article>
 
-          <button
-            @click="goToNextChapter"
-            :disabled="!hasNextChapter"
-            class="p-3 rounded-full hover:bg-black/10 disabled:opacity-30 transition-colors"
-          >
-            <ChevronRight :size="20" />
-          </button>
-        </div>
-      </nav>
+            <!-- Interaction Footer -->
+            <div class="mt-20 pt-10 border-t border-black/10 text-center">
+              <p class="text-sm italic opacity-60 mb-8">
+                End of Chapter {{ currentChapter.chapterNumber }}
+              </p>
+
+              <div
+                class="flex flex-col sm:flex-row items-center justify-center gap-4"
+              >
+                <button
+                  @click="navigatePreviousChapter"
+                  v-if="hasPreviousChapter"
+                  class="w-full sm:w-auto px-8 py-3 rounded-full border border-black/10 hover:bg-black/5 transition-all font-bold text-sm flex items-center justify-center gap-2"
+                >
+                  <ChevronLeft :size="18" />
+                  Previous
+                </button>
+
+                <button
+                  @click="navigateNextChapter"
+                  v-if="hasNextChapter"
+                  class="w-full sm:w-auto px-10 py-3 rounded-full bg-amber-600 text-white hover:bg-amber-700 transition-all font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-600/20"
+                >
+                  Next Chapter
+                  <ChevronRight :size="18" />
+                </button>
+
+                <button
+                  v-else
+                  @click="navigateFinishReading"
+                  class="w-full sm:w-auto px-10 py-3 rounded-full bg-[#123C3A] text-white hover:bg-[#0d2e2c] transition-all font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#123C3A]/20"
+                >
+                  Finish Reading
+                  <Check :size="18" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+
+
+      </div>
     </div>
   </div>
 </template>
@@ -394,11 +373,13 @@ import {
   Check,
   AlertTriangle,
   Hash,
+  PanelLeft,
 } from "lucide-vue-next";
 import { useChapterNavigation } from "../../composables/useChapterNavigation";
 import { renderContent } from "../../utils/content";
 import { useReadingProgress } from "../../composables/useReadingProgress";
 import ReadingProgress from "../../components/reader/ReadingProgress.vue";
+import ChapterSidebar from "../../components/reader/ChapterSidebar.vue";
 import { getBookBasic } from "../../services/bookApi";
 import { upsertReadingProgress, upsertChapterProgress, fetchSingleChapterProgress } from "../../services/community";
 import debounce from "lodash/debounce";
@@ -426,7 +407,7 @@ const {
   goToChapter,
 } = useChapterNavigation();
 
-const { saveChapterProgress, getChapterProgress } = useReadingProgress();
+const { saveChapterProgress, getChapterProgress, markBookCompleted } = useReadingProgress();
 const mainContentRef = ref<HTMLElement | null>(null);
 const chapterScrollMap = ref<Map<string, number>>(new Map());
 const contentSentinel = ref<HTMLElement | null>(null);
@@ -435,10 +416,17 @@ const bookTitle = ref("");
 // Reader UI State
 const isScrolled = ref(false);
 const showSettings = ref(false);
+const showSidebar = ref(true);
 const fontSize = ref(18);
 const currentTheme = ref<keyof typeof themes>("light");
 const currentFont = ref<"serif" | "sans">("serif");
 const showSkeleton = ref(false);
+
+const isMobile = ref(false);
+
+const toggleSidebar = () => {
+  showSidebar.value = !showSidebar.value;
+};
 
 // Progressive content rendering state
 const contentChunks = shallowRef<string[]>([]);
@@ -472,11 +460,10 @@ const themeVariables = computed(() => ({
     currentFont.value === "serif" ? "'Georgia', serif" : "'Inter', sans-serif",
 }));
 
-// Header background with transparency when scrolled
+// Header background
 const headerStyle = computed(() => {
-  if (!isScrolled.value) return {};
   const bg = themes[currentTheme.value].bg;
-  return { backgroundColor: bg + "cc" };
+  return { backgroundColor: bg + (isScrolled.value ? "e6" : "cc") };
 });
 
 // Memoized rendered content — only re-parses when cache key changes
@@ -702,6 +689,22 @@ const loadChapterScrollFromBackend = async (chapterId: string) => {
 const handleChapterChanged = async (chapterId?: string) => {
   if (!chapterId) return;
 
+  // Record book-level progress for reaching this chapter
+  if (currentChapter.value && totalChapters.value > 0) {
+    const chapterWeight = 100 / totalChapters.value;
+    const bookPercentage = Math.min(
+      Math.round((currentChapterIndex.value + 1) * chapterWeight),
+      100,
+    );
+    upsertReadingProgress(
+      currentChapter.value.bookId,
+      bookPercentage,
+      chapterId,
+    ).catch((err) =>
+      console.warn("Failed to record chapter reached progress:", err),
+    );
+  }
+
   // ReadingProgress.vue already restores from localStorage in loadSavedProgress.
   // Only fall back to backend if localStorage has no data.
   const local = getChapterProgress(chapterId);
@@ -725,7 +728,61 @@ const restoreScrollPosition = (scrollPercentage: number) => {
 };
 
 const handleScroll = () => {
-  isScrolled.value = window.scrollY > 50;
+  const el = mainContentRef.value;
+  if (el) {
+    isScrolled.value = el.scrollTop > 50;
+  }
+};
+
+/**
+ * Save current chapter progress immediately to both localStorage and backend
+ */
+const saveCurrentProgress = async (scrollPercent = 100) => {
+  if (!currentChapter.value || !totalChapters.value) return;
+  const chapterId = currentChapter.value.id;
+  const bookId = currentChapter.value.bookId;
+  const timeSpent = 0;
+  const wordsRead = Math.round((scrollPercent / 100) * (currentChapter.value.wordCount || 2500));
+
+  saveChapterProgress(chapterId, scrollPercent, timeSpent, wordsRead);
+
+  const chapterWeight = 100 / totalChapters.value;
+  const bookPercentage = Math.min(
+    Math.round(currentChapterIndex.value * chapterWeight + (scrollPercent / 100) * chapterWeight),
+    100,
+  );
+  try {
+    await Promise.all([
+      upsertReadingProgress(bookId, bookPercentage, chapterId),
+      upsertChapterProgress(bookId, chapterId, scrollPercent),
+    ]);
+  } catch (err) {
+    console.warn("Failed to save progress:", err);
+  }
+};
+
+/** Wrappers that save progress before navigating */
+const navigateNextChapter = async () => {
+  await saveCurrentProgress();
+  await goToNextChapter();
+};
+
+const navigatePreviousChapter = async () => {
+  await saveCurrentProgress();
+  await goToPreviousChapter();
+};
+
+const navigateFinishReading = async () => {
+  await saveCurrentProgress(100);
+  if (currentChapter.value) {
+    markBookCompleted(currentChapter.value.bookId);
+  }
+  router.push('/home');
+};
+
+const handleSelectChapter = async (chapterId: string) => {
+  await saveCurrentProgress();
+  await goToChapter(chapterId);
 };
 
 // Flush pending progress sync on tab close or route leave
@@ -750,6 +807,12 @@ onMounted(async () => {
   const bookId = route.params.id as string;
   const chapterId = route.query.chapterId as string | undefined;
 
+  isMobile.value = window.innerWidth < 1024;
+  if (isMobile.value) showSidebar.value = false;
+  window.addEventListener("resize", () => {
+    isMobile.value = window.innerWidth < 1024;
+  });
+
   if (bookId) {
     getBookBasic(bookId).then((book) => {
       bookTitle.value = book.title || "";
@@ -760,16 +823,22 @@ onMounted(async () => {
     }
   }
 
-  window.addEventListener("scroll", handleScroll, { passive: true });
   window.addEventListener("beforeunload", flushProgressSync);
   const cleanupAntiCopy = setupAntiCopy();
 
   nextTick(() => {
     setupContentObserver();
+    const el = mainContentRef.value;
+    if (el) {
+      el.addEventListener("scroll", handleScroll, { passive: true });
+    }
   });
 
   onUnmounted(() => {
-    window.removeEventListener("scroll", handleScroll);
+    const el = mainContentRef.value;
+    if (el) {
+      el.removeEventListener("scroll", handleScroll);
+    }
     window.removeEventListener("beforeunload", flushProgressSync);
     cleanupAntiCopy();
     contentObserver?.disconnect();
@@ -778,7 +847,8 @@ onMounted(async () => {
   });
 });
 
-onBeforeRouteLeave(() => {
+onBeforeRouteLeave(async () => {
+  await saveCurrentProgress();
   syncProgressToBackend.flush();
   syncChapterScrollToBackend.flush();
 });

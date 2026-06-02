@@ -155,7 +155,7 @@ const {
 const sortBy = ref("Newest Arrivals");
 const isMobileFilterOpen = ref(false);
 const currentPage = ref(1);
-const itemsPerPage = 6;
+const itemsPerPage = 9;
 
 onMounted(() => {
   initializeFiltersFromURL();

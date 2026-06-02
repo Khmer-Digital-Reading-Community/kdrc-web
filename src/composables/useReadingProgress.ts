@@ -149,6 +149,34 @@ export const useReadingProgress = () => {
   }
 
   /**
+   * Mark a book as completed in localStorage
+   */
+  const markBookCompleted = (bookId: string) => {
+    localStorage.setItem(`reading_completed_${bookId}`, JSON.stringify({ bookId, completedAt: new Date().toISOString() }))
+  }
+
+  /**
+   * Check if a book is marked as completed
+   */
+  const isBookCompleted = (bookId: string): boolean => {
+    return localStorage.getItem(`reading_completed_${bookId}`) !== null
+  }
+
+  /**
+   * Get all completed book IDs
+   */
+  const getCompletedBooks = (): string[] => {
+    const ids: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key?.startsWith('reading_completed_')) {
+        ids.push(key.replace('reading_completed_', ''))
+      }
+    }
+    return ids
+  }
+
+  /**
    * Get reading streak information
    */
   const getReadingStreak = (): { days: number; lastReadDate: string | null } => {
@@ -196,5 +224,8 @@ export const useReadingProgress = () => {
     clearAllProgress,
     getReadingStreak,
     updateStats,
+    markBookCompleted,
+    isBookCompleted,
+    getCompletedBooks,
   }
 }
