@@ -32,13 +32,15 @@ onMounted(fetchDashboardData)
 </script>
 
 <template>
-  <div class="relative flex h-screen overflow-hidden bg-[#F6F1E8]">
-
-    <!-- Sidebar -->
+  <div
+    class="relative flex
+          min-h-screen overflow-hidden
+          bg-[#F6F1E8]"
+  >
     <Sidebar />
 
     <!-- Main Content -->
-    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
+    <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
 
       <!-- Sticky Navbar -->
       <div class="sticky top-0 z-30">
@@ -46,7 +48,7 @@ onMounted(fetchDashboardData)
       </div>
 
       <!-- Scrollable Content -->
-      <main class="flex-1 overflow-y-auto">
+      <main class="flex-1 overflow-y-auto overflow-x-hidden">
 
         <div class="p-3 sm:p-4 lg:p-6">
 
