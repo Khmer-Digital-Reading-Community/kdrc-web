@@ -1,252 +1,284 @@
 <template>
-  <aside class="admin-sidebar">
-    <div class="sidebar-header">
-      <h1 class="sidebar-title">ADMIN</h1>
+  <aside class="admin-sidebar" :class="{ open: mobileOpen }">
+    <div class="sidebar-brand">
+      <div class="brand-mark">K</div>
+      <div>
+        <p class="brand-title">KDRC</p>
+        <p class="brand-sub">Admin Console</p>
+      </div>
     </div>
 
     <nav class="sidebar-nav">
-      <!-- Dashboard Section -->
-      <div class="nav-section">
-        <h2 class="section-title">Main</h2>
-        <router-link 
-          to="/admin/dashboard" 
-          class="nav-link"
-          :class="{ active: isActive('/admin/dashboard') }"
+      <div v-for="section in navSections" :key="section.label" class="nav-section">
+        <p class="section-label">{{ section.label }}</p>
+        <router-link
+          v-for="item in section.items"
+          :key="item.to"
+          :to="item.to"
+          class="nav-item"
+          :class="{ active: isActive(item.to) }"
+          @click="mobileOpen = false"
         >
-          <span class="nav-icon"></span>
-          <span class="nav-label">Dashboard</span>
-        </router-link>
-      </div>
-
-      <!-- Content Management -->
-      <div class="nav-section">
-        <h2 class="section-title">Content Management</h2>
-        <router-link 
-          to="/admin/books" 
-          class="nav-link"
-          :class="{ active: isActive('/admin/books') }"
-        >
-          <span class="nav-icon"></span>
-          <span class="nav-label">Books</span>
-        </router-link>
-        <router-link 
-          to="/admin/challenges" 
-          class="nav-link"
-          :class="{ active: isActive('/admin/challenges') }"
-        >
-          <span class="nav-icon"></span>
-          <span class="nav-label">Challenges</span>
-        </router-link>
-      </div>
-
-      <!-- User Management -->
-      <div class="nav-section">
-        <h2 class="section-title">User Management</h2>
-        <router-link 
-          to="/admin/users" 
-          class="nav-link"
-          :class="{ active: isActive('/admin/users') }"
-        >
-          <span class="nav-icon"></span>
-          <span class="nav-label">Users</span>
-        </router-link>
-      </div>
-
-      <!-- Community -->
-      <div class="nav-section">
-        <h2 class="section-title">Community</h2>
-        <router-link 
-          to="/admin/comments" 
-          class="nav-link"
-          :class="{ active: isActive('/admin/comments') }"
-        >
-          <span class="nav-icon"></span>
-          <span class="nav-label">Comments</span>
-        </router-link>
-        <router-link 
-          to="/admin/reports" 
-          class="nav-link"
-          :class="{ active: isActive('/admin/reports') }"
-        >
-          <span class="nav-icon"></span>
-          <span class="nav-label">Reports</span>
-        </router-link>
-      </div>
-
-      <!-- Settings -->
-      <div class="nav-section">
-        <h2 class="section-title">Settings</h2>
-        <router-link 
-          to="/admin/settings" 
-          class="nav-link"
-          :class="{ active: isActive('/admin/settings') }"
-        >
-          <span class="nav-icon"></span>
-          <span class="nav-label">Settings</span>
-        </router-link>
-        <router-link 
-          to="/admin/analytics" 
-          class="nav-link"
-          :class="{ active: isActive('/admin/analytics') }"
-        >
-          <span class="nav-icon"></span>
-          <span class="nav-label">Analytics</span>
+          <component :is="item.icon" :size="18" />
+          <span>{{ item.label }}</span>
+          <span v-if="item.badge && pendingComments > 0" class="nav-badge">{{ pendingComments }}</span>
         </router-link>
       </div>
     </nav>
 
     <div class="sidebar-footer">
-      <button class="logout-btn" @click="logout">
-        <span class="nav-icon">-></span>
-        <span>Logout</span>
+      <router-link to="/home" class="nav-item subtle">
+        <Home :size="18" />
+        <span>Back to site</span>
+      </router-link>
+      <button type="button" class="nav-item subtle logout" @click="logout">
+        <LogOut :size="18" />
+        <span>Sign out</span>
       </button>
     </div>
   </aside>
+
+  <button type="button" class="mobile-toggle" aria-label="Menu" @click="mobileOpen = !mobileOpen">
+    <Menu :size="22" />
+  </button>
+  <div v-if="mobileOpen" class="sidebar-overlay" @click="mobileOpen = false" />
 </template>
 
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import {
+  LayoutDashboard,
+  BookOpen,
+  Trophy,
+  Users,
+  MessageSquare,
+  Flag,
+  Bell,
+  BarChart3,
+  Settings,
+  Home,
+  LogOut,
+  Menu,
+} from 'lucide-vue-next';
+import { useAuth } from '../../stores/useAuth';
+import { fetchAdminStats } from '../../services/adminApi';
 
-const router = useRouter();
 const route = useRoute();
+const router = useRouter();
+const { logout: authLogout } = useAuth();
+const mobileOpen = ref(false);
+const pendingComments = ref(0);
 
-const isActive = (path: string) => {
-  return route.path.startsWith(path);
-};
+const navSections = [
+  {
+    label: 'Overview',
+    items: [
+      { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+    ],
+  },
+  {
+    label: 'Content',
+    items: [
+      { to: '/admin/books', label: 'Books', icon: BookOpen },
+      { to: '/admin/challenges', label: 'Challenges', icon: Trophy },
+    ],
+  },
+  {
+    label: 'Community',
+    items: [
+      { to: '/admin/users', label: 'Users', icon: Users },
+      { to: '/admin/comments', label: 'Comments', icon: MessageSquare, badge: true },
+      { to: '/admin/reports', label: 'Reports', icon: Flag },
+      { to: '/admin/notifications', label: 'Notifications', icon: Bell },
+    ],
+  },
+  {
+    label: 'System',
+    items: [{ to: '/admin/settings', label: 'Settings', icon: Settings }],
+  },
+];
 
-const logout = () => {
-  // Clear auth token and redirect to login
-  localStorage.removeItem('token');
+const isActive = (path: string) => route.path.startsWith(path);
+
+const logout = async () => {
+  await authLogout();
   router.push('/login');
 };
+
+onMounted(async () => {
+  try {
+    const stats = await fetchAdminStats();
+    pendingComments.value = stats.pendingComments;
+  } catch {
+    /* non-admin or offline */
+  }
+});
 </script>
 
 <style scoped>
 .admin-sidebar {
   width: 260px;
   height: 100vh;
-  background: linear-gradient(180deg, #f8f9f7 0%, #f0f2ee 100%);
-  border-right: 1px solid #e0e4e0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 50;
+  z-index: 100;
+  background: var(--admin-sidebar);
+  color: #c8d4cb;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.sidebar-header {
-  padding: 24px 20px;
-  border-bottom: 1px solid #e0e4e0;
-  background: #ffffff;
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.sidebar-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2d20;
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #4a8f65, #2d5a40);
+  color: #fff;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.brand-title {
   margin: 0;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.brand-sub {
+  margin: 0;
+  font-size: 0.7rem;
+  color: #8a9b8f;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 0;
+  padding: 0.75rem 0.5rem;
 }
 
-.nav-section {
-  margin-bottom: 8px;
-}
-
-.section-title {
-  font-size: 0.75rem;
-  font-weight: 600;
+.section-label {
+  font-size: 0.65rem;
   text-transform: uppercase;
-  color: #8a9f8f;
-  padding: 12px 20px 8px;
+  letter-spacing: 0.08em;
+  color: #6d7f72;
+  padding: 0.75rem 0.75rem 0.35rem;
   margin: 0;
-  letter-spacing: 0.5px;
 }
 
-.nav-link {
+.nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 20px;
-  color: #5a675f;
+  gap: 0.65rem;
+  padding: 0.6rem 0.75rem;
+  margin: 0.1rem 0;
+  border-radius: 8px;
+  color: #b8c9be;
   text-decoration: none;
-  transition: all 0.2s ease;
-  border-left: 3px solid transparent;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  background: none;
+  width: 100%;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
 }
 
-.nav-link:hover {
-  background-color: rgba(31, 45, 32, 0.05);
-  color: #1f2d20;
+.nav-item:hover {
+  background: var(--admin-sidebar-hover);
+  color: #fff;
 }
 
-.nav-link.active {
-  background-color: rgba(31, 45, 32, 0.08);
-  color: #1f2d20;
-  border-left-color: #1f2d20;
-  font-weight: 600;
+.nav-item.active {
+  background: var(--admin-sidebar-active);
+  color: #a8e0b0;
 }
 
-.nav-icon {
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.nav-item.subtle {
+  color: #8a9b8f;
 }
 
-.nav-label {
-  flex: 1;
+.nav-item.logout:hover {
+  background: rgba(220, 76, 76, 0.12);
+  color: #f5a8a8;
+}
+
+.nav-badge {
+  margin-left: auto;
+  background: var(--admin-danger);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  min-width: 18px;
+  text-align: center;
 }
 
 .sidebar-footer {
-  padding: 16px 20px;
-  border-top: 1px solid #e0e4e0;
-  background: #ffffff;
+  padding: 0.75rem 0.5rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.logout-btn {
-  width: 100%;
-  display: flex;
+.mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 110;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+  color: var(--admin-text);
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  background: #f8f9f7;
-  border: 1px solid #e0e4e0;
-  border-radius: 6px;
-  color: #5a675f;
+  justify-content: center;
   cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
 }
 
-.logout-btn:hover {
-  background: #eff1ed;
-  color: #1f2d20;
-  border-color: #d0d4d0;
+.sidebar-overlay {
+  display: none;
 }
 
-/* Scrollbar styling */
-.admin-sidebar::-webkit-scrollbar {
-  width: 6px;
-}
+@media (max-width: 768px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
 
-.admin-sidebar::-webkit-scrollbar-track {
-  background: transparent;
-}
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
 
-.admin-sidebar::-webkit-scrollbar-thumb {
-  background: #d0d4d0;
-  border-radius: 3px;
-}
+  .mobile-toggle {
+    display: flex;
+  }
 
-.admin-sidebar::-webkit-scrollbar-thumb:hover {
-  background: #c0c4c0;
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 99;
+  }
 }
 </style>
