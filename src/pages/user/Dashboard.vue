@@ -37,30 +37,27 @@ onMounted(fetchDashboardData);
 </script>
 
 <template>
-  <div class="relative flex min-h-screen overflow-hidden bg-[#F6F1E8]">
-    <Sidebar />
+  <div class="h-screen bg-[#F6F1E8] flex overflow-hidden">
+    <!-- Fixed Sidebar -->
+    <Sidebar class="shrink-0" />
 
-    <!-- Main Content -->
-    <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
-      <!-- Sticky Navbar -->
-      <div class="sticky top-0 z-30">
-        <Navbar />
-      </div>
+    <!-- Right Content Area -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <!-- Fixed Navbar -->
+      <Navbar class="shrink-0" />
 
       <!-- Scrollable Content -->
-      <main class="flex-1 overflow-y-auto overflow-x-hidden">
+      <main class="flex-1 overflow-y-auto">
         <div class="p-3 sm:p-4 lg:p-6">
-          <!-- Welcome Banner -->
           <WelcomeBanner />
 
           <div v-if="isLoading" class="flex justify-center py-12">
             <div
               class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9C6700]"
-            ></div>
+            />
           </div>
 
           <template v-else>
-            <!-- Stats Section -->
             <section
               class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 my-4 lg:my-6"
             >
@@ -90,9 +87,7 @@ onMounted(fetchDashboardData);
               />
             </section>
 
-            <!-- Bottom Section -->
             <section class="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6">
-              <!-- Recent Manuscripts -->
               <div class="xl:col-span-2 min-w-0">
                 <RecentManuscripts :books="recentBooks" />
               </div>
