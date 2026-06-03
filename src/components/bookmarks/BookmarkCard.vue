@@ -1,6 +1,11 @@
 <template>
   <div
-    class="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition"
+    class="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition cursor-pointer"
+    role="button"
+    tabindex="0"
+    @click="goToContinueReading"
+    @keydown.enter="goToContinueReading"
+    @keydown.space.prevent="goToContinueReading"
   >
     <div class="relative">
       <img
@@ -18,20 +23,20 @@
         </span>
       </div>
 
-        <button
-            @click="emit('toggle')"
-            class="absolute top-3 right-3
-                bg-white/90 backdrop-blur-sm
-                p-2 rounded-full
-                shadow-md
-                hover:scale-105
-                transition"
-        >
-            <BookmarkIcon
-            class="w-4 h-4 text-[#0B2B2F]"
-            fill="#0B2B2F"
-            />
-        </button>
+      <button
+        @click.stop="emit('toggle')"
+        class="absolute top-3 right-3
+          bg-white/90 backdrop-blur-sm
+          p-2 rounded-full
+          shadow-md
+          hover:scale-105
+          transition"
+      >
+        <BookmarkIcon
+          class="w-4 h-4 text-[#0B2B2F]"
+          fill="#0B2B2F"
+        />
+      </button>
     </div>
 
     <div class="p-4">
@@ -60,8 +65,8 @@
           </p>
         </div>
 
-        <button>
-          ⋮
+        <button @click.stop>
+          <MoreVertical class="w-4 h-4 text-gray-500" />
         </button>
       </div>
     </div>
@@ -70,21 +75,42 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useRouter } from "vue-router";
+import { BookmarkIcon, MoreVertical } from "lucide-vue-next";
 import type { Bookmark } from "../../types/bookmark";
-
-import { BookmarkIcon } from "lucide-vue-next";
 
 const props = defineProps<{
   bookmark: Bookmark;
 }>();
 
 const emit = defineEmits(["toggle"]);
+const router = useRouter();
 
 const fallbackCover = "https://placehold.co/600x400?text=Book+Cover";
 
 const coverImageSrc = computed(() => {
   return props.bookmark.coverImage || fallbackCover;
 });
+
+const goToContinueReading = async () => {
+  const bookId =
+    props.bookmark.bookId ??
+    (props.bookmark.type === "BOOK" ? props.bookmark.targetId : undefined);
+  const chapterId =
+    props.bookmark.type === "CHAPTER"
+      ? (props.bookmark.chapterId ?? props.bookmark.targetId)
+      : undefined;
+
+  if (!bookId) {
+    return;
+  }
+
+  await router.push({
+    name: "readingpage",
+    params: { id: bookId },
+    query: chapterId ? { chapterId } : {},
+  });
+};
 
 const handleImageError = (event: Event) => {
   const target = event.target as HTMLImageElement;
