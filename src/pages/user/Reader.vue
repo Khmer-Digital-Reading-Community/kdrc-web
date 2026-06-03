@@ -378,7 +378,6 @@ import ReadingProgress from "../../components/reader/ReadingProgress.vue";
 import { getBookBasic } from "../../services/bookApi";
 import { upsertReadingProgress } from "../../services/community";
 import { useBookmarks } from "../../composables/useBookmarks";
-import debounce from "lodash/debounce";
 
 const route = useRoute();
 const router = useRouter();
@@ -495,18 +494,20 @@ const setupAntiCopy = () => {
 /**
  * Debounced function to sync progress with the backend
  */
-const syncProgressToBackend = debounce(async (scroll: number) => {
-  if (!currentChapter.value) return;
-  try {
-    await upsertReadingProgress(
+let syncTimer: ReturnType<typeof setTimeout> | null = null;
+const syncProgressToBackend = (scroll: number) => {
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    if (!currentChapter.value) return;
+    upsertReadingProgress(
       currentChapter.value.bookId,
       scroll,
       currentChapter.value.id,
-    );
-  } catch (err) {
-    console.warn("Failed to sync reading progress to backend:", err);
-  }
-}, 5000);
+    ).catch((err) => {
+      console.warn("Failed to sync reading progress to backend:", err);
+    });
+  }, 5000);
+};
 
 /**
  * Handle reading progress updates

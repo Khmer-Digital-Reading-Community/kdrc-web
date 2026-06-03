@@ -103,6 +103,11 @@ export default [
         component: () => import("../pages/user/CreateBook.vue"),
       },
       {
+        path: "exchange-dashboard-v2",
+        name: "exchange-dashboard-v2",
+        component: () => import("../pages/user/exchangeDashboard_v2.vue"),
+      },
+      {
         path: "bookmarks",
         name: "bookmarks",
         component: () => import("../pages/user/BookmarkPage.vue"),
