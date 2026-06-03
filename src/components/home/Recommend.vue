@@ -1,29 +1,34 @@
 <template>
-  <section class="bg-[#faf8f3] py-8 px-4 md:py-14 md:px-8">
+  <section ref="sectionRoot" class="reveal-on-scroll bg-[#faf8f3] py-10 px-4 md:py-16 md:px-8 lg:px-16">
     <div class="max-w-[1280px] mx-auto">
       <!-- Section Header -->
       <div
-        class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-8"
+        class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-10"
       >
-        <div
-          class="font-['Playfair_Display'] text-[28px] font-bold text-gray-900"
-        >
-          Recommended for You
+        <div>
+          <p class="text-[11px] font-bold text-[#c5a050] uppercase tracking-[0.16em] mb-2">
+            Picked for you
+          </p>
+          <h2
+            class="font-['Playfair_Display',Georgia,serif] text-[28px] md:text-[32px] font-bold text-[#012D1D]"
+          >
+            Recommended for You
+          </h2>
         </div>
 
         <!-- Tabs -->
         <div
-          class="flex items-center gap-1 bg-white border border-[#e8e4dc] rounded-xl p-1"
+          class="flex items-center gap-1 bg-white border border-[#e8e4dc] rounded-xl p-1 shadow-sm"
         >
           <button
             v-for="tab in tabs"
             :key="tab"
             @click="activeTab = tab"
             :class="[
-              'px-4 py-1.5 rounded-lg text-[12px] font-bold uppercase transition',
+              'px-4 py-2 rounded-lg text-[12px] font-bold uppercase transition-all duration-300',
               activeTab === tab
-                ? 'bg-[#1c3a2e] text-white'
-                : 'text-gray-400 hover:text-gray-700',
+                ? 'bg-[#1c3a2e] text-white shadow-md'
+                : 'text-gray-400 hover:text-gray-700 hover:bg-[#faf8f3]',
             ]"
           >
             {{ tab }}
@@ -43,10 +48,14 @@
       <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <!-- LEFT -->
         <div class="lg:col-span-8 flex flex-col">
+          <TransitionGroup name="rec-list" tag="div">
           <div
-            v-for="book in filteredBooks"
-            :key="book.id"
-            class="flex flex-col sm:flex-row gap-4 sm:gap-6 py-6 border-b border-[#e8e4dc] group cursor-pointer hover:bg-white/60 px-3 sm:px-4 rounded-xl transition-all duration-300"
+            v-for="(book, idx) in filteredBooks"
+            :key="book.id + '-' + activeTab"
+            class="rec-item flex flex-col sm:flex-row gap-4 sm:gap-6 py-6 border-b border-[#e8e4dc] last:border-0
+                   group cursor-pointer hover:bg-white px-3 sm:px-5 rounded-2xl
+                   transition-all duration-300 hover:shadow-md hover:border-transparent"
+            :style="{ animationDelay: `${idx * 50}ms` }"
             @click="$router.push(`/book-detail/${book.id}`)"
           >
             <!-- Cover -->
@@ -149,6 +158,7 @@
               </div>
             </div>
           </div>
+          </TransitionGroup>
 
           <!-- Empty state -->
           <div v-if="!filteredBooks.length" class="text-center py-12">
@@ -161,13 +171,19 @@
         <!-- RIGHT -->
         <div class="lg:col-span-4 flex flex-col gap-5">
           <!-- Top Books -->
-          <div class="bg-white border border-[#e8e4dc] rounded-2xl p-5">
-            <h3 class="font-bold mb-4">Top Books This Week</h3>
+          <div
+            class="bg-white border border-[#e8e4dc] rounded-3xl p-6 shadow-sm
+                   hover:shadow-lg transition-shadow duration-400 sticky top-24"
+          >
+            <h3 class="font-['Playfair_Display',serif] font-bold text-lg text-[#012D1D] mb-5">
+              Top Books This Week
+            </h3>
 
             <div
               v-for="(book, i) in topBooks"
               :key="book.id || i"
-              class="flex gap-3 p-2 hover:bg-[#faf8f3] rounded-lg cursor-pointer transition-colors duration-200"
+              class="flex gap-3 p-2.5 hover:bg-[#faf8f3] rounded-xl cursor-pointer
+                     transition-all duration-200 hover:translate-x-1"
               @click="$router.push(`/book-detail/${book.id}`)"
             >
               <span
@@ -242,7 +258,33 @@ export default {
     this.fetchBooks();
   },
 
+  mounted() {
+    this.initReveal();
+  },
+
+  beforeUnmount() {
+    if (this._revealObserver) this._revealObserver.disconnect();
+  },
+
   methods: {
+    initReveal() {
+      const root = this.$refs.sectionRoot;
+      if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        root?.classList.add("reveal-visible");
+        return;
+      }
+      this._revealObserver = new IntersectionObserver(
+        ([entry]) => {
+          if (entry?.isIntersecting) {
+            root.classList.add("reveal-visible");
+            this._revealObserver?.disconnect();
+          }
+        },
+        { threshold: 0.06 },
+      );
+      this._revealObserver.observe(root);
+    },
+
     async fetchBooks() {
       this.loading = true;
       try {
@@ -295,3 +337,21 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+@import '../../assets/style/home.css';
+
+.rec-item {
+  animation: home-fade-up 0.45s ease-out both;
+}
+
+.rec-list-enter-active,
+.rec-list-leave-active {
+  transition: all 0.35s ease;
+}
+.rec-list-enter-from,
+.rec-list-leave-to {
+  opacity: 0;
+  transform: translateX(-12px);
+}
+</style>

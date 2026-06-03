@@ -1,29 +1,34 @@
 <template>
-    <section class="bg-white py-8 px-4 md:py-14 md:px-8">
+    <section ref="sectionRoot" class="reveal-on-scroll bg-white py-10 px-4 md:py-16 md:px-8 lg:px-16">
         <div class="max-w-[1280px] mx-auto">
 
             <!-- Section Header -->
-            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-8">
+            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-10">
                 <div class="flex flex-col items-start">
-                   
-                    <p class=" text-[28px] font-bold  !text-black  ">
-                        Explorations
+                    <p class="text-[11px] font-bold text-[#c5a050] uppercase tracking-[0.16em] mb-2">
+                        Discover by genre
                     </p>
+                    <h2 class="font-['Playfair_Display',Georgia,serif] text-[28px] md:text-[32px] font-bold text-[#012D1D]">
+                        Explorations
+                    </h2>
                 </div>
-                <button class="text-[11px] font-bold tracking-[0.12em] text-[#1c3a2e] uppercase
-                 hover:text-[#c5a050] transition-colors duration-200 flex items-center gap-1.5">
+                <router-link
+                    to="/explore"
+                    class="text-[11px] font-bold tracking-[0.12em] text-[#1c3a2e] uppercase
+                           hover:text-[#c5a050] transition-colors duration-200 flex items-center gap-1.5 group"
+                >
                     View All Genres
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
-                </button>
+                </router-link>
             </div>
 
             <!-- Genre Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 auto-rows-[220px] lg:auto-rows-[240px]">
 
                 <!-- Khmer Literature — large left hero card -->
-                <div class="lg:col-span-5 lg:row-span-2 md:row-span-2 row-span-1 relative rounded-2xl overflow-hidden cursor-pointer group"
+                <div class="genre-card lg:col-span-5 lg:row-span-2 md:row-span-2 row-span-1 relative rounded-2xl overflow-hidden cursor-pointer group"
                     @click="selectGenre(genres[0])">
                     <img :src="genres[0].image" alt="Khmer Literature"
                         class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -69,7 +74,7 @@
 
                 <!-- Education — top middle -->
                 <div v-for="(genre, i) in genres.slice(1, 5)" :key="genre.id" :class="[
-                    'relative rounded-2xl overflow-hidden cursor-pointer group',
+                    'genre-card relative rounded-2xl overflow-hidden cursor-pointer group',
                     'lg:row-span-1',
                     i === 0 ? 'lg:col-span-4' : '',
                     i === 1 ? 'lg:col-span-3' : '',
@@ -108,7 +113,7 @@
                 </div>
 
                 <!-- Free Books — bottom right spanning -->
-                <div class="lg:col-span-7 lg:row-span-1 row-span-1 relative rounded-2xl overflow-hidden cursor-pointer group"
+                <div class="genre-card lg:col-span-7 lg:row-span-1 row-span-1 relative rounded-2xl overflow-hidden cursor-pointer group"
                     :style="{ background: genres[5].bg }" @click="selectGenre(genres[5])">
                     <img :src="genres[5].image" alt="Free Books"
                         class="absolute inset-0 w-full h-full object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-300" />
@@ -153,7 +158,7 @@
                     activePill === pill
                         ? 'bg-[#1c3a2e] text-white border-[#1c3a2e]'
                         : 'bg-white text-gray-600 border-[#e8e4dc] hover:border-[#c5a050] hover:text-[#c5a050]'
-                ]" @click="activePill = pill">
+                ]" @click="selectPill(pill)">
                     {{ pill }}
                 </button>
             </div>
@@ -163,7 +168,7 @@
 </template>
 
 <script>
-const module = import.meta.glob('../assets/images/books/*.{png,jpg,jpeg}', { eager: true })
+const module = import.meta.glob('../../assets/images/books/*.{png,jpg,jpeg}', { eager: true })
 
 const images = Object.fromEntries(
     Object.entries(module).map(([path, mod]) => {
@@ -185,6 +190,7 @@ export default {
                 {
                     id: 1,
                     name: 'Khmer Literature',
+                    slug: 'Khmer Literature',
                     tag: 'Heritage & Culture',
                     icon: '',
                     count: '1,240',
@@ -198,6 +204,7 @@ export default {
                 {
                     id: 2,
                     name: 'Education',
+                    slug: 'Education',
                     tag: 'Educational Learning',
                     icon: '',
                     count: '843',
@@ -210,6 +217,7 @@ export default {
                 {
                     id: 3,
                     name: 'Novels',
+                    slug: 'Fiction',
                     tag: 'Fictional Worlds',
                     icon: '',
                     count: '2,110',
@@ -222,6 +230,7 @@ export default {
                 {
                     id: 4,
                     name: 'Science',
+                    slug: 'Science',
                     tag: 'Knowledge & Discovery',
                     icon: '',
                     count: '560',
@@ -234,6 +243,7 @@ export default {
                 {
                     id: 5,
                     name: 'History',
+                    slug: 'History',
                     tag: 'Past & Present',
                     icon: '',
                     count: '720',
@@ -246,6 +256,7 @@ export default {
                 {
                     id: 6,
                     name: 'Free Books',
+                    slug: 'free',
                     tag: 'Open Access Gallery',
                     icon: '',
                     count: '3,400+',
@@ -259,12 +270,64 @@ export default {
         }
     },
 
+    mounted() {
+        this.initReveal()
+    },
+    beforeUnmount() {
+        if (this._revealObserver) this._revealObserver.disconnect()
+    },
+
     methods: {
+        initReveal() {
+            const root = this.$refs.sectionRoot
+            if (!root || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                root?.classList.add('reveal-visible')
+                return
+            }
+            this._revealObserver = new IntersectionObserver(
+                ([entry]) => {
+                    if (entry?.isIntersecting) {
+                        root.classList.add('reveal-visible')
+                        this._revealObserver?.disconnect()
+                    }
+                },
+                { threshold: 0.06 },
+            )
+            this._revealObserver.observe(root)
+        },
+
         selectGenre(genre) {
-            console.log('Selected genre:', genre.name)
-            // Emit to parent or navigate
-            this.$emit('genre-selected', genre)
+            if (genre.slug === 'free') {
+                this.$router.push({ path: '/explore', query: { category: 'Free' } })
+                return
+            }
+            this.$router.push({
+                path: '/explore',
+                query: genre.slug ? { genres: genre.slug } : {},
+            })
+        },
+
+        selectPill(pill) {
+            this.activePill = pill
+            if (pill === 'All') {
+                this.$router.push('/explore')
+            } else {
+                this.$router.push({ path: '/explore', query: { genres: pill } })
+            }
         },
     },
 }
 </script>
+
+<style scoped>
+@import '../../assets/style/home.css';
+
+.genre-card {
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
+}
+
+.genre-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -12px rgba(1, 45, 29, 0.2);
+}
+</style>

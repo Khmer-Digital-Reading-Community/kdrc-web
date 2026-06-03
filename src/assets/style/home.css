@@ -1,0 +1,131 @@
+/* Home page motion & layout utilities */
+@keyframes home-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes home-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes home-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes home-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes home-gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.home-page {
+  --home-forest: #012d1d;
+  --home-forest-mid: #1b4332;
+  --home-gold: #c5a050;
+  --home-gold-deep: #735c00;
+  --home-cream: #f4eddf;
+  --home-paper: #faf8f3;
+  --home-border: #e8e4dc;
+}
+
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-on-scroll.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 {
+  transition-delay: 0.08s;
+}
+.reveal-delay-2 {
+  transition-delay: 0.16s;
+}
+.reveal-delay-3 {
+  transition-delay: 0.24s;
+}
+
+.hero-enter {
+  animation: home-fade-up 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero-enter-d1 {
+  animation-delay: 0.1s;
+}
+.hero-enter-d2 {
+  animation-delay: 0.22s;
+}
+.hero-enter-d3 {
+  animation-delay: 0.34s;
+}
+.hero-enter-d4 {
+  animation-delay: 0.46s;
+}
+
+.hero-float {
+  animation: home-float 5s ease-in-out infinite;
+}
+
+.hero-mesh {
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(197, 160, 80, 0.18), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 90% 10%, rgba(27, 67, 50, 0.12), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(1, 45, 29, 0.08), transparent 55%),
+    linear-gradient(165deg, #f4eddf 0%, #faf6ee 45%, #f0ebe0 100%);
+  background-size: 200% 200%;
+  animation: home-gradient-shift 18s ease infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-on-scroll {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .hero-enter,
+  .hero-enter-d1,
+  .hero-enter-d2,
+  .hero-enter-d3,
+  .hero-enter-d4,
+  .hero-float,
+  .hero-mesh {
+    animation: none;
+  }
+}
