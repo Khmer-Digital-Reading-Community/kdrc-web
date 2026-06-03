@@ -32,7 +32,7 @@
 import { BookmarkIcon, BookOpen } from "lucide-vue-next";
 
 defineProps<{
-  saved?: boolean;
+  saved: boolean;
 }>();
 
 const emit = defineEmits([

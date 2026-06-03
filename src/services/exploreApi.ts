@@ -15,8 +15,18 @@ export interface ExploreFilters {
 /** Resolve a cover URL: absolute URLs are returned as-is; relative paths get the API base URL prepended. */
 export function resolveCoverUrl(url?: string | null): string {
   if (!url) return "";
-  if (url.startsWith("http")) return url;
-  return `${apiBaseUrl}${url}`;
+
+  const trimmedUrl = url.trim();
+
+  if (!trimmedUrl) return "";
+  if (trimmedUrl.startsWith("http")) return trimmedUrl;
+  if (trimmedUrl.startsWith("//")) return `https:${trimmedUrl}`;
+
+  const normalizedPath = trimmedUrl.startsWith("/")
+    ? trimmedUrl
+    : `/${trimmedUrl}`;
+
+  return `${apiBaseUrl}${normalizedPath}`;
 }
 
 /** Compute average rating from a reviews array from the API. */

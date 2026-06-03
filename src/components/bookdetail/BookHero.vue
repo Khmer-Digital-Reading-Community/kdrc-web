@@ -96,7 +96,11 @@
       </div>
 
       <!-- Buttons -->
-      <BookActionButtons @read="$emit('read')" />
+      <BookActionButtons
+        :saved="saved"
+        @read="$emit('read')"
+        @bookmark="$emit('bookmark')"
+      />
 
       <!-- Stats -->
       <BookMetaStats
@@ -118,7 +122,13 @@ import BookMetaStats from "./BookMetaStats.vue";
 
 defineProps<{
   book: BookDetails;
+  saved: boolean;
 }>();
+
+defineEmits([
+  "read",
+  "bookmark",
+]);
 
 function onCoverError(event: Event) {
   const target = event.target as HTMLImageElement;

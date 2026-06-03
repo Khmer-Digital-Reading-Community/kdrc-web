@@ -50,18 +50,6 @@ onMounted(fetchDashboardData)
 
         <div class="p-3 sm:p-4 lg:p-6">
 
-          <!-- Breadcrumb -->
-          <div
-            class="text-[11px] sm:text-sm uppercase tracking-[0.15em]
-                   text-gray-500 mb-4 sm:mb-6"
-          >
-            Atelier >
-
-            <span class="font-bold text-black">
-              Dashboard
-            </span>
-          </div>
-
           <!-- Welcome Banner -->
           <WelcomeBanner />
 

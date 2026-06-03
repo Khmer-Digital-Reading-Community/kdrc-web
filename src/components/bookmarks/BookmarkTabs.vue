@@ -7,9 +7,8 @@ const emit = defineEmits(["change"]);
 
 const tabs = [
   "All Saved",
-  "Manuscripts",
-  "Inspirations",
-  "Articles",
+  "Books",
+  "Chapters",
 ];
 </script>
 

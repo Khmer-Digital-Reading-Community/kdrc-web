@@ -9,19 +9,7 @@
 
       <main class="flex-1 overflow-y-auto">
         <div class="p-3 sm:p-4 lg:p-6">
-          <div
-            class="text-[11px] sm:text-sm uppercase tracking-[0.15em]
-                    text-gray-500 mb-4 sm:mb-6"
-          >
-            Atelier >
-
-            <span class="font-bold text-black">
-              Bookmarks
-            </span>
-
-          </div>
           <div class="mb-8">
-
             <h1 class="text-3xl sm:text-4xl font-bold mt-2">
               Your Books Saved
             </h1>
@@ -69,6 +57,7 @@
               v-for="bookmark in filteredBookmarks"
               :key="bookmark.id"
               :bookmark="bookmark"
+              @toggle="handleToggle(bookmark)"
             />
           </div>
 
@@ -92,20 +81,28 @@ import BookmarkCard from "@/components/bookmarks/BookmarkCard.vue";
 import EmptyBookmark from "@/components/bookmarks/EmptyBookmark.vue";
 
 import { useBookmarks } from "../../composables/useBookmarks";
+import type { Bookmark } from "../../types/bookmark";
 
 const activeTab = ref("All Saved");
 
-const { bookmarks, loading } = useBookmarks();
+const { bookmarks, loading, toggleBookmark } = useBookmarks();
+
+const tabTypeMap: Record<string, Bookmark["type"]> = {
+  Books: "BOOK",
+  Chapters: "CHAPTER",
+};
 
 const filteredBookmarks = computed(() => {
   if (activeTab.value === "All Saved") {
     return bookmarks.value;
   }
 
-  return bookmarks.value.filter(
-    (item) =>
-      item.type.toLowerCase() ===
-      activeTab.value.toLowerCase().slice(0, -1)
-  );
+  const selectedType = tabTypeMap[activeTab.value];
+
+  return bookmarks.value.filter((item) => item.type === selectedType);
 });
+
+const handleToggle = async (bookmark: Bookmark) => {
+  await toggleBookmark(bookmark.targetId, bookmark.type);
+};
 </script>
