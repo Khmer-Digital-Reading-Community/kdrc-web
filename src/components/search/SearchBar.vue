@@ -20,7 +20,7 @@
           ref="searchInput"
           v-model="query"
           type="text"
-          placeholder="Search books, authors, topics..."
+          placeholder="Search books, authors, or genres..."
           class="w-full pl-12 pr-10 py-2.5 md:py-3 rounded-[12px] border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#B4690E] focus:border-transparent transition-all placeholder-gray-400 text-sm md:text-base"
           :aria-label="'Search books and authors'"
           :aria-expanded="showSuggestions"
@@ -364,7 +364,7 @@ const selectAuthorSuggestion = (item: any) => {
   saveRecentSearch(authorName);
   router.push({
     name: "search",
-    query: { q: `author:"${authorName}"` },
+    query: { q: authorName, page: "1" },
   });
   closeSuggestions();
 };

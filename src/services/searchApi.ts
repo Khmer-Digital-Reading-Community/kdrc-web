@@ -1,9 +1,11 @@
 import api from "./api";
+import { resolveCoverUrl } from "./exploreApi";
 
 export interface SearchResult {
   id: string;
   title: string;
   category?: string;
+  genre?: string;
   author: {
     id: string;
     name: string;
@@ -45,6 +47,27 @@ export interface SuggestionsResponse {
 
 export type SortOption = "recent" | "popular" | "trending" | "rating";
 
+const mapSearchResult = (book: any): SearchResult => ({
+  id: book.id,
+  title: book.title ?? "Untitled",
+  category: book.categories?.[0]?.name ?? "General",
+  genre: book.genre?.name ?? book.genre ?? "General",
+  author: book.author
+    ? {
+        id: book.author.id,
+        name: book.author.name ?? "Unknown Author",
+      }
+    : {
+        id: "",
+        name: "Unknown Author",
+      },
+  rating: Number(book.rating ?? 0),
+  description: book.description ?? "",
+  coverImage: resolveCoverUrl(book.coverImageUrl),
+  createdAt: book.createdAt ?? "",
+  status: book.status,
+});
+
 export const searchBooks = async (
   query: string,
   page: number = 1,
@@ -71,7 +94,12 @@ export const searchBooks = async (
       },
     });
 
-    return response.data;
+    return {
+      ...response.data,
+      data: Array.isArray(response.data.data)
+        ? response.data.data.map(mapSearchResult)
+        : [],
+    };
   } catch (error) {
     console.error("Search error:", error);
     throw error;
