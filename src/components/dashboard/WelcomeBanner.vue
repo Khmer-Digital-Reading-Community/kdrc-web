@@ -57,6 +57,7 @@ import { useRouter } from "vue-router";
 import { authState } from "../../services/auth";
 
 const router = useRouter();
+console.log(authState.user.value);
 
 const userName = computed(() => {
   const name = authState.user.value?.name?.trim();
