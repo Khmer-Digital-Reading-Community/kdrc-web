@@ -13,7 +13,7 @@ import { useBookmarks } from "../../composables/useBookmarks";
 
 const activeTab = ref<"author" | "reviews">("reviews");
 
-const { book, loading } = useBookDetail();
+const { book, loading, refreshBook } = useBookDetail();
 const { isBookmarked, toggleBookBookmark } = useBookmarks();
 
 const router = useRouter();
@@ -73,9 +73,8 @@ const saved = computed(() => {
 
         <ReviewSection
           v-if="activeTab === 'reviews'"
-          :reviews="book.reviews"
-          :rating="book.rating"
-          :reviewCount="book.reviewCount"
+          :book="book"
+          @review-submitted="refreshBook"
         />
 
         <AuthorSection v-else :author="book.author" />
