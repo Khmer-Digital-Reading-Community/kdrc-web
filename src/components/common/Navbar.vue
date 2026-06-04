@@ -10,16 +10,18 @@ import ChatIcon from "../../assets/images/ChatIcon.png";
 import { useAuth, token } from "../../stores/useAuth";
 import { authState } from "../../services/auth";
 import NotificationPopup from "./NotificationPopup.vue";
-import ExchangeFilter from "../exchange/ExchangeFilter.vue";
+import SearchBar from "../search/SearchBar.vue";
+
+import { useLanguage } from "../../composables/useLanguage";
 
 const router = useRouter();
 const route = useRoute();
-const { logout } = useAuth();
+const { logout, user } = useAuth();
 
 const mobileOpen = ref(false);
 const langOpen = ref(false);
 const profileOpen = ref(false);
-const currentLang = ref("EN");
+const { currentLang, setLanguage } = useLanguage();
 const showNotifications = ref(false);
 
 // Derive auth state only from the session token.
@@ -71,7 +73,7 @@ const languages = [
 ];
 
 function selectLang(code: string) {
-  currentLang.value = code;
+  setLanguage(code);
   langOpen.value = false;
 }
 
@@ -148,9 +150,9 @@ async function handleLogout() {
           </span>
         </div>
       </div> -->
-      <!-- NEW EXCHANGE FILTER SEARCH (hidden on exchange-v2 page) -->
+      <!-- Book search (hidden on exchange-v2 page) -->
       <div v-if="showSearch" class="w-full max-w-md relative order-3 lg:order-none lg:flex-1 lg:max-w-lg flex items-center">
-        <ExchangeFilter />
+        <SearchBar />
       </div>
 
       <div class="flex items-center gap-4">
@@ -215,7 +217,7 @@ async function handleLogout() {
           >
             <img
               class="w-10 h-10 left-0 top-0 absolute object-cover"
-              :src="Profile"
+              :src="user?.avatarUrl || Profile"
               alt="User avatar"
             />
           </button>
@@ -466,7 +468,7 @@ async function handleLogout() {
           >
             <img
               class="w-10 h-10 left-0 top-0 absolute object-cover"
-              :src="Profile"
+              :src="user?.avatarUrl || Profile"
               alt="User avatar"
             />
           </button>

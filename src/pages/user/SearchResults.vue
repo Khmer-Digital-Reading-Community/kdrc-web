@@ -24,7 +24,7 @@
                         <input
                             v-model="searchQuery"
                             type="text"
-                            placeholder="Search by title, author, or description..."
+                            placeholder="Search by title, author, or genre..."
                             class="w-full px-4 py-3 border border-gray-300 rounded-[12px] focus:outline-none focus:ring-2 focus:ring-[#B4690E] focus:border-transparent"
                             @keyup.enter="handleSearch"
                         />
@@ -112,7 +112,7 @@
                             </svg>
                         </div>
                         <h2 class="text-2xl font-bold text-[#093A3F] mb-2">Start searching</h2>
-                        <p class="text-gray-600">Enter a search query above to find books by title, author, or description</p>
+                        <p class="text-gray-600">Enter a search query above to find books by title, author, or genre</p>
                     </div>
                 </template>
 

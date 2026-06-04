@@ -15,6 +15,12 @@ export interface BookMetadata {
   estimatedReadingTime?: number;
 }
 
+export interface CreateReviewPayload {
+  bookId: string;
+  rating: number;
+  comment?: string;
+}
+
 export interface Genre {
   id: number;
   name: string;
@@ -139,6 +145,11 @@ export const updateBook = async (
 
 export const deleteBook = async (id: string): Promise<void> => {
   await api.delete(`/books/${id}`);
+};
+
+export const createReview = async (data: CreateReviewPayload) => {
+  const response = await api.post("/reviews", data);
+  return response.data;
 };
 
 // Genres API

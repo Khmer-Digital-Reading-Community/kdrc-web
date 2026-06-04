@@ -31,7 +31,7 @@ const mapBookmarkRecord = (record: RawBookmarkRecord): Bookmark => {
         source: isBookBookmark ? record.book?.publisher : undefined,
         createdAt: formatSavedDate(record.createdAt),
         targetId,
-        bookId: record.book?.id ?? record.bookId,
+        bookId: record.book?.id ?? record.bookId ?? record.chapter?.bookId,
         chapterId: record.chapter?.id ?? record.chapterId,
     };
 };

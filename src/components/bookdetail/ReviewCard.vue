@@ -12,6 +12,7 @@
         <img
           :src="review.userImg"
           :alt="review.userName"
+          @error="onAvatarError"
           class="w-12 h-12 rounded-xl object-cover"
         />
 
@@ -35,15 +36,17 @@
       </div>
 
       <!-- Stars -->
-      <div class="flex text-yellow-500">
+      <div class="flex gap-0.5">
 
         <svg
           v-for="i in 5"
           :key="i"
-          class="w-3 h-3 fill-current"
+          class="w-3 h-3 transition-colors"
+          :class="i <= Math.round(review.rating) ? 'text-[#B46A20]' : 'text-gray-300'"
           viewBox="0 0 20 20"
         >
           <path
+            fill="currentColor"
             d="M9.049 2.927c.3-.921 1.603-.921
             1.902 0l1.07 3.292a1 1 0 00.95.69
             h3.462c.969 0 1.371 1.24.588 1.81
@@ -62,7 +65,7 @@
     </div>
 
     <!-- Title -->
-    <h3 class="font-bold text-gray-900 mb-3">
+    <h3 v-if="review.title" class="font-bold text-gray-900 mb-3">
       {{ review.title }}
     </h3>
 
@@ -106,4 +109,9 @@ import type { Review } from "../../types/bookDetails";
 defineProps<{
   review: Review;
 }>();
+
+function onAvatarError(event: Event) {
+  const target = event.target as HTMLImageElement;
+  target.src = "https://placehold.co/96x96?text=User";
+}
 </script>
