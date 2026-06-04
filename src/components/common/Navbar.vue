@@ -500,7 +500,6 @@ async function handleLogout() {
     <NotificationPopup
       :isOpen="showNotifications"
       @close="showNotifications = false"
-      @markAsRead="(id) => console.log('Marked as read:', id)"
     />
   </nav>
 </template>

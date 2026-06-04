@@ -99,6 +99,5 @@ const showNotifications = ref(false)
   <NotificationPopup
     :isOpen="showNotifications"
     @close="showNotifications = false"
-    @markAsRead="(id) => console.log('Marked as read:', id)"
   />
 </template>
