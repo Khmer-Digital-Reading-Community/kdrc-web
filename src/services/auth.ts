@@ -8,6 +8,8 @@ export interface AuthUser {
   name?: string;
   provider?: string;
   role?: string;
+  avatarUrl?: string;
+  phoneNumber?: string;
 }
 
 export interface LoginCredentials {

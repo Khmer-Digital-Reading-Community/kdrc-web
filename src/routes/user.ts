@@ -64,6 +64,11 @@ export default [
     ],
   },
   {
+    path: "/settings",
+    name: "settings",
+    component: () => import("../pages/user/Settings.vue"),
+  },
+  {
     path: "/:id/write",
     name: "writingpage",
     component: WritingPage,
