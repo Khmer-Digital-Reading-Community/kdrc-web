@@ -1,13 +1,13 @@
 <template>
   <div
     class="grid grid-cols-1
-           md:grid-cols-2
+           sm:grid-cols-2
            xl:grid-cols-3
-           gap-y-8 md:gap-y-12
-           gap-x-8 items-stretch
+           gap-y-6 md:gap-y-8
+           gap-x-5 xl:gap-x-6 items-stretch
            w-full
-           max-w-[270px]
-           sm:max-w-[320px]
+           max-w-[280px]
+           sm:max-w-none
            md:max-w-none
            mx-auto"
   >

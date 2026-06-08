@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Sidebar from "@/components/common/Sidebar.vue";
 import Navbar from "@/components/common/Navbar.vue";
@@ -10,10 +10,10 @@ import {
   getGenres,
   getCategories,
   getTags,
-  type Book,
+  type BookMetadata,
   type Genre,
   type Category,
-  type Tag
+  type Tag,
 } from "../../services/bookApi";
 import { useToast } from "vue-toastification";
 
@@ -27,7 +27,7 @@ const subtitle = ref("");
 const description = ref("");
 const authorBio = ref("");
 const language = ref("English");
-const ageRating = ref<string>("");
+const ageRating = ref<BookMetadata["ageRating"] | "">("");
 
 // Relationships
 const selectedGenre = ref<string>("");
@@ -65,16 +65,19 @@ const tagsError = ref<string | null>(null);
 const genres = ref<Genre[]>([]);
 const categories = ref<Category[]>([]);
 const tags = ref<Tag[]>([]);
-const languages = ["English", "Khmer", "French", "Spanish", "Chinese", "Japanese"];
+const languages = [
+  "English",
+  "Khmer",
+  "French",
+  "Spanish",
+  "Chinese",
+  "Japanese",
+];
 const ageRatings = ["G", "PG", "PG-13", "R", "NC-17"];
 
 // Load options from API
 onMounted(async () => {
-  await Promise.all([
-    loadGenres(),
-    loadCategories(),
-    loadTags()
-  ]);
+  await Promise.all([loadGenres(), loadCategories(), loadTags()]);
 });
 
 const loadGenres = async () => {
@@ -124,7 +127,7 @@ const handleCoverSelected = async (file: File) => {
     const previewUrl = URL.createObjectURL(file);
     coverPreviewUrl.value = previewUrl;
 
-    const response = await uploadBookCover(file);
+    await uploadBookCover(file);
     toast.success("Cover uploaded");
   } catch (error) {
     coverUploadError.value = "Failed to upload cover. Please try again.";
@@ -140,7 +143,10 @@ const clearCover = () => {
 };
 
 const addTag = () => {
-  if (newTag.value.trim() && !selectedTags.value.includes(newTag.value.trim())) {
+  if (
+    newTag.value.trim() &&
+    !selectedTags.value.includes(newTag.value.trim())
+  ) {
     selectedTags.value.push(newTag.value.trim());
     newTag.value = "";
   }
@@ -151,7 +157,10 @@ const removeTag = (tag: string) => {
 };
 
 const addWarning = () => {
-  if (newWarning.value.trim() && !contentWarnings.value.includes(newWarning.value.trim())) {
+  if (
+    newWarning.value.trim() &&
+    !contentWarnings.value.includes(newWarning.value.trim())
+  ) {
     contentWarnings.value.push(newWarning.value.trim());
     newWarning.value = "";
   }
@@ -201,10 +210,13 @@ const handleSubmit = async () => {
         subtitle: subtitle.value || undefined,
         authorBio: authorBio.value || undefined,
         language: language.value,
-        ageRating: ageRating.value || undefined,
+        ageRating: (ageRating.value || undefined) as
+          | BookMetadata["ageRating"]
+          | undefined,
         publisher: publisher.value || undefined,
         pageCount: pageCount.value || undefined,
-        contentWarnings: contentWarnings.value.length > 0 ? contentWarnings.value : undefined,
+        contentWarnings:
+          contentWarnings.value.length > 0 ? contentWarnings.value : undefined,
         seriesName: seriesName.value || undefined,
         seriesPosition: seriesPosition.value || undefined,
       },
@@ -234,14 +246,22 @@ const handleSubmit = async () => {
         <div class="max-w-5xl mx-auto">
           <!-- Header -->
           <div class="mb-8">
-            <p class="text-xs uppercase tracking-[0.2em] text-gray-400">Atelier</p>
-            <h1 class="text-3xl font-semibold text-[#123C3A] mt-2">Create Book</h1>
-            <p class="text-sm text-gray-500 mt-1">Add all the details about your book or short story</p>
+            <p class="text-xs uppercase tracking-[0.2em] text-gray-400">
+              Atelier
+            </p>
+            <h1 class="text-3xl font-semibold text-[#123C3A] mt-2">
+              Create Book
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">
+              Add all the details about your book or short story
+            </p>
           </div>
 
           <!-- Project Type Selection -->
           <div class="mb-8 bg-amber-50 rounded-3xl p-6">
-            <p class="text-sm font-semibold text-[#123C3A] mb-4">What are you writing?</p>
+            <p class="text-sm font-semibold text-[#123C3A] mb-4">
+              What are you writing?
+            </p>
             <div class="grid grid-cols-2 gap-4">
               <button
                 @click="projectType = 'formal-book'"
@@ -253,7 +273,9 @@ const handleSubmit = async () => {
                 ]"
               >
                 <p class="text-lg font-bold text-amber-700">📚 Formal Book</p>
-                <p class="text-xs text-gray-600 mt-2">Multiple chapters, full-featured</p>
+                <p class="text-xs text-gray-600 mt-2">
+                  Multiple chapters, full-featured
+                </p>
               </button>
               <button
                 @click="projectType = 'short-story'"
@@ -265,7 +287,9 @@ const handleSubmit = async () => {
                 ]"
               >
                 <p class="text-lg font-bold text-amber-700">✍️ Short Story</p>
-                <p class="text-xs text-gray-600 mt-2">Single story, simple editor</p>
+                <p class="text-xs text-gray-600 mt-2">
+                  Single story, simple editor
+                </p>
               </button>
             </div>
           </div>
@@ -273,44 +297,47 @@ const handleSubmit = async () => {
           <!-- Tabs -->
           <div class="mb-8">
             <div class="flex gap-4 mb-6 border-b border-amber-200">
-            <button
-              @click="activeTab = 'main'"
-              :class="[
-                'px-4 py-3 font-semibold text-sm transition',
-                activeTab === 'main'
-                  ? 'text-amber-700 border-b-2 border-amber-700'
-                  : 'text-gray-500 hover:text-gray-700',
-              ]"
-            >
-              Main Info
-            </button>
-            <button
-              @click="activeTab = 'metadata'"
-              :class="[
-                'px-4 py-3 font-semibold text-sm transition',
-                activeTab === 'metadata'
-                  ? 'text-amber-700 border-b-2 border-amber-700'
-                  : 'text-gray-500 hover:text-gray-700',
-              ]"
-            >
-              Categories & Tags
-            </button>
-            <button
-              @click="activeTab = 'advanced'"
-              :class="[
-                'px-4 py-3 font-semibold text-sm transition',
-                activeTab === 'advanced'
-                  ? 'text-amber-700 border-b-2 border-amber-700'
-                  : 'text-gray-500 hover:text-gray-700',
-              ]"
-            >
-              Advanced
-            </button>
+              <button
+                @click="activeTab = 'main'"
+                :class="[
+                  'px-4 py-3 font-semibold text-sm transition',
+                  activeTab === 'main'
+                    ? 'text-amber-700 border-b-2 border-amber-700'
+                    : 'text-gray-500 hover:text-gray-700',
+                ]"
+              >
+                Main Info
+              </button>
+              <button
+                @click="activeTab = 'metadata'"
+                :class="[
+                  'px-4 py-3 font-semibold text-sm transition',
+                  activeTab === 'metadata'
+                    ? 'text-amber-700 border-b-2 border-amber-700'
+                    : 'text-gray-500 hover:text-gray-700',
+                ]"
+              >
+                Categories & Tags
+              </button>
+              <button
+                @click="activeTab = 'advanced'"
+                :class="[
+                  'px-4 py-3 font-semibold text-sm transition',
+                  activeTab === 'advanced'
+                    ? 'text-amber-700 border-b-2 border-amber-700'
+                    : 'text-gray-500 hover:text-gray-700',
+                ]"
+              >
+                Advanced
+              </button>
             </div>
           </div>
 
           <!-- Main Tab -->
-          <div v-if="activeTab === 'main'" class="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6">
+          <div
+            v-if="activeTab === 'main'"
+            class="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6"
+          >
             <div class="bg-white rounded-3xl p-6 shadow-sm space-y-6">
               <!-- Title -->
               <div>
@@ -323,12 +350,16 @@ const handleSubmit = async () => {
                   placeholder="Enter a compelling book title"
                   class="w-full rounded-xl border border-amber-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                 />
-                <p v-if="title" class="text-xs text-gray-400 mt-1">{{ title.length }} characters</p>
+                <p v-if="title" class="text-xs text-gray-400 mt-1">
+                  {{ title.length }} characters
+                </p>
               </div>
 
               <!-- Subtitle -->
               <div>
-                <label class="block text-sm font-semibold text-[#123C3A] mb-2">Subtitle</label>
+                <label class="block text-sm font-semibold text-[#123C3A] mb-2"
+                  >Subtitle</label
+                >
                 <input
                   v-model="subtitle"
                   type="text"
@@ -351,7 +382,14 @@ const handleSubmit = async () => {
                 />
                 <div class="flex justify-between items-center mt-1">
                   <p class="text-xs text-gray-400">Max 500 characters</p>
-                  <p :class="['text-xs font-semibold', description.length > 450 ? 'text-amber-700' : 'text-gray-400']">
+                  <p
+                    :class="[
+                      'text-xs font-semibold',
+                      description.length > 450
+                        ? 'text-amber-700'
+                        : 'text-gray-400',
+                    ]"
+                  >
                     {{ description.length }}/500
                   </p>
                 </div>
@@ -359,7 +397,9 @@ const handleSubmit = async () => {
 
               <!-- Author Bio -->
               <div>
-                <label class="block text-sm font-semibold text-[#123C3A] mb-2">Author Bio</label>
+                <label class="block text-sm font-semibold text-[#123C3A] mb-2"
+                  >Author Bio</label
+                >
                 <textarea
                   v-model="authorBio"
                   placeholder="Tell readers about yourself and your writing..."
@@ -369,8 +409,13 @@ const handleSubmit = async () => {
               </div>
 
               <!-- Error Alert -->
-              <div v-if="formError" class="p-4 rounded-xl bg-red-50 border border-red-200">
-                <p class="text-sm text-red-700 font-semibold">⚠️ {{ formError }}</p>
+              <div
+                v-if="formError"
+                class="p-4 rounded-xl bg-red-50 border border-red-200"
+              >
+                <p class="text-sm text-red-700 font-semibold">
+                  ⚠️ {{ formError }}
+                </p>
               </div>
 
               <!-- Buttons -->
@@ -381,7 +426,10 @@ const handleSubmit = async () => {
                   :disabled="isSubmitting || isUploadingCover"
                   class="px-6 py-2.5 rounded-xl bg-amber-700 text-white text-sm font-semibold hover:bg-amber-800 transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  <span v-if="isSubmitting" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  <span
+                    v-if="isSubmitting"
+                    class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                  ></span>
                   {{ isSubmitting ? "Creating..." : "Create Book" }}
                 </button>
                 <button
@@ -403,37 +451,63 @@ const handleSubmit = async () => {
                 @fileSelected="handleCoverSelected"
                 @clear="clearCover"
               />
-              <p v-if="isUploadingCover" class="text-xs text-amber-700 mt-3 font-semibold">📤 Uploading cover...</p>
-              <div class="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-100">
+              <p
+                v-if="isUploadingCover"
+                class="text-xs text-amber-700 mt-3 font-semibold"
+              >
+                📤 Uploading cover...
+              </p>
+              <div
+                class="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-100"
+              >
                 <p class="text-xs text-gray-600">
-                  <span class="font-semibold">💡 Tip:</span> A professional cover image helps your book stand out and attract more readers.
+                  <span class="font-semibold">💡 Tip:</span> A professional
+                  cover image helps your book stand out and attract more
+                  readers.
                 </p>
               </div>
             </div>
           </div>
 
           <!-- Categories & Tags Tab -->
-          <div v-if="activeTab === 'metadata'" class="bg-white rounded-3xl p-6 shadow-sm max-w-3xl space-y-6">
+          <div
+            v-if="activeTab === 'metadata'"
+            class="bg-white rounded-3xl p-6 shadow-sm max-w-3xl space-y-6"
+          >
             <!-- Genre -->
             <div class="mb-6">
-              <label class="block text-sm font-semibold text-[#123C3A] mb-2">Genre</label>
+              <label class="block text-sm font-semibold text-[#123C3A] mb-2"
+                >Genre</label
+              >
               <select
                 v-model="selectedGenre"
                 :disabled="isLoadingGenres"
                 class="w-full rounded-xl border border-amber-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <option value="">{{ isLoadingGenres ? 'Loading genres...' : 'Select a genre...' }}</option>
-                <option v-for="genre in genres" :key="genre.id" :value="genre.slug">
+                <option value="">
+                  {{
+                    isLoadingGenres ? "Loading genres..." : "Select a genre..."
+                  }}
+                </option>
+                <option
+                  v-for="genre in genres"
+                  :key="genre.id"
+                  :value="genre.slug"
+                >
                   {{ genre.name }}
                 </option>
               </select>
-              <p v-if="genresError" class="text-xs text-red-600 mt-2">{{ genresError }}</p>
+              <p v-if="genresError" class="text-xs text-red-600 mt-2">
+                {{ genresError }}
+              </p>
             </div>
 
             <!-- Language & Age Rating -->
             <div class="grid grid-cols-2 gap-4 mb-6">
               <div>
-                <label class="block text-sm font-semibold text-[#123C3A] mb-2">Language</label>
+                <label class="block text-sm font-semibold text-[#123C3A] mb-2"
+                  >Language</label
+                >
                 <select
                   v-model="language"
                   class="w-full rounded-xl border border-amber-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
@@ -444,13 +518,19 @@ const handleSubmit = async () => {
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-semibold text-[#123C3A] mb-2">Age Rating</label>
+                <label class="block text-sm font-semibold text-[#123C3A] mb-2"
+                  >Age Rating</label
+                >
                 <select
                   v-model="ageRating"
                   class="w-full rounded-xl border border-amber-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
                 >
                   <option value="">None</option>
-                  <option v-for="rating in ageRatings" :key="rating" :value="rating">
+                  <option
+                    v-for="rating in ageRatings"
+                    :key="rating"
+                    :value="rating"
+                  >
                     {{ rating }}
                   </option>
                 </select>
@@ -460,14 +540,30 @@ const handleSubmit = async () => {
             <!-- Categories -->
             <div class="mb-6">
               <div class="flex items-center justify-between mb-3">
-                <label class="block text-sm font-semibold text-[#123C3A]">Categories</label>
-                <span v-if="isLoadingCategories" class="text-xs text-gray-400">Loading...</span>
+                <label class="block text-sm font-semibold text-[#123C3A]"
+                  >Categories</label
+                >
+                <span v-if="isLoadingCategories" class="text-xs text-gray-400"
+                  >Loading...</span
+                >
               </div>
-              <p v-if="categoriesError" class="text-xs text-red-600 mb-3">{{ categoriesError }}</p>
-              <div v-if="categories.length === 0 && !isLoadingCategories && !categoriesError" class="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg">
+              <p v-if="categoriesError" class="text-xs text-red-600 mb-3">
+                {{ categoriesError }}
+              </p>
+              <div
+                v-if="
+                  categories.length === 0 &&
+                  !isLoadingCategories &&
+                  !categoriesError
+                "
+                class="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg"
+              >
                 No categories available
               </div>
-              <div v-else-if="isLoadingCategories" class="text-sm text-gray-500 p-3">
+              <div
+                v-else-if="isLoadingCategories"
+                class="text-sm text-gray-500 p-3"
+              >
                 Loading categories...
               </div>
               <div v-else class="space-y-2">
@@ -482,7 +578,9 @@ const handleSubmit = async () => {
                     @change="toggleCategory(cat.slug)"
                     class="w-4 h-4 rounded border-amber-300 text-amber-700 focus:ring-amber-500"
                   />
-                  <span class="text-sm text-gray-700 font-medium">{{ cat.name }}</span>
+                  <span class="text-sm text-gray-700 font-medium">{{
+                    cat.name
+                  }}</span>
                 </label>
               </div>
             </div>
@@ -490,11 +588,19 @@ const handleSubmit = async () => {
             <!-- Tags -->
             <div>
               <div class="flex items-center justify-between mb-2">
-                <label class="block text-sm font-semibold text-[#123C3A]">Tags</label>
-                <span v-if="isLoadingTags" class="text-xs text-gray-400">Loading...</span>
+                <label class="block text-sm font-semibold text-[#123C3A]"
+                  >Tags</label
+                >
+                <span v-if="isLoadingTags" class="text-xs text-gray-400"
+                  >Loading...</span
+                >
               </div>
-              <p class="text-xs text-gray-500 mb-3">Search and add existing tags or create new ones</p>
-              <p v-if="tagsError" class="text-xs text-red-600 mb-3">{{ tagsError }}</p>
+              <p class="text-xs text-gray-500 mb-3">
+                Search and add existing tags or create new ones
+              </p>
+              <p v-if="tagsError" class="text-xs text-red-600 mb-3">
+                {{ tagsError }}
+              </p>
               <div class="flex gap-2 mb-3">
                 <input
                   v-model="newTag"
@@ -533,10 +639,17 @@ const handleSubmit = async () => {
           </div>
 
           <!-- Advanced Tab -->
-          <div v-if="activeTab === 'advanced'" class="bg-white rounded-3xl p-6 shadow-sm max-w-3xl space-y-6">
+          <div
+            v-if="activeTab === 'advanced'"
+            class="bg-white rounded-3xl p-6 shadow-sm max-w-3xl space-y-6"
+          >
             <!-- Series Info -->
-            <div class="bg-gradient-to-br from-teal-50 to-green-50 rounded-2xl p-5 border border-teal-100">
-              <h3 class="text-sm font-semibold text-[#123C3A] mb-4 flex items-center gap-2">
+            <div
+              class="bg-gradient-to-br from-teal-50 to-green-50 rounded-2xl p-5 border border-teal-100"
+            >
+              <h3
+                class="text-sm font-semibold text-[#123C3A] mb-4 flex items-center gap-2"
+              >
                 <span>📚</span> Series Information
               </h3>
               <div class="grid grid-cols-2 gap-4">
@@ -557,8 +670,12 @@ const handleSubmit = async () => {
             </div>
 
             <!-- Publication Info -->
-            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-100">
-              <h3 class="text-sm font-semibold text-[#123C3A] mb-4 flex items-center gap-2">
+            <div
+              class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-100"
+            >
+              <h3
+                class="text-sm font-semibold text-[#123C3A] mb-4 flex items-center gap-2"
+              >
                 <span>📖</span> Publication Information
               </h3>
               <div class="grid grid-cols-2 gap-4">
@@ -579,11 +696,17 @@ const handleSubmit = async () => {
             </div>
 
             <!-- Content Warnings -->
-            <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-5 border border-red-100">
-              <h3 class="text-sm font-semibold text-[#123C3A] mb-2 flex items-center gap-2">
+            <div
+              class="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-5 border border-red-100"
+            >
+              <h3
+                class="text-sm font-semibold text-[#123C3A] mb-2 flex items-center gap-2"
+              >
                 <span>⚠️</span> Content Warnings
               </h3>
-              <p class="text-xs text-gray-600 mb-3">Add warnings for sensitive content in your book</p>
+              <p class="text-xs text-gray-600 mb-3">
+                Add warnings for sensitive content in your book
+              </p>
               <div class="flex gap-2 mb-3">
                 <input
                   v-model="newWarning"
@@ -601,7 +724,10 @@ const handleSubmit = async () => {
                   Add
                 </button>
               </div>
-              <div v-if="contentWarnings.length === 0" class="text-xs text-gray-400 italic">
+              <div
+                v-if="contentWarnings.length === 0"
+                class="text-xs text-gray-400 italic"
+              >
                 No content warnings added
               </div>
               <div v-else class="flex flex-wrap gap-2">

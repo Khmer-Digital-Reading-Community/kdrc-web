@@ -103,10 +103,14 @@
           </button>
 
           <button
+            @click="handleChapterBookmark"
             class="p-2 rounded-full hover:bg-black/10 transition-colors"
             title="Bookmark"
           >
-            <BookmarkIcon :size="20" />
+            <BookmarkIcon
+              :size="20"
+              :fill="chapterSaved ? 'currentColor' : 'none'"
+            />
           </button>
         </div>
       </header>
@@ -373,13 +377,12 @@ import { useReadingProgress } from "../../composables/useReadingProgress";
 import ReadingProgress from "../../components/reader/ReadingProgress.vue";
 import { getBookBasic } from "../../services/bookApi";
 import { upsertReadingProgress } from "../../services/community";
-import debounce from "lodash/debounce";
+import { useBookmarks } from "../../composables/useBookmarks";
 
 const route = useRoute();
 const router = useRouter();
 
 const {
-  chapters,
   currentChapter,
   currentChapterContent,
   isLoading,
@@ -387,18 +390,14 @@ const {
   currentChapterIndex,
   hasNextChapter,
   hasPreviousChapter,
-  nextChapter,
-  previousChapter,
   totalChapters,
-  progressPercentage,
   initializeReading,
   goToNextChapter,
   goToPreviousChapter,
-  goToChapter,
 } = useChapterNavigation();
 
 const { saveChapterProgress, getChapterProgress } = useReadingProgress();
-const mainContentRef = ref<HTMLElement | null>(null);
+const { isBookmarked, toggleChapterBookmark } = useBookmarks();
 const bookTitle = ref("");
 
 // Reader UI State
@@ -430,9 +429,22 @@ const themes = {
 };
 
 const currentThemeClass = computed(() => themes[currentTheme.value].class);
+const chapterSaved = computed(() => {
+  return currentChapter.value
+    ? isBookmarked(currentChapter.value.id, "CHAPTER")
+    : false;
+});
 
 const changeFontSize = (delta: number) => {
   fontSize.value = Math.min(Math.max(fontSize.value + delta, 14), 32);
+};
+
+const handleChapterBookmark = async () => {
+  if (!currentChapter.value) {
+    return;
+  }
+
+  await toggleChapterBookmark(currentChapter.value.id);
 };
 
 // Anti-Copy Logic
@@ -482,18 +494,20 @@ const setupAntiCopy = () => {
 /**
  * Debounced function to sync progress with the backend
  */
-const syncProgressToBackend = debounce(async (scroll: number) => {
-  if (!currentChapter.value) return;
-  try {
-    await upsertReadingProgress(
+let syncTimer: ReturnType<typeof setTimeout> | null = null;
+const syncProgressToBackend = (scroll: number) => {
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    if (!currentChapter.value) return;
+    upsertReadingProgress(
       currentChapter.value.bookId,
       scroll,
       currentChapter.value.id,
-    );
-  } catch (err) {
-    console.warn("Failed to sync reading progress to backend:", err);
-  }
-}, 5000);
+    ).catch((err) => {
+      console.warn("Failed to sync reading progress to backend:", err);
+    });
+  }, 5000);
+};
 
 /**
  * Handle reading progress updates

@@ -1,8 +1,8 @@
-import { ref, computed } from "vue";
+import { ref, computed, type Ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { ExploreBook } from "../types/exploreBook";
 
-export function useExploreFilters(books: any) {
+export function useExploreFilters(books: Ref<ExploreBook[]>) {
   const route = useRoute();
   const router = useRouter();
 
@@ -39,7 +39,7 @@ export function useExploreFilters(books: any) {
   };
 
   // Computed properties
-  const categories = computed(() => {
+  const categories = computed<string[]>(() => {
     if (!books.value || books.value.length === 0) {
       return ["All Categories"];
     }
@@ -51,7 +51,7 @@ export function useExploreFilters(books: any) {
     return ["All Categories", ...uniqueCategories];
   });
 
-  const genres = computed(() => {
+  const genres = computed<string[]>(() => {
     if (!books.value || books.value.length === 0) {
       return [];
     }
@@ -67,7 +67,7 @@ export function useExploreFilters(books: any) {
     return Array.from(allGenres).sort();
   });
 
-  const authors = computed(() => {
+  const authors = computed<string[]>(() => {
     if (!books.value || books.value.length === 0) {
       return [];
     }
@@ -79,7 +79,7 @@ export function useExploreFilters(books: any) {
     return uniqueAuthors.sort();
   });
 
-  const languages = computed(() => {
+  const languages = computed<Array<{ name: string; count: number }>>(() => {
     if (!books.value || books.value.length === 0) {
       return [];
     }
@@ -182,44 +182,44 @@ export function useExploreFilters(books: any) {
   };
 
   // Apply filters to books
-  const filteredBooks = computed(() => {
+  const filteredBooks = computed<ExploreBook[]>(() => {
     let result = [...(books.value || [])];
 
     // Category filter
     if (activeCategory.value !== "All Categories") {
       result = result.filter(
-        (book: ExploreBook) => book.category === activeCategory.value
+        (book: ExploreBook) => book.category === activeCategory.value,
       );
     }
 
     // Language filter
     if (activeLanguage.value !== "All") {
       result = result.filter(
-        (book: ExploreBook) => book.lang === activeLanguage.value
+        (book: ExploreBook) => book.lang === activeLanguage.value,
       );
     }
 
     // Genre filter
     if (selectedGenres.value.length > 0) {
       result = result.filter((book: ExploreBook) => {
-        const bookGenres = Array.isArray(book.genre) ? book.genre : [book.genre];
-        return selectedGenres.value.some((genre) =>
-          bookGenres.includes(genre)
-        );
+        const bookGenres = Array.isArray(book.genre)
+          ? book.genre
+          : [book.genre];
+        return selectedGenres.value.some((genre) => bookGenres.includes(genre));
       });
     }
 
     // Author filter
     if (selectedAuthors.value.length > 0) {
       result = result.filter((book: ExploreBook) =>
-        selectedAuthors.value.includes(book.author)
+        selectedAuthors.value.includes(book.author),
       );
     }
 
     // Rating filter
     if (minRating.value > 0) {
       result = result.filter(
-        (book: ExploreBook) => (book.rating || 0) >= minRating.value
+        (book: ExploreBook) => (book.rating || 0) >= minRating.value,
       );
     }
 

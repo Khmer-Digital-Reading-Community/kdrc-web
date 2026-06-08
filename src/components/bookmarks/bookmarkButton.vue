@@ -2,9 +2,9 @@
   <button
     @click="emit('toggle')"
     class="w-11 h-11 rounded-full
-           flex items-center justify-center
-           transition-all duration-200
-           shadow-md hover:scale-105"
+            flex items-center justify-center
+            transition-all duration-200
+            shadow-md hover:scale-105"
     :class="
       saved
         ? 'bg-[#0B2B2F] text-white'

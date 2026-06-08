@@ -10,7 +10,7 @@ import ChatIcon from "../../assets/images/ChatIcon.png";
 import { useAuth, token } from "../../stores/useAuth";
 import { authState } from "../../services/auth";
 import NotificationPopup from "./NotificationPopup.vue";
-import ExchangeFilter from "../exchange/ExchangeFilter.vue";
+import SearchBar from "../search/SearchBar.vue";
 
 import { useLanguage } from "../../composables/useLanguage";
 
@@ -138,7 +138,7 @@ async function handleLogout() {
         >
           <input
             type="search"
-            placeholder="Search title, author, or ISBN..."
+            placeholder="Search with title or author"
             class="w-full border-0 bg-transparent text-black text-base font-normal font-['Inter'] outline-none placeholder:text-black/70"
           />
           <span class="absolute left-4 top-2.5 flex items-center justify-start">
@@ -150,9 +150,9 @@ async function handleLogout() {
           </span>
         </div>
       </div> -->
-      <!-- NEW EXCHANGE FILTER SEARCH (hidden on exchange-v2 page) -->
+      <!-- Book search (hidden on exchange-v2 page) -->
       <div v-if="showSearch" class="w-full max-w-md relative order-3 lg:order-none lg:flex-1 lg:max-w-lg flex items-center">
-        <ExchangeFilter />
+        <SearchBar />
       </div>
 
       <div class="flex items-center gap-4">

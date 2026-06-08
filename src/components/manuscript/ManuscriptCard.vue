@@ -1,38 +1,37 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { MoreVertical, Trash2, Edit3 } from 'lucide-vue-next'
-import { apiBaseUrl } from '@/services/api'
+import { ref } from "vue";
+import { MoreVertical, Trash2, Edit3 } from "lucide-vue-next";
+import { apiBaseUrl } from "@/services/api";
 
 defineProps<{
-  title: string
-  description?: string
-  words: string
-  edit: string
-  status: string
-  coverImageUrl?: string | null
-}>()
+  title: string;
+  description?: string;
+  words: string;
+  edit: string;
+  status: string;
+  coverImageUrl?: string | null;
+}>();
 
 const emit = defineEmits<{
-  edit: []
-  delete: []
-}>()
+  edit: [];
+  delete: [];
+}>();
 
-const showMenu = ref(false)
-const imageLoaded = ref(false)
-const imageError = ref(false)
+const showMenu = ref(false);
+const imageLoaded = ref(false);
+const imageError = ref(false);
 
 const resolveCoverUrl = (url?: string | null) => {
-  if (!url) return null
-  if (url.startsWith('http')) return url
-  return `${apiBaseUrl}${url}`
-}
+  if (!url) return undefined;
+  if (url.startsWith("http")) return url;
+  return `${apiBaseUrl}${url}`;
+};
 </script>
 
 <template>
   <div
     class="bg-[#FBF7F0] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition group"
   >
-
     <!-- Cover -->
     <div
       class="h-64 bg-gradient-to-br from-[#2A241D] to-[#0B0A09] relative overflow-hidden"
@@ -57,17 +56,17 @@ const resolveCoverUrl = (url?: string | null) => {
       <span
         :class="[
           'absolute top-3 right-3 text-[10px] px-3 py-1 rounded-full font-bold uppercase',
-          status === 'PUBLISHED' ? 'bg-[#2FE0A5] text-[#123C3A]' : 'bg-amber-400 text-[#123C3A]'
+          status === 'PUBLISHED'
+            ? 'bg-[#2FE0A5] text-[#123C3A]'
+            : 'bg-amber-400 text-[#123C3A]',
         ]"
       >
         {{ status }}
       </span>
-
     </div>
 
     <!-- Content -->
     <div class="p-4">
-
       <!-- Title -->
       <h2
         class="font-bold text-[#123C3A] text-lg leading-snug mb-1 line-clamp-1"
@@ -77,21 +76,20 @@ const resolveCoverUrl = (url?: string | null) => {
 
       <!-- Description -->
       <p class="text-xs text-gray-500 line-clamp-2 mb-3 leading-relaxed">
-        {{ description || 'No description available' }}
+        {{ description || "No description available" }}
       </p>
 
       <!-- Meta -->
-      <div class="text-[11px] text-gray-400 space-y-1 mb-4 font-medium uppercase tracking-wider">
-
+      <div
+        class="text-[11px] text-gray-400 space-y-1 mb-4 font-medium uppercase tracking-wider"
+      >
         <p>{{ words }}</p>
 
         <p>Last Edit: {{ edit }}</p>
-
       </div>
 
       <!-- Bottom -->
       <div class="flex items-center justify-between relative">
-
         <!-- Button -->
         <button
           @click="emit('edit')"
@@ -103,7 +101,7 @@ const resolveCoverUrl = (url?: string | null) => {
 
         <!-- Menu -->
         <div class="relative">
-          <button 
+          <button
             @click="showMenu = !showMenu"
             class="text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-100"
           >
@@ -111,12 +109,15 @@ const resolveCoverUrl = (url?: string | null) => {
           </button>
 
           <!-- Dropdown -->
-          <div 
+          <div
             v-if="showMenu"
             class="absolute right-0 bottom-full mb-2 w-36 bg-white rounded-xl shadow-xl border border-gray-100 z-10 overflow-hidden"
           >
-            <button 
-              @click="emit('delete'); showMenu = false"
+            <button
+              @click="
+                emit('delete');
+                showMenu = false;
+              "
               class="w-full px-4 py-2 text-left text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
             >
               <Trash2 :size="14" />
@@ -124,11 +125,8 @@ const resolveCoverUrl = (url?: string | null) => {
             </button>
           </div>
         </div>
-
       </div>
-
     </div>
-
   </div>
 </template>
 

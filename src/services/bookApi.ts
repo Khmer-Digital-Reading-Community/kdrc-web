@@ -8,11 +8,17 @@ export interface BookMetadata {
   publishedDate?: string;
   pageCount?: number;
   language?: string;
-  ageRating?: 'G' | 'PG' | 'PG-13' | 'R' | 'NC-17';
+  ageRating?: "G" | "PG" | "PG-13" | "R" | "NC-17";
   contentWarnings?: string[];
   seriesName?: string;
   seriesPosition?: number;
   estimatedReadingTime?: number;
+}
+
+export interface CreateReviewPayload {
+  bookId: string;
+  rating: number;
+  comment?: string;
 }
 
 export interface Genre {
@@ -41,9 +47,13 @@ export interface Book {
   id: string;
   title: string;
   description: string;
+  content?: string;
   coverImageUrl?: string;
   language?: string;
   genre?: Genre;
+  genreSlug?: string;
+  categorySlugs?: string[];
+  tagSlugs?: string[];
   pageCount?: number;
   publisher?: string;
   // Relations
@@ -110,7 +120,15 @@ export const createBook = async (data: Partial<Book>): Promise<Book> => {
   return response.data;
 };
 
-export const uploadBookCover = async (file: File): Promise<{ url: string; publicId: string; width: number; height: number; size: number }> => {
+export const uploadBookCover = async (
+  file: File,
+): Promise<{
+  url: string;
+  publicId: string;
+  width: number;
+  height: number;
+  size: number;
+}> => {
   const formData = new FormData();
   formData.append("file", file);
   const response = await api.post("/books/cover", formData);
@@ -127,6 +145,11 @@ export const updateBook = async (
 
 export const deleteBook = async (id: string): Promise<void> => {
   await api.delete(`/books/${id}`);
+};
+
+export const createReview = async (data: CreateReviewPayload) => {
+  const response = await api.post("/reviews", data);
+  return response.data;
 };
 
 // Genres API

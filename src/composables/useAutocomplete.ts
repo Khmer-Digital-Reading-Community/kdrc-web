@@ -72,7 +72,10 @@ const fetchSuggestions = async (query: string): Promise<void> => {
                     ...data.authors.slice(0, 3).map((item) => ({
                         id: item.id,
                         type: 'author' as const,
-                        author: item.author,
+                        author: {
+                            id: item.id,
+                            name: item.name ?? 'Unknown Author',
+                        },
                     }))
                 );
             }
