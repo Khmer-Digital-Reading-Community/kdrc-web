@@ -93,3 +93,8 @@ export async function fetchCommunityStats() {
   const res = await api.get('/community/stats');
   return unwrap<{ totalChallenges: number; activeReaders: number; totalBooksRead: number }>(res);
 }
+
+export async function fetchRecommendations(limit = 12) {
+  const res = await api.get('/community/recommendations', { params: { limit } });
+  return unwrap<any[]>(res);
+}
