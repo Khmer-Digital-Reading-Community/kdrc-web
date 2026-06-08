@@ -82,6 +82,7 @@ export interface Book {
     createdAt: string;
   }>;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED" | "DISCONTINUED";
+  isFree?: boolean;
   tableOfContents?: string;
   createdAt: string;
   updatedAt: string;
