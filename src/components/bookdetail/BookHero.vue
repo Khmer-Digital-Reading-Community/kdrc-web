@@ -110,8 +110,12 @@
         :price="book.price"
         :is-purchasable="book.isPurchasable"
         :is-free="book.isFree"
+        item-type="BOOK"
+        :item-id="book.id"
+        :item-name="book.title"
         class="mb-8"
         @purchased="$emit('read')"
+        @purchase="$emit('purchase', $event)"
       />
 
       <!-- Stats -->
@@ -142,6 +146,7 @@ defineProps<{
 defineEmits([
   "read",
   "bookmark",
+  "purchase",
 ]);
 
 function onCoverError(event: Event) {

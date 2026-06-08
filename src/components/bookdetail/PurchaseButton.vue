@@ -9,10 +9,14 @@ const props = defineProps<{
   price: number;
   isPurchasable: boolean;
   isFree: boolean;
+  itemType?: "BOOK" | "CHAPTER";
+  itemId?: string;
+  itemName?: string;
 }>();
 
 const emit = defineEmits<{
   purchased: [];
+  purchase: [{ itemType: string; itemId: string; itemName: string; amount: number }];
 }>();
 
 const router = useRouter();
@@ -36,6 +40,19 @@ onMounted(async () => {
   owned.value = await checkOwnership(props.bookId);
   checking.value = false;
 });
+
+const handleQrPay = () => {
+  if (!token.value) {
+    router.push("/login");
+    return;
+  }
+  emit("purchase", {
+    itemType: props.itemType ?? "BOOK",
+    itemId: props.itemId ?? props.bookId,
+    itemName: props.itemName ?? "",
+    amount: props.price,
+  });
+};
 
 const handleBuy = async () => {
   if (!token.value) {
@@ -80,6 +97,18 @@ const handleBuy = async () => {
       >
         <span v-if="loading">Buying...</span>
         <span v-else>Buy — {{ price }} credits</span>
+      </button>
+      <button
+        @click="handleQrPay"
+        class="px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 border border-[#093A3F] text-[#093A3F] hover:bg-[#093A3F] hover:text-white"
+      >
+        <svg class="w-4 h-4 inline-block -mt-px mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+        Pay with QR
       </button>
       <span v-if="token" class="text-xs text-gray-500">
         Balance: {{ credits }} credits
