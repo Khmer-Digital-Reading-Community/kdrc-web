@@ -47,6 +47,7 @@ const newWarning = ref("");
 
 // UI state
 const coverPreviewUrl = ref<string | null>(null);
+const uploadedCoverUrl = ref<string | null>(null);
 const coverUploadError = ref<string | null>(null);
 const isUploadingCover = ref(false);
 const isSubmitting = ref(false);
@@ -127,7 +128,10 @@ const handleCoverSelected = async (file: File) => {
     const previewUrl = URL.createObjectURL(file);
     coverPreviewUrl.value = previewUrl;
 
-    await uploadBookCover(file);
+    const result = await uploadBookCover(file);
+    uploadedCoverUrl.value = result.url;
+    console.log("Cover uploaded successfully:", result.url);
+    
     toast.success("Cover uploaded");
   } catch (error) {
     coverUploadError.value = "Failed to upload cover. Please try again.";
@@ -139,6 +143,7 @@ const handleCoverSelected = async (file: File) => {
 
 const clearCover = () => {
   coverPreviewUrl.value = null;
+  uploadedCoverUrl.value = null;
   coverUploadError.value = null;
 };
 
@@ -202,7 +207,7 @@ const handleSubmit = async () => {
     const book = await createBook({
       title: title.value.trim(),
       description: description.value.trim(),
-      coverImageUrl: coverPreviewUrl.value || undefined,
+      coverImageUrl: uploadedCoverUrl.value || undefined,
       genreSlug: selectedGenre.value || undefined,
       categorySlugs: selectedCategories.value,
       tagSlugs: selectedTags.value,

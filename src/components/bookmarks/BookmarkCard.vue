@@ -53,7 +53,7 @@
           <p
             v-if="bookmark.author"
             class="text-sm text-gray-600"
-          >
+          > by
             {{ bookmark.author }}
           </p>
 
@@ -65,9 +65,6 @@
           </p>
         </div>
 
-        <button @click.stop>
-          <MoreVertical class="w-4 h-4 text-gray-500" />
-        </button>
       </div>
     </div>
   </div>
@@ -76,7 +73,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRouter } from "vue-router";
-import { BookmarkIcon, MoreVertical } from "lucide-vue-next";
+import { BookmarkIcon } from "lucide-vue-next";
 import type { Bookmark } from "../../types/bookmark";
 
 const props = defineProps<{
@@ -89,6 +86,7 @@ const router = useRouter();
 const fallbackCover = "https://placehold.co/600x400?text=Book+Cover";
 
 const coverImageSrc = computed(() => {
+  console.log(props.bookmark);
   return props.bookmark.coverImage || fallbackCover;
 });
 
