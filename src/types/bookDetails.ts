@@ -35,6 +35,10 @@ export interface BookDetails {
     publisher: string;
     rating: number;
     reviewCount: number;
+    isFree: boolean;
+    price: number;
+    isPurchasable: boolean;
+    isPremium: boolean;
     author: Author;
     chapters: Chapter[];
     reviews: Review[];
