@@ -21,6 +21,7 @@ export interface SignupData {
   name: string;
   email: string;
   password: string;
+  role?: string;
 }
 
 const token = ref<string | null>(localStorage.getItem('token'));

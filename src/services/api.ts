@@ -5,7 +5,7 @@ const fallbackBaseUrl = "http://localhost:3000";
 if (!rawBaseUrl) {
   console.warn(
     `VITE_API_BASE_URL is not set. Falling back to ${fallbackBaseUrl}. ` +
-      "Create a .env file in kdrc-web to override this.",
+    "Create a .env file in kdrc-web to override this.",
   );
 }
 

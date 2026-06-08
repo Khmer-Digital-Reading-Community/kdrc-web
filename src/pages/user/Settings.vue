@@ -1,181 +1,148 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, computed } from "vue";
 import { useToast } from "vue-toastification";
 import Sidebar from "@/components/common/Sidebar.vue";
 import Navbar from "@/components/common/Navbar.vue";
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Lock, 
-  Globe, 
-  Moon, 
-  Sun, 
-  Camera, 
-  LogOut, 
-  Loader2, 
-  Save, 
-  Check 
+import {
+  Lock,
+  Globe,
+  Loader2,
+  ShieldCheck,
+  LogOut,
+  Eye,
+  EyeOff,
+  Check,
+  UserCircle2,
+  ChevronRight,
+  KeyRound,
 } from "lucide-vue-next";
-import { 
-  getUserProfile, 
-  updateUserProfile, 
-  uploadAvatarFile, 
-  changeUserPassword 
-} from "../../services/userApi";
-import { useTheme } from "../../composables/useTheme";
+import { useRouter } from "vue-router";
+import { changeUserPassword } from "../../services/userApi";
 import { useLanguage } from "../../composables/useLanguage";
 import { useAuth } from "../../stores/useAuth";
 
 const toast = useToast();
-const { isDark, toggleTheme } = useTheme();
+const router = useRouter();
 const { currentLang, setLanguage } = useLanguage();
-const { logout, user: authUser } = useAuth();
+const { logout, loginRole } = useAuth();
 
-// Loading states
-const pageLoading = ref(true);
-const savingProfile = ref(false);
+// Active tab
+const activeTab = ref<"appearance" | "security" | "account">("appearance");
+
+// Password form
 const changingPassword = ref(false);
-const uploadingAvatar = ref(false);
-
-// Form refs
-const id = ref("");
-const name = ref("");
-const email = ref("");
-const phoneNumber = ref("");
-const bio = ref("");
-const avatarUrl = ref("");
-
-// Password fields
+const showOldPw = ref(false);
+const showNewPw = ref(false);
+const showConfirmPw = ref(false);
 const oldPassword = ref("");
 const newPassword = ref("");
 const confirmPassword = ref("");
 
-// Translations dictionary
-const translations = {
-  EN: {
-    title: "Account Settings",
-    subtitle: "Manage your profile, credentials, and preferences.",
-    personalInfo: "Personal Information",
-    fullName: "Full Name",
-    email: "Email Address",
-    phone: "Phone Number",
-    bio: "Short Bio",
-    saveChanges: "Save Changes",
-    saving: "Saving...",
-    changePassword: "Security & Password",
-    oldPassword: "Current Password",
-    newPassword: "New Password",
-    confirmPassword: "Confirm New Password",
-    updatePassword: "Update Password",
-    preferences: "Application Preferences",
-    language: "Preferred Language",
-    theme: "Color Theme",
-    lightMode: "Light Mode",
-    darkMode: "Dark Mode",
-    logout: "Sign Out",
-    logoutDesc: "Sign out of your account on this device.",
-    uploading: "Uploading...",
-    successSave: "Profile updated successfully!",
-    successPassword: "Password updated successfully!",
-    errorPasswordMatch: "Passwords do not match!",
-    errorGeneric: "An error occurred. Please try again.",
-    validationPhone: "Please enter a valid phone number",
-    passwordPlaceholder: "Enter password"
-  },
-  KH: {
-    title: "ការកំណត់គណនី",
-    subtitle: "គ្រប់គ្រងព័ត៌មានផ្ទាល់ខ្លួន លិខិតសម្គាល់ និងចំណង់ចំណូលចិត្តរបស់អ្នក។",
-    personalInfo: "ព័ត៌មានផ្ទាល់ខ្លួន",
-    fullName: "ឈ្មោះ​ពេញ",
-    email: "អាសយដ្ឋាន​អ៊ីមែល",
-    phone: "លេខទូរស័ព្ទ",
-    bio: "ជីវប្រវត្តិសង្ខេប",
-    saveChanges: "រក្សាទុកការផ្លាស់ប្តូរ",
-    saving: "កំពុងរក្សាទុក...",
-    changePassword: "សុវត្ថិភាព និងពាក្យសម្ងាត់",
-    oldPassword: "ពាក្យសម្ងាត់បច្ចុប្បន្ន",
-    newPassword: "ពាក្យសម្ងាត់ថ្មី",
-    confirmPassword: "បញ្ជាក់ពាក្យសម្ងាត់ថ្មី",
-    updatePassword: "ធ្វើបច្ចុប្បន្នភាពពាក្យសម្ងាត់",
-    preferences: "ចំណង់ចំណូលចិត្តកម្មវិធី",
-    language: "ភាសាដែលចង់បាន",
-    theme: "រចនាប័ទ្មពណ៌",
-    lightMode: "រចនាប័ទ្មភ្លឺ",
-    darkMode: "រចនាប័ទ្មងងឹត",
-    logout: "ចាកចេញពីគណនី",
-    logoutDesc: "ចាកចេញពីគណនីរបស់អ្នកនៅលើឧបករណ៍នេះ។",
-    uploading: "កំពុងផ្ទុកឡើង...",
-    successSave: "បានធ្វើបច្ចុប្បន្នភាពប្រវត្តិរូបដោយជោគជ័យ!",
-    successPassword: "បានធ្វើបច្ចុប្បន្នភាពពាក្យសម្ងាត់ដោយជោគជ័យ!",
-    errorPasswordMatch: "ពាក្យសម្ងាត់មិនត្រូវគ្នាទេ!",
-    errorGeneric: "មានកំហុសមួយបានកើតឡើង។ សូមព្យាយាមម្តងទៀត។",
-    validationPhone: "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យបានត្រឹមត្រូវ",
-    passwordPlaceholder: "បញ្ចូលពាក្យសម្ងាត់"
-  }
-};
-
-const t = computed(() => {
-  const lang = (currentLang.value === "KH") ? "KH" : "EN";
-  return translations[lang];
+// Password strength
+const passwordStrength = computed(() => {
+  const pw = newPassword.value;
+  if (!pw) return 0;
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  return score;
 });
 
-// Load profile data
-const loadProfile = async () => {
-  pageLoading.value = true;
-  try {
-    const profile = await getUserProfile();
-    id.value = profile.id;
-    name.value = profile.name || "";
-    email.value = profile.email || "";
-    phoneNumber.value = profile.phoneNumber || "";
-    bio.value = profile.bio || "";
-    avatarUrl.value = profile.avatarUrl || "";
-  } catch (error: any) {
-    toast.error(error?.message || t.value.errorGeneric);
-  } finally {
-    pageLoading.value = false;
-  }
+const strengthLabel = computed(() => {
+  const s = passwordStrength.value;
+  if (!newPassword.value) return "";
+  if (s <= 1) return "Weak";
+  if (s === 2) return "Fair";
+  if (s === 3) return "Good";
+  return "Strong";
+});
+
+const strengthColor = computed(() => {
+  const s = passwordStrength.value;
+  if (s <= 1) return "bg-red-500";
+  if (s === 2) return "bg-amber-400";
+  if (s === 3) return "bg-teal-400";
+  return "bg-emerald-500";
+});
+
+const translations = {
+  EN: {
+    title: "Settings",
+    subtitle: "Manage your preferences and account security",
+    tabs: {
+      appearance: "Appearance",
+      security: "Security",
+      account: "Account",
+    },
+    language: "Language",
+    languageDesc: "Choose your preferred language for the interface.",
+    security: "Change Password",
+    securityDesc: "Choose a strong password to protect your account.",
+    oldPassword: "Current Password",
+    newPassword: "New Password",
+    confirmPassword: "Confirm Password",
+    updatePassword: "Update Password",
+    updating: "Updating…",
+    passwordPlaceholder: "••••••••",
+    strength: "Password strength",
+    account: "Account",
+    profileDesc: "Update your name, avatar, bio and contact details.",
+    goToProfile: "Edit Profile",
+    logoutLabel: "Sign Out",
+    logoutDesc: "End your current session on this device.",
+    successPassword: "Password updated successfully!",
+    errorPasswordMatch: "Passwords do not match!",
+    errorGeneric: "Something went wrong. Please try again.",
+  },
+  KH: {
+    title: "ការកំណត់",
+    subtitle: "គ្រប់គ្រងចំណង់ចំណូលចិត្ត និងសុវត្ថិភាពគណនី",
+    tabs: {
+      appearance: "រូបរាង",
+      security: "សុវត្ថិភាព",
+      account: "គណនី",
+    },
+    language: "ភាសា",
+    languageDesc: "ជ្រើសរើសភាសាដែលអ្នកចូលចិត្ត។",
+    security: "ប្តូរពាក្យសម្ងាត់",
+    securityDesc: "ជ្រើសរើសពាក្យសម្ងាត់ខ្លាំងដើម្បីការពារគណនីរបស់អ្នក។",
+    oldPassword: "ពាក្យសម្ងាត់បច្ចុប្បន្ន",
+    newPassword: "ពាក្យសម្ងាត់ថ្មី",
+    confirmPassword: "បញ្ជាក់ពាក្យសម្ងាត់",
+    updatePassword: "ធ្វើបច្ចុប្បន្នភាព",
+    updating: "កំពុងធ្វើបច្ចុប្បន្នភាព…",
+    passwordPlaceholder: "••••••••",
+    strength: "ភាពខ្លាំងពាក្យសម្ងាត់",
+    account: "គណនី",
+    profileDesc: "ធ្វើបច្ចុប្បន្នភាពឈ្មោះ រូបភាព និងព័ត៌មានទំនាក់ទំនង។",
+    goToProfile: "កែប្រែប្រវត្តិរូប",
+    logoutLabel: "ចាកចេញ",
+    logoutDesc: "បញ្ចប់វគ្គបច្ចុប្បន្នរបស់អ្នកនៅលើឧបករណ៍នេះ។",
+    successPassword: "បានធ្វើបច្ចុប្បន្នភាពពាក្យសម្ងាត់ដោយជោគជ័យ!",
+    errorPasswordMatch: "ពាក្យសម្ងាត់មិនត្រូវគ្នាទេ!",
+    errorGeneric: "មានបញ្ហា។ សូមព្យាយាមម្តងទៀត។",
+  },
 };
 
-// Handle personal info saving
-const saveProfile = async () => {
-  savingProfile.value = true;
-  try {
-    const updated = await updateUserProfile({
-      name: name.value,
-      email: email.value,
-      phoneNumber: phoneNumber.value,
-      bio: bio.value
-    });
-    // Sync store authUser state immediately
-    if (authUser.value) {
-      authUser.value.name = updated.name;
-      authUser.value.email = updated.email;
-    }
-    toast.success(t.value.successSave);
-  } catch (error: any) {
-    toast.error(error?.message || t.value.errorGeneric);
-  } finally {
-    savingProfile.value = false;
-  }
-};
+const t = computed(() => translations[currentLang.value === "KH" ? "KH" : "EN"]);
 
-// Handle password change
+const tabs = computed(() => [
+  { id: "appearance", label: t.value.tabs.appearance, icon: Globe },
+  { id: "security",   label: t.value.tabs.security,   icon: ShieldCheck },
+  { id: "account",    label: t.value.tabs.account,    icon: UserCircle2 },
+]);
+
 const savePassword = async () => {
   if (newPassword.value !== confirmPassword.value) {
     toast.error(t.value.errorPasswordMatch);
     return;
   }
-  
   changingPassword.value = true;
   try {
-    await changeUserPassword({
-      oldPassword: oldPassword.value,
-      newPassword: newPassword.value
-    });
+    await changeUserPassword({ oldPassword: oldPassword.value, newPassword: newPassword.value });
     toast.success(t.value.successPassword);
-    // Clear password fields
     oldPassword.value = "";
     newPassword.value = "";
     confirmPassword.value = "";
@@ -185,398 +152,954 @@ const savePassword = async () => {
     changingPassword.value = false;
   }
 };
-
-// Handle avatar upload
-const onFileSelected = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-  if (!file) return;
-
-  uploadingAvatar.value = true;
-  try {
-    const result = await uploadAvatarFile(file);
-    if (result?.url) {
-      avatarUrl.value = result.url;
-      // Persist url directly to user profile
-      const updated = await updateUserProfile({ avatarUrl: result.url });
-      
-      // Sync store authUser state
-      if (authUser.value) {
-        authUser.value.avatarUrl = updated.avatarUrl;
-      }
-      
-      toast.success("Avatar uploaded and updated!");
-    }
-  } catch (error: any) {
-    toast.error(error?.message || "Failed to upload avatar");
-  } finally {
-    uploadingAvatar.value = false;
-  }
-};
-
-onMounted(() => {
-  loadProfile();
-});
 </script>
 
 <template>
-  <div class="relative flex h-screen overflow-hidden bg-[#F6F1E8] dark:bg-[#171612] text-[var(--text)] transition-colors duration-300">
-    <!-- Sidebar -->
+  <div class="settings-root">
     <Sidebar />
 
-    <!-- Main Content -->
-    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
-      <!-- Sticky Navbar -->
+    <div class="settings-main">
       <div class="sticky top-0 z-30">
         <Navbar />
       </div>
 
-      <!-- Scrollable Content -->
-      <main class="flex-1 overflow-y-auto">
-        <div class="p-3 sm:p-4 lg:p-6">
-          <!-- Breadcrumb -->
-          <div class="text-[10px] sm:text-[11px] lg:text-sm uppercase tracking-[0.15em] text-gray-500 mb-4 sm:mb-6">
-            Atelier >
-            <span class="font-bold text-black dark:text-white">{{ t.title }}</span>
+      <main class="settings-content">
+        <!-- Page Header -->
+        <div class="settings-header">
+          <div class="settings-header-text">
+            <div class="settings-breadcrumb">Atelier › <span>{{ t.title }}</span></div>
+            <h1 class="settings-title">{{ t.title }}</h1>
+            <p class="settings-subtitle">{{ t.subtitle }}</p>
           </div>
-
-          <!-- Top loading state -->
-          <div v-if="pageLoading" class="flex flex-col items-center justify-center min-h-[50vh] py-12">
-            <Loader2 class="w-12 h-12 animate-spin text-[#0f6d5f] dark:text-[#4cc2a5] mb-4" />
-            <p class="text-sm font-medium tracking-wide text-gray-500 dark:text-gray-400">Loading settings...</p>
-          </div>
-
-          <div v-else class="space-y-8 animate-fadeIn max-w-4xl">
-            
-            <!-- Header -->
-            <div class="border-b border-[var(--border)] pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[var(--text-h)] my-0 leading-tight">
-                  {{ t.title }}
-                </h1>
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  {{ t.subtitle }}
-                </p>
-              </div>
-              <button 
-                type="button"
-                @click="logout"
-                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-red-600 dark:text-red-400 font-semibold text-sm shadow-sm hover:bg-red-50 dark:hover:bg-red-950/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
-              >
-                <LogOut class="w-4 h-4" />
-                {{ t.logout }}
-              </button>
-            </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          <!-- Left Column - Profile Picture & Quick Meta -->
-          <div class="space-y-6 lg:col-span-1">
-            <div class="bg-white/60 dark:bg-[#1f1e1a]/60 backdrop-blur-md border border-[var(--border)] rounded-2xl p-6 flex flex-col items-center text-center shadow-lg hover:shadow-xl transition-all">
-              
-              <!-- Profile Avatar -->
-              <div class="relative group cursor-pointer w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-[#2f2a22] shadow-md">
-                <img 
-                  v-if="avatarUrl"
-                  :src="avatarUrl" 
-                  alt="User Avatar"
-                  class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-                <div v-else class="w-full h-full bg-gradient-to-br from-[#0f6d5f] to-[#4cc2a5] flex items-center justify-center text-white text-3xl font-bold uppercase">
-                  {{ name ? name.charAt(0) : email.charAt(0) }}
-                </div>
-
-                <!-- Hover Overlay -->
-                <label class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
-                  <Camera class="w-6 h-6 text-white mb-1" />
-                  <span class="text-xs text-white font-medium">Change</span>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    class="hidden" 
-                    @change="onFileSelected"
-                    :disabled="uploadingAvatar"
-                  />
-                </label>
-
-                <!-- Uploading state -->
-                <div v-if="uploadingAvatar" class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
-                  <Loader2 class="w-8 h-8 animate-spin text-white mb-1" />
-                  <span class="text-[10px] text-white font-medium">{{ t.uploading }}</span>
-                </div>
-              </div>
-
-              <!-- Quick Meta -->
-              <h2 class="mt-4 text-xl font-bold text-[var(--text-h)] my-0 leading-tight">
-                {{ name || "Reader & Writer" }}
-              </h2>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate max-w-full">
-                {{ email }}
-              </p>
-              
-              <div class="mt-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 text-xs font-semibold">
-                <Check class="w-3 h-3" />
-                Active Account
-              </div>
-            </div>
-            
-            <!-- Preference Cards -->
-            <div class="bg-white/60 dark:bg-[#1f1e1a]/60 backdrop-blur-md border border-[var(--border)] rounded-2xl p-6 space-y-6 shadow-lg">
-              <h3 class="text-base font-bold text-[var(--text-h)] flex items-center gap-2">
-                <Globe class="w-4 h-4 text-[#0f6d5f] dark:text-[#4cc2a5]" />
-                {{ t.preferences }}
-              </h3>
-              
-              <!-- Language selector -->
-              <div class="space-y-2">
-                <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {{ t.language }}
-                </label>
-                <div class="flex p-1 rounded-lg bg-gray-100 dark:bg-[#171612] border border-[var(--border)]">
-                  <button 
-                    type="button"
-                    @click="setLanguage('EN')"
-                    class="flex-1 py-1.5 px-3 rounded-md text-xs font-bold transition-all cursor-pointer"
-                    :class="currentLang === 'EN' ? 'bg-[#0f6d5f] text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-[var(--text-h)]'"
-                  >
-                    English
-                  </button>
-                  <button 
-                    type="button"
-                    @click="setLanguage('KH')"
-                    class="flex-1 py-1.5 px-3 rounded-md text-xs font-bold transition-all cursor-pointer"
-                    :class="currentLang === 'KH' ? 'bg-[#0f6d5f] text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-[var(--text-h)]'"
-                  >
-                    ខ្មែរ
-                  </button>
-                </div>
-              </div>
-
-              <!-- Theme Toggle -->
-              <div class="space-y-2">
-                <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {{ t.theme }}
-                </label>
-                <button 
-                  type="button"
-                  @click="toggleTheme"
-                  class="w-full flex items-center justify-between p-3 rounded-xl border border-[var(--border)] hover:bg-black/5 dark:hover:bg-white/5 transition-all text-sm font-medium cursor-pointer"
-                >
-                  <span class="flex items-center gap-2">
-                    <Sun v-if="!isDark" class="w-4 h-4 text-orange-500" />
-                    <Moon v-else class="w-4 h-4 text-indigo-400" />
-                    {{ isDark ? t.darkMode : t.lightMode }}
-                  </span>
-                  
-                  <!-- Switch UI -->
-                  <div class="w-10 h-6 bg-gray-200 dark:bg-[#2f2a22] rounded-full p-0.5 transition-colors" :class="{ 'bg-emerald-500!': isDark }">
-                    <div class="w-5 h-5 bg-white rounded-full shadow-sm transform transition-transform" :class="{ 'translate-x-4': isDark }"></div>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right Column - Form Fields -->
-          <div class="space-y-6 lg:col-span-2">
-            
-            <!-- Personal Info Card -->
-            <form @submit.prevent="saveProfile" class="bg-white/60 dark:bg-[#1f1e1a]/60 backdrop-blur-md border border-[var(--border)] rounded-2xl p-6 shadow-lg space-y-6">
-              <h3 class="text-lg font-bold text-[var(--text-h)] flex items-center gap-2 border-b border-[var(--border)] pb-3">
-                <User class="w-5 h-5 text-[#0f6d5f] dark:text-[#4cc2a5]" />
-                {{ t.personalInfo }}
-              </h3>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Full name -->
-                <div class="space-y-2">
-                  <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    {{ t.fullName }}
-                  </label>
-                  <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <User class="w-4 h-4" />
-                    </span>
-                    <input 
-                      type="text" 
-                      v-model="name"
-                      class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)]"
-                      placeholder="e.g. John Doe"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <!-- Email Address -->
-                <div class="space-y-2">
-                  <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    {{ t.email }}
-                  </label>
-                  <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <Mail class="w-4 h-4" />
-                    </span>
-                    <input 
-                      type="email" 
-                      v-model="email"
-                      class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)]"
-                      placeholder="e.g. john@example.com"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <!-- Phone number -->
-                <div class="space-y-2 md:col-span-2">
-                  <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    {{ t.phone }}
-                  </label>
-                  <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <Phone class="w-4 h-4" />
-                    </span>
-                    <input 
-                      type="text" 
-                      v-model="phoneNumber"
-                      class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)]"
-                      placeholder="e.g. +855 12 345 678"
-                    />
-                  </div>
-                </div>
-
-                <!-- Bio -->
-                <div class="space-y-2 md:col-span-2">
-                  <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    {{ t.bio }}
-                  </label>
-                  <textarea 
-                    v-model="bio"
-                    rows="3"
-                    class="block w-full px-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)] resize-none"
-                    placeholder="Tell something about yourself..."
-                  ></textarea>
-                </div>
-              </div>
-
-              <!-- Save profile button -->
-              <div class="flex justify-end pt-2">
-                <button 
-                  type="submit"
-                  :disabled="savingProfile"
-                  class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0f6d5f] dark:bg-[#4cc2a5] text-white dark:text-[#093A3F] font-bold text-sm shadow-md hover:opacity-90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75 disabled:pointer-events-none transition-all cursor-pointer"
-                >
-                  <Loader2 v-if="savingProfile" class="w-4 h-4 animate-spin" />
-                  <Save v-else class="w-4 h-4" />
-                  {{ savingProfile ? t.saving : t.saveChanges }}
-                </button>
-              </div>
-            </form>
-
-            <!-- Password Card -->
-            <form @submit.prevent="savePassword" class="bg-white/60 dark:bg-[#1f1e1a]/60 backdrop-blur-md border border-[var(--border)] rounded-2xl p-6 shadow-lg space-y-6">
-              <h3 class="text-lg font-bold text-[var(--text-h)] flex items-center gap-2 border-b border-[var(--border)] pb-3">
-                <Lock class="w-5 h-5 text-[#0f6d5f] dark:text-[#4cc2a5]" />
-                {{ t.changePassword }}
-              </h3>
-
-              <div class="grid grid-cols-1 gap-6">
-                <!-- Current Password -->
-                <div class="space-y-2">
-                  <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    {{ t.oldPassword }}
-                  </label>
-                  <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <Lock class="w-4 h-4" />
-                    </span>
-                    <input 
-                      type="password" 
-                      v-model="oldPassword"
-                      class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)]"
-                      :placeholder="t.passwordPlaceholder"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <!-- New Password & Confirm -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                    <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {{ t.newPassword }}
-                    </label>
-                    <div class="relative">
-                      <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                        <Lock class="w-4 h-4" />
-                      </span>
-                      <input 
-                        type="password" 
-                        v-model="newPassword"
-                        class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)]"
-                        :placeholder="t.passwordPlaceholder"
-                        required
-                        minlength="6"
-                      />
-                    </div>
-                  </div>
-
-                  <div class="space-y-2">
-                    <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {{ t.confirmPassword }}
-                    </label>
-                    <div class="relative">
-                      <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                        <Lock class="w-4 h-4" />
-                      </span>
-                      <input 
-                        type="password" 
-                        v-model="confirmPassword"
-                        class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)]"
-                        :placeholder="t.passwordPlaceholder"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Save password button -->
-              <div class="flex justify-end pt-2">
-                <button 
-                  type="submit"
-                  :disabled="changingPassword"
-                  class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 font-bold text-sm shadow-md hover:opacity-90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75 disabled:pointer-events-none transition-all cursor-pointer"
-                >
-                  <Loader2 v-if="changingPassword" class="w-4 h-4 animate-spin" />
-                  <Lock v-else class="w-4 h-4" />
-                  {{ changingPassword ? t.saving : t.updatePassword }}
-                </button>
-              </div>
-            </form>
-
-          </div>
-
         </div>
 
-      </div>
+        <!-- Layout: Tabs + Panel -->
+        <div class="settings-body">
+
+          <!-- Tab Rail (Left) -->
+          <nav class="settings-tab-rail">
+            <button
+              v-for="tab in tabs"
+              :key="tab.id"
+              type="button"
+              class="tab-btn"
+              :class="{ active: activeTab === tab.id }"
+              @click="activeTab = (tab.id as any)"
+            >
+              <component :is="tab.icon" class="tab-icon" :size="17" />
+              <span class="tab-label">{{ tab.label }}</span>
+              <ChevronRight class="tab-chevron" :size="14" />
+            </button>
+          </nav>
+
+          <!-- Panel (Right) -->
+          <div class="settings-panel">
+
+            <!-- ── APPEARANCE ── -->
+            <Transition name="panel-fade" mode="out-in">
+              <div v-if="activeTab === 'appearance'" key="appearance" class="panel-section">
+
+                <!-- Language -->
+                <div class="setting-group">
+                  <div class="setting-group-label">
+                    <Globe :size="15" class="label-icon" />
+                    {{ t.language }}
+                  </div>
+                  <p class="setting-group-desc">{{ t.languageDesc }}</p>
+                  <div class="lang-grid">
+                    <button
+                      type="button"
+                      class="lang-card"
+                      :class="{ active: currentLang === 'EN' }"
+                      @click="setLanguage('EN')"
+                    >
+                      <span class="lang-flag">🇬🇧</span>
+                      <span class="lang-name">English</span>
+                      <span v-if="currentLang === 'EN'" class="lang-check"><Check :size="12" /></span>
+                    </button>
+                    <button
+                      type="button"
+                      class="lang-card"
+                      :class="{ active: currentLang === 'KH' }"
+                      @click="setLanguage('KH')"
+                    >
+                      <span class="lang-flag">🇰🇭</span>
+                      <span class="lang-name">ខ្មែរ</span>
+                      <span v-if="currentLang === 'KH'" class="lang-check"><Check :size="12" /></span>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </Transition>
+
+            <!-- ── SECURITY ── -->
+            <Transition name="panel-fade" mode="out-in">
+              <div v-if="activeTab === 'security'" key="security" class="panel-section">
+                <div class="setting-group">
+                  <div class="setting-group-label">
+                    <KeyRound :size="15" class="label-icon" />
+                    {{ t.security }}
+                  </div>
+                  <p class="setting-group-desc">{{ t.securityDesc }}</p>
+
+                  <form @submit.prevent="savePassword" class="pw-form">
+                    <!-- Current PW -->
+                    <div class="pw-field">
+                      <label class="pw-label">{{ t.oldPassword }}</label>
+                      <div class="pw-input-wrap">
+                        <Lock :size="15" class="pw-prefix-icon" />
+                        <input
+                          :type="showOldPw ? 'text' : 'password'"
+                          v-model="oldPassword"
+                          class="pw-input"
+                          :placeholder="t.passwordPlaceholder"
+                          required
+                        />
+                        <button type="button" class="pw-eye" @click="showOldPw = !showOldPw">
+                          <EyeOff v-if="showOldPw" :size="15" />
+                          <Eye v-else :size="15" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- New PW -->
+                    <div class="pw-field">
+                      <label class="pw-label">{{ t.newPassword }}</label>
+                      <div class="pw-input-wrap">
+                        <Lock :size="15" class="pw-prefix-icon" />
+                        <input
+                          :type="showNewPw ? 'text' : 'password'"
+                          v-model="newPassword"
+                          class="pw-input"
+                          :placeholder="t.passwordPlaceholder"
+                          required
+                          minlength="6"
+                        />
+                        <button type="button" class="pw-eye" @click="showNewPw = !showNewPw">
+                          <EyeOff v-if="showNewPw" :size="15" />
+                          <Eye v-else :size="15" />
+                        </button>
+                      </div>
+                      <!-- Strength bar -->
+                      <div v-if="newPassword" class="strength-wrap">
+                        <div class="strength-bars">
+                          <span
+                            v-for="i in 4"
+                            :key="i"
+                            class="strength-bar"
+                            :class="{ active: i <= passwordStrength, [strengthColor]: i <= passwordStrength }"
+                          ></span>
+                        </div>
+                        <span class="strength-label" :class="{
+                          'text-red-500': passwordStrength <= 1,
+                          'text-amber-500': passwordStrength === 2,
+                          'text-teal-500': passwordStrength === 3,
+                          'text-emerald-500': passwordStrength === 4,
+                        }">{{ strengthLabel }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Confirm PW -->
+                    <div class="pw-field">
+                      <label class="pw-label">{{ t.confirmPassword }}</label>
+                      <div class="pw-input-wrap">
+                        <span class="pw-prefix-icon">
+                          <Check v-if="confirmPassword && confirmPassword === newPassword" :size="15" class="text-emerald-500" />
+                          <Lock v-else :size="15" />
+                        </span>
+                        <input
+                          :type="showConfirmPw ? 'text' : 'password'"
+                          v-model="confirmPassword"
+                          class="pw-input"
+                          :class="{ 'pw-input--error': confirmPassword && confirmPassword !== newPassword }"
+                          :placeholder="t.passwordPlaceholder"
+                          required
+                        />
+                        <button type="button" class="pw-eye" @click="showConfirmPw = !showConfirmPw">
+                          <EyeOff v-if="showConfirmPw" :size="15" />
+                          <Eye v-else :size="15" />
+                        </button>
+                      </div>
+                      <p v-if="confirmPassword && confirmPassword !== newPassword" class="pw-error-msg">
+                        Passwords don't match
+                      </p>
+                    </div>
+
+                    <button type="submit" class="btn-primary" :disabled="changingPassword">
+                      <Loader2 v-if="changingPassword" :size="15" class="spin" />
+                      <ShieldCheck v-else :size="15" />
+                      {{ changingPassword ? t.updating : t.updatePassword }}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </Transition>
+
+            <!-- ── ACCOUNT ── -->
+            <Transition name="panel-fade" mode="out-in">
+              <div v-if="activeTab === 'account'" key="account" class="panel-section">
+
+                <!-- Go to Profile -->
+                <div class="account-row" @click="router.push(loginRole === 'admin' ? '/admin/profile' : '/settings/profile')">
+                  <div class="account-row-icon profile-icon">
+                    <UserCircle2 :size="20" />
+                  </div>
+                  <div class="account-row-text">
+                    <p class="account-row-title">{{ t.goToProfile }}</p>
+                    <p class="account-row-desc">{{ t.profileDesc }}</p>
+                  </div>
+                  <ChevronRight :size="16" class="account-row-chevron" />
+                </div>
+
+                <div class="setting-divider"></div>
+
+                <!-- Sign Out -->
+                <div class="account-row danger-row" @click="logout">
+                  <div class="account-row-icon logout-icon">
+                    <LogOut :size="20" />
+                  </div>
+                  <div class="account-row-text">
+                    <p class="account-row-title danger-text">{{ t.logoutLabel }}</p>
+                    <p class="account-row-desc">{{ t.logoutDesc }}</p>
+                  </div>
+                  <ChevronRight :size="16" class="account-row-chevron danger-chevron" />
+                </div>
+              </div>
+            </Transition>
+
+          </div>
+        </div>
+      </main>
     </div>
-  </main>
-</div>
-</div>
+  </div>
 </template>
 
 <style scoped>
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* ──────────────────────────────
+   Root Layout
+────────────────────────────── */
+.settings-root {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: #ffffff;
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
 }
-.animate-fadeIn {
-  animation: fadeIn 0.4s ease-out forwards;
+
+:global(.dark) .settings-root { background: #171612; }
+
+.settings-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 1.75rem 3rem;
+}
+
+/* ──────────────────────────────
+   Header
+────────────────────────────── */
+.settings-header {
+  margin-bottom: 2rem;
+}
+
+.settings-breadcrumb {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin-bottom: 0.6rem;
+}
+
+.settings-breadcrumb span {
+  color: #111;
+  font-weight: 700;
+}
+
+:global(.dark) .settings-breadcrumb span { color: #fff; }
+
+.settings-title {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.3rem;
+  line-height: 1.1;
+  color: #111827;
+}
+
+:global(.dark) .settings-title { color: #f3f4f6; }
+
+.settings-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ──────────────────────────────
+   Body: tab rail + panel
+────────────────────────────── */
+.settings-body {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  max-width: 860px;
+}
+
+/* ──────────────────────────────
+   Tab Rail
+────────────────────────────── */
+.settings-tab-rail {
+  flex-shrink: 0;
+  width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 18px;
+  padding: 0.5rem;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  position: sticky;
+  top: 1rem;
+}
+
+:global(.dark) .settings-tab-rail {
+  background: rgba(31,30,26,0.7);
+  border-color: rgba(255,255,255,0.07);
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.18s, color 0.18s, transform 0.15s;
+  position: relative;
+}
+
+:global(.dark) .tab-btn { color: #9ca3af; }
+
+.tab-btn:hover {
+  background: rgba(0,0,0,0.05);
+  color: #111;
+  transform: translateX(2px);
+}
+
+:global(.dark) .tab-btn:hover {
+  background: rgba(255,255,255,0.06);
+  color: #f3f4f6;
+}
+
+.tab-btn.active {
+  background: #0f6d5f;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(15, 109, 95, 0.35);
+  transform: none;
+}
+
+:global(.dark) .tab-btn.active {
+  background: #4cc2a5;
+  color: #093A3F;
+  box-shadow: 0 4px 14px rgba(76, 194, 165, 0.35);
+}
+
+.tab-icon { flex-shrink: 0; }
+
+.tab-label { flex: 1; }
+
+.tab-chevron {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.tab-btn.active .tab-chevron,
+.tab-btn:hover .tab-chevron {
+  opacity: 0.5;
+}
+
+/* ──────────────────────────────
+   Panel
+────────────────────────────── */
+.settings-panel {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 20px;
+  padding: 1.75rem;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.06);
+  min-height: 360px;
+}
+
+:global(.dark) .settings-panel {
+  background: rgba(31,30,26,0.7);
+  border-color: rgba(255,255,255,0.07);
+}
+
+.panel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ──────────────────────────────
+   Setting Groups
+────────────────────────────── */
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.setting-group-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.01em;
+}
+
+:global(.dark) .setting-group-label { color: #f3f4f6; }
+
+.label-icon {
+  color: #0f6d5f;
+}
+
+:global(.dark) .label-icon { color: #4cc2a5; }
+
+.setting-group-desc {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0 0 0.75rem;
+}
+
+.setting-divider {
+  height: 1px;
+  background: rgba(0,0,0,0.07);
+  margin: 1.5rem 0;
+}
+
+:global(.dark) .setting-divider { background: rgba(255,255,255,0.07); }
+
+/* ──────────────────────────────
+   Language Cards
+────────────────────────────── */
+.lang-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.lang-card {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: 1.5px solid rgba(0,0,0,0.09);
+  background: rgba(255,255,255,0.5);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #374151;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+:global(.dark) .lang-card {
+  border-color: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  color: #d1d5db;
+}
+
+.lang-card:hover {
+  border-color: #0f6d5f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 109, 95, 0.12);
+}
+
+.lang-card.active {
+  border-color: #0f6d5f;
+  background: rgba(15, 109, 95, 0.06);
+  color: #0f6d5f;
+  box-shadow: 0 0 0 3px rgba(15, 109, 95, 0.1);
+}
+
+:global(.dark) .lang-card.active {
+  border-color: #4cc2a5;
+  background: rgba(76, 194, 165, 0.08);
+  color: #4cc2a5;
+  box-shadow: 0 0 0 3px rgba(76, 194, 165, 0.1);
+}
+
+.lang-flag { font-size: 1.3rem; }
+.lang-name { flex: 1; }
+
+.lang-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #0f6d5f;
+  color: #fff;
+}
+
+:global(.dark) .lang-check { background: #4cc2a5; color: #093A3F; }
+
+/* ──────────────────────────────
+   Theme Cards
+────────────────────────────── */
+.theme-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.theme-card {
+  border-radius: 14px;
+  border: 1.5px solid rgba(0,0,0,0.09);
+  background: rgba(255,255,255,0.5);
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  padding: 0;
+  text-align: left;
+}
+
+:global(.dark) .theme-card {
+  border-color: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+}
+
+.theme-card:hover {
+  border-color: #0f6d5f;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(15, 109, 95, 0.12);
+}
+
+.theme-card.active {
+  border-color: #0f6d5f;
+  box-shadow: 0 0 0 3px rgba(15, 109, 95, 0.12);
+}
+
+:global(.dark) .theme-card.active {
+  border-color: #4cc2a5;
+  box-shadow: 0 0 0 3px rgba(76, 194, 165, 0.12);
+}
+
+/* Preview area */
+.theme-preview {
+  height: 80px;
+  padding: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.light-preview {
+  background: #f8fafc;
+}
+
+.dark-preview {
+  background: #1a1f2e;
+}
+
+.preview-bar {
+  height: 10px;
+  border-radius: 4px;
+  background: #e5e7eb;
+  width: 100%;
+}
+
+.dark-bar {
+  background: #374151;
+}
+
+.preview-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.preview-line {
+  height: 6px;
+  border-radius: 3px;
+  background: #e5e7eb;
+}
+
+.preview-line.long { width: 75%; }
+.preview-line.short { width: 50%; }
+.preview-line.dark-line { background: #374151; }
+
+.theme-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #374151;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.4);
+}
+
+:global(.dark) .theme-card-footer {
+  color: #d1d5db;
+  border-top-color: rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.2);
+}
+
+.theme-card-icon.sun { color: #f59e0b; }
+.theme-card-icon.moon { color: #818cf8; }
+
+.theme-active-dot {
+  margin-left: auto;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #0f6d5f;
+}
+
+:global(.dark) .theme-active-dot { background: #4cc2a5; }
+
+/* ──────────────────────────────
+   Password Form
+────────────────────────────── */
+.pw-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  margin-top: 0.25rem;
+}
+
+.pw-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pw-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #6b7280;
+}
+
+:global(.dark) .pw-label { color: #9ca3af; }
+
+.pw-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pw-prefix-icon {
+  position: absolute;
+  left: 0.85rem;
+  color: #9ca3af;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.pw-input {
+  width: 100%;
+  padding: 0.7rem 2.6rem 0.7rem 2.4rem;
+  border-radius: 12px;
+  border: 1.5px solid rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.7);
+  font-size: 0.9rem;
+  font-weight: 500;
+  outline: none;
+  color: #111827;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+}
+
+:global(.dark) .pw-input {
+  background: rgba(23,22,18,0.8);
+  border-color: rgba(255,255,255,0.1);
+  color: #f3f4f6;
+}
+
+.pw-input:focus {
+  border-color: #0f6d5f;
+  box-shadow: 0 0 0 3px rgba(15,109,95,0.12);
+}
+
+:global(.dark) .pw-input:focus {
+  border-color: #4cc2a5;
+  box-shadow: 0 0 0 3px rgba(76,194,165,0.12);
+}
+
+.pw-input--error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.1) !important;
+}
+
+.pw-eye {
+  position: absolute;
+  right: 0.85rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.pw-eye:hover { color: #374151; }
+:global(.dark) .pw-eye:hover { color: #e5e7eb; }
+
+.pw-error-msg {
+  font-size: 0.75rem;
+  color: #ef4444;
+  margin: 0;
+}
+
+/* Strength */
+.strength-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+}
+
+.strength-bars {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.strength-bar {
+  width: 28px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0,0,0,0.1);
+  transition: background 0.25s;
+}
+
+:global(.dark) .strength-bar { background: rgba(255,255,255,0.1); }
+
+.strength-bar.active.bg-red-500 { background: #ef4444; }
+.strength-bar.active.bg-amber-400 { background: #fbbf24; }
+.strength-bar.active.bg-teal-400 { background: #2dd4bf; }
+.strength-bar.active.bg-emerald-500 { background: #10b981; }
+
+.strength-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* Button */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  border: none;
+  background: #0f6d5f;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  align-self: flex-end;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(15,109,95,0.3);
+}
+
+:global(.dark) .btn-primary {
+  background: #4cc2a5;
+  color: #093A3F;
+  box-shadow: 0 4px 14px rgba(76,194,165,0.3);
+}
+
+.btn-primary:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(15,109,95,0.38);
+}
+
+.btn-primary:active { transform: translateY(0); }
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ──────────────────────────────
+   Account Rows
+────────────────────────────── */
+.account-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1.5px solid rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, transform 0.15s;
+}
+
+:global(.dark) .account-row { border-color: rgba(255,255,255,0.06); }
+
+.account-row:hover {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.12);
+  transform: translateX(3px);
+}
+
+:global(.dark) .account-row:hover {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.1);
+}
+
+.danger-row:hover {
+  background: rgba(239,68,68,0.05);
+  border-color: rgba(239,68,68,0.2);
+}
+
+.account-row-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-icon {
+  background: rgba(15,109,95,0.1);
+  color: #0f6d5f;
+}
+
+:global(.dark) .profile-icon {
+  background: rgba(76,194,165,0.12);
+  color: #4cc2a5;
+}
+
+.logout-icon {
+  background: rgba(239,68,68,0.08);
+  color: #ef4444;
+}
+
+.account-row-text { flex: 1; }
+
+.account-row-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+:global(.dark) .account-row-title { color: #f3f4f6; }
+
+.danger-text { color: #ef4444 !important; }
+
+.account-row-desc {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin: 0.15rem 0 0;
+}
+
+.account-row-chevron {
+  color: #9ca3af;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.account-row:hover .account-row-chevron {
+  transform: translateX(2px);
+}
+
+.danger-chevron { color: #ef4444; }
+
+/* ──────────────────────────────
+   Panel Transition
+────────────────────────────── */
+.panel-fade-enter-active,
+.panel-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.panel-fade-enter-from {
+  opacity: 0;
+  transform: translateX(8px);
+}
+.panel-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
+/* ──────────────────────────────
+   Responsive
+────────────────────────────── */
+@media (max-width: 640px) {
+  .settings-body {
+    flex-direction: column;
+  }
+
+  .settings-tab-rail {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    position: static;
+    padding: 0.4rem;
+    gap: 0.25rem;
+  }
+
+  .tab-btn {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+    padding: 0.6rem 0.5rem;
+  }
+
+  .tab-label { display: none; }
+  .tab-chevron { display: none; }
+
+  .settings-content {
+    padding: 1rem;
+  }
+
+  .lang-grid,
+  .theme-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 </style>

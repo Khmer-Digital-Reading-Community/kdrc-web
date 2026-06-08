@@ -1,3 +1,4 @@
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   authState,
@@ -10,6 +11,8 @@ import {
   startFacebookLogin,
   startGoogleLogin,
 } from '../services/auth';
+
+export const loginRole = ref<string | null>(localStorage.getItem('loginRole'));
 
 export function useAuth() {
   const router = useRouter();
@@ -47,6 +50,8 @@ export function useAuth() {
 
   const logout = async () => {
     await logoutUser();
+    loginRole.value = null;
+    localStorage.removeItem('loginRole');
     await router.push('/login');
   };
 
@@ -60,6 +65,7 @@ export function useAuth() {
     startGoogleLogin,
     startFacebookLogin,
     completeOAuth,
+    loginRole,
   };
 }
 

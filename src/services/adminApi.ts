@@ -91,5 +91,5 @@ export const updateReportStatus = (id: string, status: string) =>
 export const deleteAdminReport = (id: string) =>
   api.delete(`/reports/${id}`).then((r) => r.data);
 
-export const updateMyProfile = (data: { name?: string; bio?: string }) =>
+export const updateMyProfile = (data: { name?: string; bio?: string; avatarUrl?: string }) =>
   api.patch('/users/me', data).then((r) => r.data);

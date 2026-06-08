@@ -60,6 +60,7 @@ import {
   Home,
   LogOut,
   Menu,
+  UserCircle2,
 } from 'lucide-vue-next';
 import { useAuth } from '../../stores/useAuth';
 import { fetchAdminStats } from '../../services/adminApi';
@@ -96,7 +97,10 @@ const navSections = [
   },
   {
     label: 'System',
-    items: [{ to: '/admin/settings', label: 'Settings', icon: Settings }],
+    items: [
+      { to: '/admin/profile', label: 'Profile', icon: UserCircle2 },
+      { to: '/admin/settings', label: 'Settings', icon: Settings },
+    ],
   },
 ];
 

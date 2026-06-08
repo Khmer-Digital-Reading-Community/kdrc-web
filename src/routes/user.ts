@@ -69,6 +69,11 @@ export default [
     component: () => import("../pages/user/Settings.vue"),
   },
   {
+    path: "/settings/profile",
+    name: "user-profile",
+    component: () => import("../pages/user/Profile.vue"),
+  },
+  {
     path: "/:id/write",
     name: "writingpage",
     component: WritingPage,
