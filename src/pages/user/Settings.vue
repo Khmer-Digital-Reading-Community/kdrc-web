@@ -51,6 +51,9 @@ const oldPassword = ref("");
 const newPassword = ref("");
 const confirmPassword = ref("");
 
+// Maximum avatar size (5MB)
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
 // Translations dictionary
 const translations = {
   EN: {
@@ -81,6 +84,9 @@ const translations = {
     errorPasswordMatch: "Passwords do not match!",
     errorGeneric: "An error occurred. Please try again.",
     validationPhone: "Please enter a valid phone number",
+    validationEmail: "Please enter a valid email address",
+    validationFileSize: "Image must be less than 5MB",
+    validationFileType: "Please upload an image file (PNG, JPG, WebP)",
     passwordPlaceholder: "Enter password"
   },
   KH: {
@@ -111,6 +117,9 @@ const translations = {
     errorPasswordMatch: "ពាក្យសម្ងាត់មិនត្រូវគ្នាទេ!",
     errorGeneric: "មានកំហុសមួយបានកើតឡើង។ សូមព្យាយាមម្តងទៀត។",
     validationPhone: "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យបានត្រឹមត្រូវ",
+    validationEmail: "សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែលឱ្យបានត្រឹមត្រូវ",
+    validationFileSize: "រូបភាពត្រូវតែមានទំហំតូចជាង ៥MB",
+    validationFileType: "សូមជ្រើសរើសឯកសារជារូបភាព (PNG, JPG, WebP)",
     passwordPlaceholder: "បញ្ចូលពាក្យសម្ងាត់"
   }
 };
@@ -118,6 +127,11 @@ const translations = {
 const t = computed(() => {
   const lang = (currentLang.value === "KH") ? "KH" : "EN";
   return translations[lang];
+});
+
+// Dynamic Typographic Style Adjustment
+const langFontClass = computed(() => {
+  return currentLang.value === 'KH' ? 'font-khmer font-medium leading-relaxed' : 'font-sans';
 });
 
 // Load profile data
@@ -140,6 +154,21 @@ const loadProfile = async () => {
 
 // Handle personal info saving
 const saveProfile = async () => {
+  // Simple Client-side Form Validations
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.value)) {
+    toast.error(t.value.validationEmail);
+    return;
+  }
+
+  if (phoneNumber.value) {
+    const phoneRegex = /^[0-9+\s-]{8,15}$/;
+    if (!phoneRegex.test(phoneNumber.value)) {
+      toast.error(t.value.validationPhone);
+      return;
+    }
+  }
+
   savingProfile.value = true;
   try {
     const updated = await updateUserProfile({
@@ -148,6 +177,7 @@ const saveProfile = async () => {
       phoneNumber: phoneNumber.value,
       bio: bio.value
     });
+    
     // Sync store authUser state immediately
     if (authUser.value) {
       authUser.value.name = updated.name;
@@ -175,6 +205,7 @@ const savePassword = async () => {
       newPassword: newPassword.value
     });
     toast.success(t.value.successPassword);
+    
     // Clear password fields
     oldPassword.value = "";
     newPassword.value = "";
@@ -191,6 +222,18 @@ const onFileSelected = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
   if (!file) return;
+
+  // File size security guard
+  if (file.size > MAX_FILE_SIZE) {
+    toast.error(t.value.validationFileSize);
+    return;
+  }
+
+  // File type security guard
+  if (!file.type.startsWith("image/")) {
+    toast.error(t.value.validationFileType);
+    return;
+  }
 
   uploadingAvatar.value = true;
   try {
@@ -211,6 +254,8 @@ const onFileSelected = async (event: Event) => {
     toast.error(error?.message || "Failed to upload avatar");
   } finally {
     uploadingAvatar.value = false;
+    // Reset file input target value so the same image can be uploaded again if needed
+    target.value = "";
   }
 };
 
@@ -220,7 +265,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="relative flex h-screen overflow-hidden bg-[#F6F1E8] dark:bg-[#171612] text-[var(--text)] transition-colors duration-300">
+  <div class="relative flex h-screen overflow-hidden bg-[#F6F1E8] dark:bg-[#171612] text-[var(--text)] transition-colors duration-300" :class="langFontClass">
     <!-- Sidebar -->
     <Sidebar />
 
@@ -234,9 +279,10 @@ onMounted(() => {
       <!-- Scrollable Content -->
       <main class="flex-1 overflow-y-auto">
         <div class="p-3 sm:p-4 lg:p-6">
+          
           <!-- Breadcrumb -->
-          <div class="text-[10px] sm:text-[11px] lg:text-sm uppercase tracking-[0.15em] text-gray-500 mb-4 sm:mb-6">
-            Atelier >
+          <div class="text-[10px] sm:text-[11px] lg:text-sm uppercase tracking-[0.15em] text-gray-500 mb-4 sm:mb-6 font-sans">
+            Atelier &gt;
             <span class="font-bold text-black dark:text-white">{{ t.title }}</span>
           </div>
 
@@ -246,9 +292,10 @@ onMounted(() => {
             <p class="text-sm font-medium tracking-wide text-gray-500 dark:text-gray-400">Loading settings...</p>
           </div>
 
+          <!-- Settings Layout Panel -->
           <div v-else class="space-y-8 animate-fadeIn max-w-4xl">
             
-            <!-- Header -->
+            <!-- Header Banner Actions -->
             <div class="border-b border-[var(--border)] pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[var(--text-h)] my-0 leading-tight">
@@ -261,308 +308,308 @@ onMounted(() => {
               <button 
                 type="button"
                 @click="logout"
-                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-red-600 dark:text-red-400 font-semibold text-sm shadow-sm hover:bg-red-50 dark:hover:bg-red-950/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-red-600 dark:text-red-400 font-semibold text-sm shadow-sm hover:bg-red-50 dark:hover:bg-red-950/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer font-sans"
               >
                 <LogOut class="w-4 h-4" />
-                {{ t.logout }}
+                <span>{{ t.logout }}</span>
               </button>
             </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          <!-- Left Column - Profile Picture & Quick Meta -->
-          <div class="space-y-6 lg:col-span-1">
-            <div class="bg-white/60 dark:bg-[#1f1e1a]/60 backdrop-blur-md border border-[var(--border)] rounded-2xl p-6 flex flex-col items-center text-center shadow-lg hover:shadow-xl transition-all">
+            <!-- Double Grid Config Columns -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
               
-              <!-- Profile Avatar -->
-              <div class="relative group cursor-pointer w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-[#2f2a22] shadow-md">
-                <img 
-                  v-if="avatarUrl"
-                  :src="avatarUrl" 
-                  alt="User Avatar"
-                  class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-                <div v-else class="w-full h-full bg-gradient-to-br from-[#0f6d5f] to-[#4cc2a5] flex items-center justify-center text-white text-3xl font-bold uppercase">
-                  {{ name ? name.charAt(0) : email.charAt(0) }}
-                </div>
-
-                <!-- Hover Overlay -->
-                <label class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
-                  <Camera class="w-6 h-6 text-white mb-1" />
-                  <span class="text-xs text-white font-medium">Change</span>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    class="hidden" 
-                    @change="onFileSelected"
-                    :disabled="uploadingAvatar"
-                  />
-                </label>
-
-                <!-- Uploading state -->
-                <div v-if="uploadingAvatar" class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
-                  <Loader2 class="w-8 h-8 animate-spin text-white mb-1" />
-                  <span class="text-[10px] text-white font-medium">{{ t.uploading }}</span>
-                </div>
-              </div>
-
-              <!-- Quick Meta -->
-              <h2 class="mt-4 text-xl font-bold text-[var(--text-h)] my-0 leading-tight">
-                {{ name || "Reader & Writer" }}
-              </h2>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate max-w-full">
-                {{ email }}
-              </p>
-              
-              <div class="mt-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 text-xs font-semibold">
-                <Check class="w-3 h-3" />
-                Active Account
-              </div>
-            </div>
-            
-            <!-- Preference Cards -->
-            <div class="bg-white/60 dark:bg-[#1f1e1a]/60 backdrop-blur-md border border-[var(--border)] rounded-2xl p-6 space-y-6 shadow-lg">
-              <h3 class="text-base font-bold text-[var(--text-h)] flex items-center gap-2">
-                <Globe class="w-4 h-4 text-[#0f6d5f] dark:text-[#4cc2a5]" />
-                {{ t.preferences }}
-              </h3>
-              
-              <!-- Language selector -->
-              <div class="space-y-2">
-                <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {{ t.language }}
-                </label>
-                <div class="flex p-1 rounded-lg bg-gray-100 dark:bg-[#171612] border border-[var(--border)]">
-                  <button 
-                    type="button"
-                    @click="setLanguage('EN')"
-                    class="flex-1 py-1.5 px-3 rounded-md text-xs font-bold transition-all cursor-pointer"
-                    :class="currentLang === 'EN' ? 'bg-[#0f6d5f] text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-[var(--text-h)]'"
-                  >
-                    English
-                  </button>
-                  <button 
-                    type="button"
-                    @click="setLanguage('KH')"
-                    class="flex-1 py-1.5 px-3 rounded-md text-xs font-bold transition-all cursor-pointer"
-                    :class="currentLang === 'KH' ? 'bg-[#0f6d5f] text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-[var(--text-h)]'"
-                  >
-                    ខ្មែរ
-                  </button>
-                </div>
-              </div>
-
-              <!-- Theme Toggle -->
-              <div class="space-y-2">
-                <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {{ t.theme }}
-                </label>
-                <button 
-                  type="button"
-                  @click="toggleTheme"
-                  class="w-full flex items-center justify-between p-3 rounded-xl border border-[var(--border)] hover:bg-black/5 dark:hover:bg-white/5 transition-all text-sm font-medium cursor-pointer"
-                >
-                  <span class="flex items-center gap-2">
-                    <Sun v-if="!isDark" class="w-4 h-4 text-orange-500" />
-                    <Moon v-else class="w-4 h-4 text-indigo-400" />
-                    {{ isDark ? t.darkMode : t.lightMode }}
-                  </span>
+              <!-- Left Column - Profile Picture & Quick Meta -->
+              <div class="space-y-6 lg:col-span-1">
+                <div class="bg-white/60 dark:bg-[#1f1e1a]/60 backdrop-blur-md border border-[var(--border)] rounded-2xl p-6 flex flex-col items-center text-center shadow-lg hover:shadow-xl transition-all">
                   
-                  <!-- Switch UI -->
-                  <div class="w-10 h-6 bg-gray-200 dark:bg-[#2f2a22] rounded-full p-0.5 transition-colors" :class="{ 'bg-emerald-500!': isDark }">
-                    <div class="w-5 h-5 bg-white rounded-full shadow-sm transform transition-transform" :class="{ 'translate-x-4': isDark }"></div>
+                  <!-- Profile Avatar Box -->
+                  <div class="relative group cursor-pointer w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-[#2f2a22] shadow-md">
+                    <img 
+                      v-if="avatarUrl"
+                      :src="avatarUrl" 
+                      alt="User Avatar"
+                      class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    />
+                    <div v-else class="w-full h-full bg-gradient-to-br from-[#0f6d5f] to-[#4cc2a5] flex items-center justify-center text-white text-3xl font-bold uppercase font-sans">
+                      {{ name ? name.charAt(0) : (email ? email.charAt(0) : '?') }}
+                    </div>
+
+                    <!-- Hover Overlay -->
+                    <label class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
+                      <Camera class="w-6 h-6 text-white mb-1" />
+                      <span class="text-xs text-white font-medium">Change</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        class="hidden" 
+                        @change="onFileSelected"
+                        :disabled="uploadingAvatar"
+                      />
+                    </label>
+
+                    <!-- Uploading state layout overlay -->
+                    <div v-if="uploadingAvatar" class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
+                      <Loader2 class="w-8 h-8 animate-spin text-white mb-1" />
+                      <span class="text-[10px] text-white font-medium">{{ t.uploading }}</span>
+                    </div>
                   </div>
-                </button>
+
+                  <!-- Quick Info Meta Metadata details -->
+                  <h2 class="mt-4 text-xl font-bold text-[var(--text-h)] my-0 leading-tight">
+                    {{ name || "Reader & Writer" }}
+                  </h2>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate max-w-full font-sans">
+                    {{ email }}
+                  </p>
+                  
+                  <div class="mt-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30 text-xs font-semibold font-sans">
+                    <Check class="w-3 h-3" />
+                    <span>Active Account</span>
+                  </div>
+                </div>
+                
+                <!-- Preference Selection Panel Card Box Container -->
+                <div class="bg-white/60 dark:bg-[#1f1e1a]/60 backdrop-blur-md border border-[var(--border)] rounded-2xl p-6 space-y-6 shadow-lg">
+                  <h3 class="text-base font-bold text-[var(--text-h)] flex items-center gap-2">
+                    <Globe class="w-4 h-4 text-[#0f6d5f] dark:text-[#4cc2a5]" />
+                    <span>{{ t.preferences }}</span>
+                  </h3>
+                  
+                  <!-- Language toggle control element selectors -->
+                  <div class="space-y-2">
+                    <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-sans">
+                      {{ t.language }}
+                    </label>
+                    <div class="flex p-1 rounded-lg bg-gray-100 dark:bg-[#171612] border border-[var(--border)] font-sans">
+                      <button 
+                        type="button"
+                        @click="setLanguage('EN')"
+                        class="flex-1 py-1.5 px-3 rounded-md text-xs font-bold transition-all cursor-pointer"
+                        :class="currentLang === 'EN' ? 'bg-[#0f6d5f] text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-[var(--text-h)]'"
+                      >
+                        English
+                      </button>
+                      <button 
+                        type="button"
+                        @click="setLanguage('KH')"
+                        class="flex-1 py-1.5 px-3 rounded-md text-xs font-bold transition-all cursor-pointer font-khmer"
+                        :class="currentLang === 'KH' ? 'bg-[#0f6d5f] text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-[var(--text-h)]'"
+                      >
+                        ខ្មែរ
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Color Theme Selection Controller Switch -->
+                  <div class="space-y-2">
+                    <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-sans">
+                      {{ t.theme }}
+                    </label>
+                    <button 
+                      type="button"
+                      @click="toggleTheme"
+                      class="w-full flex items-center justify-between p-3 rounded-xl border border-[var(--border)] hover:bg-black/5 dark:hover:bg-white/5 transition-all text-sm font-medium cursor-pointer"
+                    >
+                      <span class="flex items-center gap-2">
+                        <Sun v-if="!isDark" class="w-4 h-4 text-orange-500" />
+                        <Moon v-else class="w-4 h-4 text-indigo-400" />
+                        <span>{{ isDark ? t.darkMode : t.lightMode }}</span>
+                      </span>
+                      
+                      <!-- Toggle Slider UI bar switch layout -->
+                      <div class="w-10 h-6 bg-gray-200 dark:bg-[#2f2a22] rounded-full p-0.5 transition-colors" :class="{ 'bg-emerald-500!': isDark }">
+                        <div class="w-5 h-5 bg-white rounded-full shadow-sm transform transition-transform" :class="{ 'translate-x-4': isDark }"></div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column - Form Parameter Field Entries -->
+              <div class="space-y-6 lg:col-span-2">
+                
+                <!-- Personal Informative Meta Card Profile Settings Block Form Group -->
+                <form @submit.prevent="saveProfile" class="bg-white/60 dark:bg-[#1f1e1a]/60 backdrop-blur-md border border-[var(--border)] rounded-2xl p-6 shadow-lg space-y-6">
+                  <h3 class="text-lg font-bold text-[var(--text-h)] flex items-center gap-2 border-b border-[var(--border)] pb-3">
+                    <User class="w-5 h-5 text-[#0f6d5f] dark:text-[#4cc2a5]" />
+                    <span>{{ t.personalInfo }}</span>
+                  </h3>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Full name tracking parameter template entry layout -->
+                    <div class="space-y-2">
+                      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-sans">
+                        {{ t.fullName }}
+                      </label>
+                      <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                          <User class="w-4 h-4" />
+                        </span>
+                        <input 
+                          type="text" 
+                          v-model="name"
+                          class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)]"
+                          placeholder="e.g. John Doe"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Email Address Field parameter entry row -->
+                    <div class="space-y-2">
+                      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-sans">
+                        {{ t.email }}
+                      </label>
+                      <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                          <Mail class="w-4 h-4" />
+                        </span>
+                        <input 
+                          type="email" 
+                          v-model="email"
+                          class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)] font-sans"
+                          placeholder="e.g. john@example.com"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Phone number handling interface block fields -->
+                    <div class="space-y-2 md:col-span-2">
+                      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-sans">
+                        {{ t.phone }}
+                      </label>
+                      <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                          <Phone class="w-4 h-4" />
+                        </span>
+                        <input 
+                          type="text" 
+                          v-model="phoneNumber"
+                          class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)] font-sans"
+                          placeholder="e.g. +855 12 345 678"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Profile Description Content Textarea element -->
+                    <div class="space-y-2 md:col-span-2">
+                      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-sans">
+                        {{ t.bio }}
+                      </label>
+                      <textarea 
+                        v-model="bio"
+                        rows="3"
+                        class="block w-full px-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)] resize-none"
+                        placeholder="Tell something about yourself..."
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  <!-- Save dynamic submission execution button wrapper -->
+                  <div class="flex justify-end pt-2">
+                    <button 
+                      type="submit"
+                      :disabled="savingProfile"
+                      class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0f6d5f] dark:bg-[#4cc2a5] text-white dark:text-[#093A3F] font-bold text-sm shadow-md hover:opacity-90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75 disabled:pointer-events-none transition-all cursor-pointer"
+                    >
+                      <Loader2 v-if="savingProfile" class="w-4 h-4 animate-spin" />
+                      <Save v-else class="w-4 h-4" />
+                      <span>{{ savingProfile ? t.saving : t.saveChanges }}</span>
+                    </button>
+                  </div>
+                </form>
+
+                <!-- Target Password Safety Security Management Form Controller Card panel -->
+                <form @submit.prevent="savePassword" class="bg-white/60 dark:bg-[#1f1e1a]/60 backdrop-blur-md border border-[var(--border)] rounded-2xl p-6 shadow-lg space-y-6">
+                  <h3 class="text-lg font-bold text-[var(--text-h)] flex items-center gap-2 border-b border-[var(--border)] pb-3">
+                    <Lock class="w-5 h-5 text-[#0f6d5f] dark:text-[#4cc2a5]" />
+                    <span>{{ t.changePassword }}</span>
+                  </h3>
+
+                  <div class="grid grid-cols-1 gap-6">
+                    <!-- Target Primary Current Existing Password Input row -->
+                    <div class="space-y-2">
+                      <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-sans">
+                        {{ t.oldPassword }}
+                      </label>
+                      <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                          <Lock class="w-4 h-4" />
+                        </span>
+                        <input 
+                          type="password" 
+                          v-model="oldPassword"
+                          class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)] font-sans"
+                          :placeholder="t.passwordPlaceholder"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Target Configuration parameters New Passcodes and matching variables data validations -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div class="space-y-2">
+                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-sans">
+                          {{ t.newPassword }}
+                        </label>
+                        <div class="relative">
+                          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                            <Lock class="w-4 h-4" />
+                          </span>
+                          <input 
+                            type="password" 
+                            v-model="newPassword"
+                            class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)] font-sans"
+                            :placeholder="t.passwordPlaceholder"
+                            required
+                            minlength="6"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="space-y-2">
+                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider font-sans">
+                          {{ t.confirmPassword }}
+                        </label>
+                        <div class="relative">
+                          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                            <Lock class="w-4 h-4" />
+                          </span>
+                          <input 
+                            type="password" 
+                            v-model="confirmPassword"
+                            class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)] font-sans"
+                            :placeholder="t.passwordPlaceholder"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Save password control submission trigger -->
+                  <div class="flex justify-end pt-2">
+                    <button 
+                      type="submit"
+                      :disabled="changingPassword"
+                      class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 font-bold text-sm shadow-md hover:opacity-90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75 disabled:pointer-events-none transition-all cursor-pointer"
+                    >
+                      <Loader2 v-if="changingPassword" class="w-4 h-4 animate-spin" />
+                      <Lock v-else class="w-4 h-4" />
+                      <span>{{ changingPassword ? t.saving : t.updatePassword }}</span>
+                    </button>
+                  </div>
+                </form>
+
               </div>
             </div>
-          </div>
-
-          <!-- Right Column - Form Fields -->
-          <div class="space-y-6 lg:col-span-2">
-            
-            <!-- Personal Info Card -->
-            <form @submit.prevent="saveProfile" class="bg-white/60 dark:bg-[#1f1e1a]/60 backdrop-blur-md border border-[var(--border)] rounded-2xl p-6 shadow-lg space-y-6">
-              <h3 class="text-lg font-bold text-[var(--text-h)] flex items-center gap-2 border-b border-[var(--border)] pb-3">
-                <User class="w-5 h-5 text-[#0f6d5f] dark:text-[#4cc2a5]" />
-                {{ t.personalInfo }}
-              </h3>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Full name -->
-                <div class="space-y-2">
-                  <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    {{ t.fullName }}
-                  </label>
-                  <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <User class="w-4 h-4" />
-                    </span>
-                    <input 
-                      type="text" 
-                      v-model="name"
-                      class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)]"
-                      placeholder="e.g. John Doe"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <!-- Email Address -->
-                <div class="space-y-2">
-                  <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    {{ t.email }}
-                  </label>
-                  <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <Mail class="w-4 h-4" />
-                    </span>
-                    <input 
-                      type="email" 
-                      v-model="email"
-                      class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)]"
-                      placeholder="e.g. john@example.com"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <!-- Phone number -->
-                <div class="space-y-2 md:col-span-2">
-                  <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    {{ t.phone }}
-                  </label>
-                  <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <Phone class="w-4 h-4" />
-                    </span>
-                    <input 
-                      type="text" 
-                      v-model="phoneNumber"
-                      class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)]"
-                      placeholder="e.g. +855 12 345 678"
-                    />
-                  </div>
-                </div>
-
-                <!-- Bio -->
-                <div class="space-y-2 md:col-span-2">
-                  <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    {{ t.bio }}
-                  </label>
-                  <textarea 
-                    v-model="bio"
-                    rows="3"
-                    class="block w-full px-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)] resize-none"
-                    placeholder="Tell something about yourself..."
-                  ></textarea>
-                </div>
-              </div>
-
-              <!-- Save profile button -->
-              <div class="flex justify-end pt-2">
-                <button 
-                  type="submit"
-                  :disabled="savingProfile"
-                  class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#0f6d5f] dark:bg-[#4cc2a5] text-white dark:text-[#093A3F] font-bold text-sm shadow-md hover:opacity-90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75 disabled:pointer-events-none transition-all cursor-pointer"
-                >
-                  <Loader2 v-if="savingProfile" class="w-4 h-4 animate-spin" />
-                  <Save v-else class="w-4 h-4" />
-                  {{ savingProfile ? t.saving : t.saveChanges }}
-                </button>
-              </div>
-            </form>
-
-            <!-- Password Card -->
-            <form @submit.prevent="savePassword" class="bg-white/60 dark:bg-[#1f1e1a]/60 backdrop-blur-md border border-[var(--border)] rounded-2xl p-6 shadow-lg space-y-6">
-              <h3 class="text-lg font-bold text-[var(--text-h)] flex items-center gap-2 border-b border-[var(--border)] pb-3">
-                <Lock class="w-5 h-5 text-[#0f6d5f] dark:text-[#4cc2a5]" />
-                {{ t.changePassword }}
-              </h3>
-
-              <div class="grid grid-cols-1 gap-6">
-                <!-- Current Password -->
-                <div class="space-y-2">
-                  <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    {{ t.oldPassword }}
-                  </label>
-                  <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                      <Lock class="w-4 h-4" />
-                    </span>
-                    <input 
-                      type="password" 
-                      v-model="oldPassword"
-                      class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)]"
-                      :placeholder="t.passwordPlaceholder"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <!-- New Password & Confirm -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                    <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {{ t.newPassword }}
-                    </label>
-                    <div class="relative">
-                      <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                        <Lock class="w-4 h-4" />
-                      </span>
-                      <input 
-                        type="password" 
-                        v-model="newPassword"
-                        class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)]"
-                        :placeholder="t.passwordPlaceholder"
-                        required
-                        minlength="6"
-                      />
-                    </div>
-                  </div>
-
-                  <div class="space-y-2">
-                    <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {{ t.confirmPassword }}
-                    </label>
-                    <div class="relative">
-                      <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                        <Lock class="w-4 h-4" />
-                      </span>
-                      <input 
-                        type="password" 
-                        v-model="confirmPassword"
-                        class="block w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#171612] border border-[var(--border)] rounded-xl text-sm font-medium outline-none focus:border-[#0f6d5f] dark:focus:border-[#4cc2a5] focus:ring-2 focus:ring-[#0f6d5f]/10 dark:focus:ring-[#4cc2a5]/10 transition-all text-[var(--text-h)]"
-                        :placeholder="t.passwordPlaceholder"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Save password button -->
-              <div class="flex justify-end pt-2">
-                <button 
-                  type="submit"
-                  :disabled="changingPassword"
-                  class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 font-bold text-sm shadow-md hover:opacity-90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-75 disabled:pointer-events-none transition-all cursor-pointer"
-                >
-                  <Loader2 v-if="changingPassword" class="w-4 h-4 animate-spin" />
-                  <Lock v-else class="w-4 h-4" />
-                  {{ changingPassword ? t.saving : t.updatePassword }}
-                </button>
-              </div>
-            </form>
 
           </div>
-
         </div>
-
-      </div>
+      </main>
     </div>
-  </main>
-</div>
-</div>
+  </div>
 </template>
 
 <style scoped>
@@ -578,5 +625,11 @@ onMounted(() => {
 }
 .animate-fadeIn {
   animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Ensure Khmer script characters render legibly and with proper breathing room */
+.font-khmer {
+  font-family: "Kantumruy Pro", "Noto Sans Khmer", sans-serif;
+  line-height: 1.6 !important;
 }
 </style>
