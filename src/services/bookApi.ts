@@ -83,6 +83,9 @@ export interface Book {
   }>;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED" | "DISCONTINUED";
   isFree?: boolean;
+  price?: number;
+  isPurchasable?: boolean;
+  isPremium?: boolean;
   tableOfContents?: string;
   createdAt: string;
   updatedAt: string;
@@ -168,5 +171,8 @@ export const getCategories = async (): Promise<Category[]> => {
 // Tags API
 export const getTags = async (): Promise<Tag[]> => {
   const response = await api.get("/tags");
-  return response.data;
+  const payload = response.data;
+  if (Array.isArray(payload)) return payload;
+  if (payload && typeof payload === "object" && Array.isArray(payload.data)) return payload.data;
+  return [];
 };

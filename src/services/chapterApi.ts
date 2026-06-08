@@ -10,6 +10,9 @@ export interface Chapter {
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
   description?: string;
   wordCount?: number;
+  price?: number;
+  isPurchasable?: boolean;
+  isPremium?: boolean;
   bookId: string;
   createdAt: string;
   updatedAt: string;

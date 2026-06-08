@@ -4,6 +4,9 @@ export interface Chapter {
     duration: string;
     isPremium: boolean;
     isPublic: boolean;
+    isFree: boolean;
+    price: number;
+    isPurchasable: boolean;
 }
 
 export interface Review {
