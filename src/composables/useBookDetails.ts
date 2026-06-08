@@ -61,8 +61,13 @@ function mapToBookDetails(raw: any): BookDetails {
       duration: ch.wordCount
         ? `${Math.max(1, Math.ceil(ch.wordCount / 200))} min`
         : "5 min",
-      isPremium: false,
+      isPremium: ch.isPremium ?? false,
       isPublic: ch.status === "PUBLISHED",
+      isFree: ch.isPremium
+        ? false
+        : (ch.price != null ? (ch.price === 0 || ch.isFree === true) : (raw.isFree ?? false)),
+      price: Number(ch.price ?? 0),
+      isPurchasable: ch.isPurchasable ?? false,
     })),
     reviews: reviews.map((r: any) => {
       const content = splitReviewContent(r.comment);
