@@ -98,6 +98,41 @@
 
           <form @submit.prevent="handleLogin" novalidate class="space-y-5">
 
+            <!-- Role Selection -->
+            <div>
+              <span class="block mb-2 text-[10px] font-semibold tracking-[0.18em] uppercase text-[#666666]">
+                Login As
+              </span>
+              <div class="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  @click="selectedRole = 'user'"
+                  class="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-semibold transition-all duration-150"
+                  :class="selectedRole === 'user'
+                    ? 'border-[#c8862a] bg-[#c8862a]/10 text-[#c8862a]'
+                    : 'border-[#dddddd] bg-white text-[#666666] hover:bg-[#f9f9f9]'"
+                >
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  User
+                </button>
+                <button
+                  type="button"
+                  @click="selectedRole = 'admin'"
+                  class="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-semibold transition-all duration-150"
+                  :class="selectedRole === 'admin'
+                    ? 'border-[#c8862a] bg-[#c8862a]/10 text-[#c8862a]'
+                    : 'border-[#dddddd] bg-white text-[#666666] hover:bg-[#f9f9f9]'"
+                >
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  Admin
+                </button>
+              </div>
+            </div>
+
             <!-- Email -->
             <div>
               <label for="login-email"
@@ -273,9 +308,10 @@ export default defineComponent({
       password: '',
       form: '',
     });
+    const selectedRole = ref<'user' | 'admin'>('user');
     const route = useRoute();
     const router = useRouter();
-    const { startGoogleLogin, startFacebookLogin } = useAuth();
+    const { startGoogleLogin, startFacebookLogin, logout, loginRole } = useAuth();
 
     const registered = computed(() => route.query.registered === '1');
 
@@ -301,8 +337,24 @@ export default defineComponent({
           typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/')
             ? route.query.redirect
             : '/';
-        await loginService({ email: email.value, password: password.value });
-        await router.push(redirectTarget);
+        const result = await loginService({ email: email.value, password: password.value });
+
+        if (selectedRole.value === 'admin' && result.user?.role !== 'ADMIN') {
+          await logout();
+          errors.form = 'You do not have administrator permissions.';
+          isSubmitting.value = false;
+          return;
+        }
+
+        // Store selected role in localStorage and reactive state
+        localStorage.setItem('loginRole', selectedRole.value);
+        loginRole.value = selectedRole.value;
+
+        if (selectedRole.value === 'admin') {
+          await router.push('/admin/dashboard');
+        } else {
+          await router.push(redirectTarget === '/' ? '/home' : redirectTarget);
+        }
       } catch (error) {
         mapApiErrorToForm(
           error,
@@ -323,6 +375,7 @@ export default defineComponent({
       isSubmitting,
       errors,
       registered,
+      selectedRole,
       handleLogin,
       startGoogleLogin,
       startFacebookLogin,
