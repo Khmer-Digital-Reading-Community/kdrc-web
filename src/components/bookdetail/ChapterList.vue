@@ -13,7 +13,7 @@
       </h3>
       <div class="space-y-2">
         <ChapterItem
-          v-for="(chapter, index) in grouped.free"
+          v-for="chapter in grouped.free"
           :key="chapter.id"
           :chapter="chapter"
           :index="chapterIndex(chapter.id)"

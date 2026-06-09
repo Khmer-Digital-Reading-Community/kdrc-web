@@ -8,7 +8,7 @@ import { useReadingLists } from "../../composables/useReadingLists";
 import { token } from "../../services/auth";
 
 const router = useRouter();
-const { myLists, publicLists, loading, create, remove } = useReadingLists();
+const { myLists, publicLists, create } = useReadingLists();
 
 const showCreate = ref(false);
 const newName = ref("");
@@ -35,10 +35,7 @@ const handleCreate = async () => {
   }
 };
 
-const handleDelete = async (id: string) => {
-  if (!confirm("Delete this reading list?")) return;
-  await remove(id);
-};
+
 </script>
 
 <template>

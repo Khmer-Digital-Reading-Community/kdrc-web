@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import QuillEditor from "../../components/common/QuillEditor.vue";
 import ChapterSidebar from "../../components/writing/ChapterSidebar.vue";
@@ -7,7 +7,6 @@ import SettingsDrawer from "../../components/writing/SettingsDrawer.vue";
 import PublishDialog from "../../components/writing/PublishDialog.vue";
 import { ArrowLeft, Save, Settings, Eye } from "lucide-vue-next";
 import { useWritingPage } from "../../composables/useWritingPage";
-import { useBookSettings } from "../../composables/useBookSettings";
 import { useChapterManagement } from "../../composables/useChapterManagement";
 import { usePublishFlow } from "../../composables/usePublishFlow";
 import { getGenres, getCategories, getTags, type Genre, type Category, type Tag } from "../../services/bookApi";
@@ -78,7 +77,7 @@ async function handleNewChapter(type: any) {
     toast.info("Save the book first");
     return;
   }
-  const ch = await mgmt.addChapter(type, undefined, writing.chapters.value);
+  const ch = await mgmt.addChapter(writing.chapters.value, type, undefined);
   if (ch) await writing.selectChapter(ch.id);
 }
 
@@ -214,7 +213,7 @@ function goBack() {
   <div class="flex h-screen overflow-hidden bg-[#F6F1E8]">
     <!-- Left: Chapter Sidebar -->
     <ChapterSidebar
-      v-if="writing.book && writing.book.id !== 'new'"
+      v-if="writing.book.value && writing.book.value.id !== 'new'"
       :chapters="writing.chapters.value"
       :activeChapterId="writing.activeChapterId.value"
       @selectChapter="writing.selectChapter($event)"
@@ -238,8 +237,8 @@ function goBack() {
             <span class="hidden sm:inline text-xs font-medium">Back</span>
           </button>
 
-          <span v-if="writing.book" class="text-sm font-semibold text-[#123C3A] truncate max-w-[200px]">
-            {{ writing.book.title }}
+          <span v-if="writing.book.value" class="text-sm font-semibold text-[#123C3A] truncate max-w-[200px]">
+            {{ writing.book.value.title }}
           </span>
         </div>
 
@@ -274,7 +273,7 @@ function goBack() {
 
           <button
             @click="handlePreview"
-            v-if="writing.book?.id && writing.book.id !== 'new'"
+            v-if="writing.book.value?.id && writing.book.value.id !== 'new'"
             class="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition font-medium"
           >
             <Eye :size="14" />
@@ -293,12 +292,12 @@ function goBack() {
             @click="handlePublish"
             :class="[
               'px-3 py-1.5 rounded-lg text-xs font-bold transition',
-              writing.book?.status === 'PUBLISHED'
+              writing.book.value?.status === 'PUBLISHED'
                 ? 'bg-green-600 text-white hover:bg-green-700'
                 : 'bg-[#c5a050] text-white hover:bg-[#b09040]',
             ]"
           >
-            {{ writing.book?.status === "PUBLISHED" ? "Published" : "Publish" }}
+            {{ writing.book.value?.status === "PUBLISHED" ? "Published" : "Publish" }}
           </button>
         </div>
       </div>

@@ -20,7 +20,7 @@ const emit = defineEmits<{
 }>();
 
 const router = useRouter();
-const { credits, ownedBookIds, loading, purchaseBook, checkOwnership, fetchCredits } =
+const { credits, loading, purchaseBook, checkOwnership } =
   usePurchases();
 
 const owned = ref(false);

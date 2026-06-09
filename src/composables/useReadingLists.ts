@@ -4,7 +4,6 @@ import {
   getPublicLists,
   createReadingList,
   deleteReadingList,
-  updateReadingList,
   addBookToList,
   removeBookFromList,
   type ReadingList,

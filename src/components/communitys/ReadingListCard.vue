@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { BookOpen } from "lucide-vue-next";
 import type { ReadingList } from "../../services/readingListApi";
-import { resolveCoverUrl } from "../../services/exploreApi";
 
 defineProps<{
   list: ReadingList;

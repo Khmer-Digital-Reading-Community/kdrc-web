@@ -14,9 +14,9 @@ export function useChapterManagement(bookId: string) {
   const isProcessing = ref(false);
 
   async function addChapter(
+    chapters: Chapter[],
     type: ChapterCreateType = "CHAPTER",
     templateContent?: string,
-    chapters: Chapter[],
   ): Promise<Chapter | null> {
     isProcessing.value = true;
     try {

@@ -9,7 +9,6 @@ import {
   Save,
   User,
   Mail,
-  Phone,
   Shield,
   CalendarDays,
   Check,

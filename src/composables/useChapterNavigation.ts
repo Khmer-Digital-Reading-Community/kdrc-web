@@ -1,6 +1,5 @@
 import { ref, computed, shallowRef } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
 import api from '../services/api';
 
 export interface Chapter {

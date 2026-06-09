@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useRouter } from "vue-router";
 import Sidebar from "@/components/common/Sidebar.vue";
 import Navbar from "@/components/common/Navbar.vue";
 import PlanCard from "@/components/subscription/PlanCard.vue";
 import { useSubscription } from "../../composables/useSubscription";
 import { token } from "../../services/auth";
 
-const router = useRouter();
 const {
   plans,
   mySubscription,
