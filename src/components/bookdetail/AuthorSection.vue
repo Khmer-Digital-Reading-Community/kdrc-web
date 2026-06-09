@@ -1,101 +1,96 @@
 <template>
-  <div
-    class="flex flex-col lg:flex-row gap-6"
-  >
+  <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <section class="rounded-[28px] bg-white border border-[#E6E0D4] p-8 md:p-10 shadow-[0_18px_45px_rgba(15,59,53,0.06)]">
 
-    <!-- Left -->
-    <div
-      class="flex-1 bg-gray-100/50
-             rounded-2xl p-10
-             flex flex-col justify-between"
-    >
+      <div class="flex items-center gap-4 mb-8">
+        <img
+          v-if="author.image"
+          :src="author.image"
+          :alt="author.name"
+          @error="onAvatarError"
+          class="w-18 h-18 rounded-2xl object-cover border border-[#E6E0D4]"
+        />
 
-      <div>
-
-        <h2
-          class="text-3xl font-bold
-                 text-gray-900 mb-6"
+        <div
+          v-else
+          class="w-18 h-18 rounded-2xl bg-[#0F3B35] text-white flex items-center justify-center text-2xl font-bold"
         >
-          About the Author
-        </h2>
+          {{ authorInitial }}
+        </div>
 
-        <p
-          class="text-gray-600
-                 leading-relaxed text-base"
+        <div>
+          <router-link
+            v-if="author.id"
+            :to="`/author/${author.id}`"
+            class="text-3xl font-bold text-gray-900 hover:text-[#c5a050] transition-colors"
+          >
+            {{ author.name }}
+          </router-link>
+          <h2 v-else class="text-3xl font-bold text-gray-900">
+            {{ author.name }}
+          </h2>
+          <p class="text-sm text-gray-500 mt-1">
+            Author profile
+          </p>
+        </div>
+      </div>
+
+      <p class="text-gray-600 leading-8 text-base whitespace-pre-line">
+        {{ author.bio || "No biography has been added for this author yet." }}
+      </p>
+
+      <div v-if="author.id" class="mt-6">
+        <FollowButton
+          :authorId="author.id"
+          :authorName="author.name"
+        />
+      </div>
+    </section>
+
+    <aside class="rounded-[28px] overflow-hidden border border-[#E6E0D4] bg-[#0F3B35] text-white shadow-[0_18px_45px_rgba(15,59,53,0.08)]">
+      <div class="aspect-[4/5] bg-[#133F39]">
+        <img
+          v-if="author.image"
+          :src="author.image"
+          :alt="author.name"
+          @error="onAvatarError"
+          class="w-full h-full object-cover"
+        />
+        <div
+          v-else
+          class="w-full h-full flex items-center justify-center text-7xl font-black text-white/80"
         >
-          {{ author.bio }}
+          {{ authorInitial }}
+        </div>
+      </div>
+
+      <div class="p-6 border-t border-white/10">
+        <p class="text-xs uppercase tracking-[0.24em] text-white/60 mb-2">
+          Featured Author
         </p>
-
+        <h3 class="text-2xl font-bold">
+          {{ author.name }}
+        </h3>
       </div>
-
-      <div class="mt-12 flex items-center gap-6">
-
-        <button
-          class="text-[#0f3b35]
-                 font-bold text-sm
-                 border-b-2 border-[#0f3b35]
-                 pb-0.5 hover:text-[#1a5f56]
-                 transition-colors"
-        >
-          Follow {{ author.name }}
-        </button>
-
-        <button
-          class="text-gray-500 font-bold
-                 text-sm hover:text-gray-900
-                 transition-colors"
-        >
-          Author Bio
-        </button>
-
-      </div>
-
-    </div>
-
-    <!-- Right Image -->
-    <div
-      class="w-full lg:w-100 relative
-             rounded-2xl overflow-hidden
-             group"
-    >
-
-      <img
-        :src="author.image"
-        :alt="author.name"
-        class="w-full h-87.5 object-cover
-               grayscale brightness-75
-               group-hover:scale-105
-               transition-transform duration-500"
-      />
-
-      <div
-        class="absolute inset-0
-               bg-linear-to-t
-               from-[#0f3b35]/90
-               via-transparent to-transparent
-               flex items-end p-8"
-      >
-
-        <p
-          class="text-white italic
-                 font-serif text-lg
-                 leading-snug"
-        >
-          \"Writing is the only way I know
-          how to listen to the silence.\"
-        </p>
-
-      </div>
-
-    </div>
-
+    </aside>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import type { Author } from "../../types/bookDetails";
+import FollowButton from "./FollowButton.vue";
 
-defineProps<{
+const props = defineProps<{
   author: Author;
 }>();
+
+const authorInitial = computed(() =>
+  props.author.name?.trim().charAt(0).toUpperCase() || "A",
+);
+
+function onAvatarError(event: Event) {
+  const target = event.target as HTMLImageElement;
+  target.style.display = "none";
+}
 </script>

@@ -17,19 +17,62 @@
       </p>
     </div>
 
-    <!-- Chapter transition loading overlay -->
+    <!-- Access Denied State (login / purchase / subscription required) -->
     <div
-      v-if="isTransitioning"
-      class="fixed inset-0 flex flex-col items-center justify-center gap-4 z-50"
-      style="background-color: var(--reader-bg)"
+      v-else-if="accessError && !currentChapter"
+      class="fixed inset-0 flex items-center justify-center p-4 z-50 bg-inherit"
     >
       <div
-        class="w-12 h-12 border-4 border-[#093A3F]/20 border-t-[#093A3F] rounded-full animate-spin"
-      ></div>
-      <p class="text-gray-500 font-medium animate-pulse">Loading next chapter...</p>
+        class="bg-amber-50 border border-amber-200 rounded-2xl p-8 max-w-md text-center shadow-xl"
+      >
+        <div
+          class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4"
+        >
+          <Lock v-if="accessError.requiresPurchase" class="text-amber-600 w-8 h-8" />
+          <Crown v-else-if="accessError.requiresSubscription" class="text-amber-600 w-8 h-8" />
+          <LogIn v-else class="text-amber-600 w-8 h-8" />
+        </div>
+        <h3 class="text-lg font-bold text-amber-900 mb-2">
+          {{ accessError.requiresSubscription ? 'Premium Content' : accessError.requiresPurchase ? 'Paid Chapter' : 'Login Required' }}
+        </h3>
+        <p class="text-amber-700 font-medium mb-6">{{ accessError.reason }}</p>
+        <div class="flex flex-col gap-3">
+          <button
+            v-if="accessError.requiresLogin"
+            @click="router.push('/login')"
+            class="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition-colors shadow-md"
+          >
+            <LogIn :size="18" />
+            Log In to Continue
+          </button>
+          <button
+            v-if="accessError.requiresSubscription"
+            @click="router.push('/subscriptions')"
+            class="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition-colors shadow-md"
+          >
+            <Crown :size="18" />
+            View Subscription Plans
+          </button>
+          <button
+            v-if="accessError.requiresPurchase"
+            @click="router.push(`/book-detail/${route.params.id}`)"
+            class="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition-colors shadow-md"
+          >
+            <ShoppingCart :size="18" />
+            Purchase This Chapter
+          </button>
+          <button
+            @click="router.push('/home')"
+            class="inline-flex items-center justify-center gap-2 px-6 py-2 bg-white border border-amber-300 text-amber-700 rounded-lg hover:bg-amber-100 font-semibold transition-colors"
+          >
+            <ArrowLeft :size="18" />
+            Back to Home
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Error State -->
+    <!-- General Error State -->
     <div
       v-else-if="error && !currentChapter"
       class="fixed inset-0 flex items-center justify-center p-4 z-50"
@@ -364,7 +407,10 @@ import {
   Check,
   AlertTriangle,
   Hash,
-  PanelLeft,
+  LogIn,
+  ShoppingCart,
+  Crown,
+  Lock,
 } from "lucide-vue-next";
 import { useChapterNavigation } from "../../composables/useChapterNavigation";
 import { renderContent } from "../../utils/content";
@@ -385,6 +431,7 @@ const {
   contentCacheKey,
   isLoading,
   error,
+  accessError,
   currentChapterIndex,
   hasNextChapter,
   hasPreviousChapter,

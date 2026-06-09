@@ -12,9 +12,11 @@ import NotificationPopup from "./NotificationPopup.vue";
 import SearchBar from "../search/SearchBar.vue";
 import { useNotifications } from "../../composables/useNotifications";
 
+import { useLanguage } from "../../composables/useLanguage";
+
 const router = useRouter();
 const route = useRoute();
-const { logout } = useAuth();
+const { logout, user } = useAuth();
 
 const mobileOpen = ref(false);
 const langOpen = ref(false);
@@ -96,7 +98,8 @@ const languages = [
 ];
 
 function selectLang(code: string) {
-  currentLang.value = code;
+  const { setLanguage } = useLanguage();
+  setLanguage(code);
   langOpen.value = false;
 }
 
@@ -239,7 +242,7 @@ async function handleLogout() {
           >
             <img
               class="w-10 h-10 left-0 top-0 absolute object-cover"
-              :src="Profile"
+              :src="user?.avatarUrl || Profile"
               alt="User avatar"
             />
           </button>
@@ -502,7 +505,7 @@ async function handleLogout() {
           >
             <img
               class="w-10 h-10 left-0 top-0 absolute object-cover"
-              :src="Profile"
+              :src="user?.avatarUrl || Profile"
               alt="User avatar"
             />
           </button>

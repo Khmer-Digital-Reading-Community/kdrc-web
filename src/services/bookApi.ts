@@ -15,6 +15,12 @@ export interface BookMetadata {
   estimatedReadingTime?: number;
 }
 
+export interface CreateReviewPayload {
+  bookId: string;
+  rating: number;
+  comment?: string;
+}
+
 export interface Genre {
   id: number;
   name: string;
@@ -76,6 +82,10 @@ export interface Book {
     createdAt: string;
   }>;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED" | "DISCONTINUED";
+  isFree?: boolean;
+  price?: number;
+  isPurchasable?: boolean;
+  isPremium?: boolean;
   tableOfContents?: string;
   createdAt: string;
   updatedAt: string;
@@ -141,6 +151,11 @@ export const deleteBook = async (id: string): Promise<void> => {
   await api.delete(`/books/${id}`);
 };
 
+export const createReview = async (data: CreateReviewPayload) => {
+  const response = await api.post("/reviews", data);
+  return response.data;
+};
+
 // Genres API
 export const getGenres = async (): Promise<Genre[]> => {
   const response = await api.get("/genres");
@@ -156,5 +171,8 @@ export const getCategories = async (): Promise<Category[]> => {
 // Tags API
 export const getTags = async (): Promise<Tag[]> => {
   const response = await api.get("/tags");
-  return response.data;
+  const payload = response.data;
+  if (Array.isArray(payload)) return payload;
+  if (payload && typeof payload === "object" && Array.isArray(payload.data)) return payload.data;
+  return [];
 };

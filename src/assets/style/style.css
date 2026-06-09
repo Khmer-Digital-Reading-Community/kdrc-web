@@ -11,6 +11,7 @@
   --border: #ecd9c6;
   --code-bg: #f5efe6;
   --accent: #0f6d5f;
+  --accent-soft: rgba(90, 159, 114, 0.15);
   --accent-bg: rgba(15, 109, 95, 0.1);
   --accent-border: rgba(15, 109, 95, 0.5);
   --social-bg: rgba(255, 255, 255, 0.7);
@@ -37,11 +38,11 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --text: #bfb4a7;
-    --text-h: #B4690E;
-    --bg: #171612;
-    --border: #2f2a22;
+  :root:not(.light) {
+    --text: #524131;
+    --text-h: #1f2d20;
+    --bg: #f7f1e6;
+    --border: #ecd9c6;
     --code-bg: #1e1b16;
     --accent: #4cc2a5;
     --accent-bg: rgba(76, 194, 165, 0.18);
@@ -54,6 +55,23 @@
   #social .button-icon {
     filter: invert(1) brightness(2);
   }
+}
+
+:root.dark {
+  --text: #bfb4a7;
+  --text-h: #f7f1e6;
+  --bg: #171612;
+  --border: #2f2a22;
+  --code-bg: #1e1b16;
+  --accent: #4cc2a5;
+  --accent-bg: rgba(76, 194, 165, 0.18);
+  --accent-border: rgba(76, 194, 165, 0.5);
+  --social-bg: rgba(33, 30, 25, 0.6);
+  --shadow:
+    rgba(0, 0, 0, 0.45) 0 10px 15px -3px, rgba(0, 0, 0, 0.3) 0 4px 6px -2px;
+}
+:root.dark #social .button-icon {
+  filter: invert(1) brightness(2);
 }
 
 body {

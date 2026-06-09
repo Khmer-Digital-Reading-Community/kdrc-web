@@ -8,6 +8,7 @@ export interface ExploreFilters {
   authors?: string[];
   minRating?: number;
   language?: string;
+  isFree?: boolean;
   page?: number;
   limit?: number;
 }
@@ -50,6 +51,7 @@ export function mapToExploreBook(book: any): ExploreBook {
     tags: book.tags?.map((tag: any) => tag.name) || [],
     coverImage: resolveCoverUrl(book.coverImageUrl),
     createdAt: book.createdAt ?? "",
+    isFree: book.isFree ?? false,
   };
 }
 
@@ -78,6 +80,10 @@ export const getExploreBooks = async (
 
     if (filters.minRating && filters.minRating > 0) {
       params.append("minRating", filters.minRating.toString());
+    }
+
+    if (filters.isFree) {
+      params.append("isFree", "true");
     }
 
     if (filters.page) {

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { MoreVertical, Trash2, Edit3 } from "lucide-vue-next";
+import { ref, computed } from "vue";
+import { MoreVertical, Trash2, Edit3, Globe, FileText, Archive } from "lucide-vue-next";
 import { apiBaseUrl } from "@/services/api";
 
-defineProps<{
+const props = defineProps<{
   title: string;
   description?: string;
   words: string;
@@ -15,6 +15,7 @@ defineProps<{
 const emit = defineEmits<{
   edit: [];
   delete: [];
+  setStatus: [status: "PUBLISHED" | "DRAFT" | "ARCHIVED"];
 }>();
 
 const showMenu = ref(false);
@@ -26,6 +27,20 @@ const resolveCoverUrl = (url?: string | null) => {
   if (url.startsWith("http")) return url;
   return `${apiBaseUrl}${url}`;
 };
+
+const statusActions = computed(() => {
+  const actions: { label: string; status: "PUBLISHED" | "DRAFT" | "ARCHIVED"; icon: any; class: string }[] = [];
+  if (props.status !== "PUBLISHED") {
+    actions.push({ label: "Publish", status: "PUBLISHED", icon: Globe, class: "text-green-600 hover:bg-green-50" });
+  }
+  if (props.status !== "DRAFT") {
+    actions.push({ label: "Move to Drafts", status: "DRAFT", icon: FileText, class: "text-amber-600 hover:bg-amber-50" });
+  }
+  if (props.status !== "ARCHIVED") {
+    actions.push({ label: "Archive", status: "ARCHIVED", icon: Archive, class: "text-gray-600 hover:bg-gray-50" });
+  }
+  return actions;
+});
 </script>
 
 <template>
@@ -36,7 +51,6 @@ const resolveCoverUrl = (url?: string | null) => {
     <div
       class="h-64 bg-gradient-to-br from-[#2A241D] to-[#0B0A09] relative overflow-hidden"
     >
-      <!-- Cover Image -->
       <img
         v-if="coverImageUrl && !imageError"
         :src="resolveCoverUrl(coverImageUrl)"
@@ -45,20 +59,18 @@ const resolveCoverUrl = (url?: string | null) => {
         @error="imageError = true"
         class="w-full h-full object-cover"
       />
-
-      <!-- Fallback Gradient (when no image or error) -->
       <div
         v-if="!coverImageUrl || imageError"
         class="w-full h-full bg-gradient-to-br from-[#2A241D] to-[#0B0A09]"
       />
-
-      <!-- Status Badge -->
       <span
         :class="[
           'absolute top-3 right-3 text-[10px] px-3 py-1 rounded-full font-bold uppercase',
           status === 'PUBLISHED'
             ? 'bg-[#2FE0A5] text-[#123C3A]'
-            : 'bg-amber-400 text-[#123C3A]',
+            : status === 'ARCHIVED'
+              ? 'bg-gray-300 text-gray-700'
+              : 'bg-amber-400 text-[#123C3A]',
         ]"
       >
         {{ status }}
@@ -67,30 +79,19 @@ const resolveCoverUrl = (url?: string | null) => {
 
     <!-- Content -->
     <div class="p-4">
-      <!-- Title -->
-      <h2
-        class="font-bold text-[#123C3A] text-lg leading-snug mb-1 line-clamp-1"
-      >
+      <h2 class="font-bold text-[#123C3A] text-lg leading-snug mb-1 line-clamp-1">
         {{ title }}
       </h2>
-
-      <!-- Description -->
       <p class="text-xs text-gray-500 line-clamp-2 mb-3 leading-relaxed">
         {{ description || "No description available" }}
       </p>
-
-      <!-- Meta -->
-      <div
-        class="text-[11px] text-gray-400 space-y-1 mb-4 font-medium uppercase tracking-wider"
-      >
+      <div class="text-[11px] text-gray-400 space-y-1 mb-4 font-medium uppercase tracking-wider">
         <p>{{ words }}</p>
-
         <p>Last Edit: {{ edit }}</p>
       </div>
 
       <!-- Bottom -->
       <div class="flex items-center justify-between relative">
-        <!-- Button -->
         <button
           @click="emit('edit')"
           class="bg-[#1BC47D] hover:bg-[#16a56a] text-white text-xs px-4 py-2 rounded-lg font-medium transition flex items-center gap-2"
@@ -99,7 +100,6 @@ const resolveCoverUrl = (url?: string | null) => {
           Continue Edit
         </button>
 
-        <!-- Menu -->
         <div class="relative">
           <button
             @click="showMenu = !showMenu"
@@ -108,20 +108,26 @@ const resolveCoverUrl = (url?: string | null) => {
             <MoreVertical :size="20" />
           </button>
 
-          <!-- Dropdown -->
           <div
             v-if="showMenu"
-            class="absolute right-0 bottom-full mb-2 w-36 bg-white rounded-xl shadow-xl border border-gray-100 z-10 overflow-hidden"
+            class="absolute right-0 bottom-full mb-2 w-44 bg-white rounded-xl shadow-xl border border-gray-100 z-10 overflow-hidden"
           >
             <button
-              @click="
-                emit('delete');
-                showMenu = false;
-              "
-              class="w-full px-4 py-2 text-left text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
+              v-for="action in statusActions"
+              :key="action.status"
+              @click="emit('setStatus', action.status); showMenu = false"
+              :class="['w-full px-4 py-2.5 text-left text-xs flex items-center gap-2 transition', action.class]"
+            >
+              <component :is="action.icon" :size="14" />
+              {{ action.label }}
+            </button>
+            <hr class="border-gray-100" />
+            <button
+              @click="emit('delete'); showMenu = false"
+              class="w-full px-4 py-2.5 text-left text-xs text-red-600 hover:bg-red-50 flex items-center gap-2 transition"
             >
               <Trash2 :size="14" />
-              Delete Story
+              Delete Book
             </button>
           </div>
         </div>

@@ -79,11 +79,13 @@
             :sortBy="sortBy"
             :activeCategory="activeCategory"
             :activeLanguage="activeLanguage"
+            :showFreeOnly="showFreeOnly"
             @toggleFilter="isMobileFilterOpen = true"
             @toggleSort="
               sortBy =
                 sortBy === 'Newest Arrivals' ? 'Top Rated' : 'Newest Arrivals'
             "
+            @toggleFree="toggleFreeOnly"
           />
 
           <div v-if="loading" class="text-center py-24">Loading books...</div>
@@ -129,6 +131,7 @@ const {
   selectedGenres,
   selectedAuthors,
   minRating,
+  showFreeOnly,
   categories,
   genres,
   authors,
@@ -140,6 +143,7 @@ const {
   toggleGenre,
   toggleAuthor,
   updateRating,
+  toggleFreeOnly,
   clearFilters,
 } = useExploreFilters(books);
 
@@ -176,6 +180,7 @@ watch(
     selectedGenres,
     selectedAuthors,
     minRating,
+    showFreeOnly,
     sortBy,
   ],
   () => {
