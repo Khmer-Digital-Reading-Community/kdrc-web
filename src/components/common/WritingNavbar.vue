@@ -24,6 +24,32 @@ const emit = defineEmits<{
 
 const projectType = ref<'formal-book' | 'short-story'>('formal-book')
 const showNotifications = ref(false)
+const notifHoverMode = ref(false)
+let notifHoverTimeout: ReturnType<typeof setTimeout> | null = null
+
+function onNotifEnter() {
+  if (notifHoverTimeout) clearTimeout(notifHoverTimeout)
+  notifHoverMode.value = true
+  showNotifications.value = true
+}
+
+function onNotifLeave() {
+  notifHoverTimeout = setTimeout(() => {
+    showNotifications.value = false
+    notifHoverMode.value = false
+  }, 200)
+}
+
+function onNotifPopupEnter() {
+  if (notifHoverTimeout) clearTimeout(notifHoverTimeout)
+}
+
+function onNotifPopupLeave() {
+  notifHoverTimeout = setTimeout(() => {
+    showNotifications.value = false
+    notifHoverMode.value = false
+  }, 200)
+}
 </script>
 
 <template>
@@ -85,7 +111,12 @@ const showNotifications = ref(false)
         {{ status === 'PUBLISHED' ? 'Published' : 'Publish' }}
       </button>
 
-      <button class="text-[#FDE9D0]/70 hover:text-[#FDE9D0] transition-colors" @click="showNotifications = !showNotifications">
+      <button
+        class="text-[#FDE9D0]/70 hover:text-[#FDE9D0] transition-colors"
+        @click="showNotifications = !showNotifications"
+        @mouseenter="onNotifEnter"
+        @mouseleave="onNotifLeave"
+      >
         <Bell :size="20" />
       </button>
 
@@ -98,6 +129,9 @@ const showNotifications = ref(false)
   <!-- Notification Popup -->
   <NotificationPopup
     :isOpen="showNotifications"
+    :hoverMode="notifHoverMode"
     @close="showNotifications = false"
+    @popupEnter="onNotifPopupEnter"
+    @popupLeave="onNotifPopupLeave"
   />
 </template>

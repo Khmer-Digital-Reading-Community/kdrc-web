@@ -17,25 +17,16 @@
       </p>
     </div>
 
-    <!-- Skeleton Loading (chapter transition) -->
+    <!-- Chapter transition loading overlay -->
     <div
-      v-if="isLoading && currentChapter && showSkeleton"
-      class="fixed inset-0 z-40 flex items-start justify-center pt-32"
+      v-if="isTransitioning"
+      class="fixed inset-0 flex flex-col items-center justify-center gap-4 z-50"
       style="background-color: var(--reader-bg)"
     >
-      <div class="max-w-3xl mx-auto px-6 sm:px-8 w-full animate-pulse">
-        <div class="text-center mb-16">
-          <div class="h-8 bg-current/10 rounded-lg w-64 mx-auto mb-4"></div>
-          <div class="h-4 bg-current/10 rounded-lg w-32 mx-auto"></div>
-        </div>
-        <div class="space-y-4">
-          <div class="h-4 bg-current/10 rounded w-full"></div>
-          <div class="h-4 bg-current/10 rounded w-5/6"></div>
-          <div class="h-4 bg-current/10 rounded w-4/6"></div>
-          <div class="h-4 bg-current/10 rounded w-full"></div>
-          <div class="h-4 bg-current/10 rounded w-3/4"></div>
-        </div>
-      </div>
+      <div
+        class="w-12 h-12 border-4 border-[#093A3F]/20 border-t-[#093A3F] rounded-full animate-spin"
+      ></div>
+      <p class="text-gray-500 font-medium animate-pulse">Loading next chapter...</p>
     </div>
 
     <!-- Error State -->
@@ -303,7 +294,7 @@
               :style="contentStyle"
             >
               <div
-                v-html="renderedContent"
+                v-html="displayContent"
                 class="article-body"
               ></div>
               <!-- Sentinel for progressive loading -->
@@ -397,10 +388,7 @@ const {
   currentChapterIndex,
   hasNextChapter,
   hasPreviousChapter,
-  nextChapter,
-  previousChapter,
   totalChapters,
-  progressPercentage,
   initializeReading,
   goToNextChapter,
   goToPreviousChapter,
@@ -420,7 +408,7 @@ const showSidebar = ref(true);
 const fontSize = ref(18);
 const currentTheme = ref<keyof typeof themes>("light");
 const currentFont = ref<"serif" | "sans">("serif");
-const showSkeleton = ref(false);
+const isTransitioning = ref(false);
 
 const isMobile = ref(false);
 
@@ -466,26 +454,26 @@ const headerStyle = computed(() => {
   return { backgroundColor: bg + (isScrolled.value ? "e6" : "cc") };
 });
 
-// Memoized rendered content — only re-parses when cache key changes
-const renderedContent = computed(() => {
-  void contentCacheKey.value;
-  void visibleChunks.value;
+// Display content ref — populated async to avoid blocking the main thread
+const displayContent = ref("");
 
-  if (contentChunks.value.length > 0) {
-    return contentChunks.value.slice(0, visibleChunks.value).join("");
+const processContent = () => {
+  const full = renderContent(currentChapterContent.value);
+  if (!full) {
+    displayContent.value = "";
+    return;
   }
 
-  const full = renderContent(currentChapterContent.value);
-  if (!full) return "";
-
-  // Split into chunks for progressive rendering
   const parser = new DOMParser();
   const doc = parser.parseFromString(
     `<div id="root">${full}</div>`,
     "text/html",
   );
   const root = doc.getElementById("root");
-  if (!root) return full;
+  if (!root) {
+    displayContent.value = full;
+    return;
+  }
 
   const blockElements = Array.from(root.children);
   const chunks: string[] = [];
@@ -496,8 +484,8 @@ const renderedContent = computed(() => {
 
   contentChunks.value = chunks;
   visibleChunks.value = 1;
-  return chunks.slice(0, 1).join("");
-});
+  displayContent.value = chunks.slice(0, 1).join("");
+};
 
 // Font + font-size as inline style to avoid re-rendering content
 const contentStyle = computed(() => ({
@@ -509,6 +497,13 @@ const contentStyle = computed(() => ({
 const changeFontSize = (delta: number) => {
   fontSize.value = Math.min(Math.max(fontSize.value + delta, 14), 32);
 };
+
+// Update display content when visible chunks change (progressive loading)
+watch(visibleChunks, () => {
+  if (contentChunks.value.length > 0) {
+    displayContent.value = contentChunks.value.slice(0, visibleChunks.value).join("");
+  }
+});
 
 // IntersectionObserver for progressive content loading
 let contentObserver: IntersectionObserver | null = null;
@@ -791,16 +786,22 @@ const flushProgressSync = () => {
   syncChapterScrollToBackend.flush();
 };
 
-// Reset chunks when content changes
-watch(contentCacheKey, () => {
+// Reset chunks when content changes — yield twice so browser paints the overlay
+watch(contentCacheKey, async () => {
   contentChunks.value = [];
   visibleChunks.value = 1;
-  showSkeleton.value = true;
+  displayContent.value = "";
+  isTransitioning.value = true;
 
-  requestAnimationFrame(() => {
-    showSkeleton.value = false;
-    setupContentObserver();
-  });
+  await nextTick();
+  await new Promise(r => setTimeout(r, 0));
+  await new Promise(r => setTimeout(r, 0));
+
+  processContent();
+  isTransitioning.value = false;
+
+  await nextTick();
+  setupContentObserver();
 });
 
 onMounted(async () => {

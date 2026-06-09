@@ -61,6 +61,11 @@ export default [
         component: () => import("../pages/user/exchangeDashboard_v2.vue"),
       },
       { path: "book-detail/:id", name: "book-detail", component: BookDetail },
+      {
+        path: "notifications",
+        name: "notifications",
+        component: () => import("../pages/user/NotificationsPage.vue"),
+      },
     ],
   },
   {
