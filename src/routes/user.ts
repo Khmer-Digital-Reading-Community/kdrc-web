@@ -62,24 +62,9 @@ export default [
       },
       { path: "book-detail/:id", name: "book-detail", component: BookDetail },
       {
-        path: "author/:id",
-        name: "author-profile",
-        component: () => import("../pages/user/AuthorProfile.vue"),
-      },
-      {
-        path: "library",
-        name: "library",
-        component: () => import("../pages/user/Library.vue"),
-      },
-      {
-        path: "subscriptions",
-        name: "subscriptions",
-        component: () => import("../pages/user/SubscriptionPlans.vue"),
-      },
-      {
-        path: "reading-lists",
-        name: "reading-lists",
-        component: () => import("../pages/user/ReadingLists.vue"),
+        path: "notifications",
+        name: "notifications",
+        component: () => import("../pages/user/NotificationsPage.vue"),
       },
     ],
   },

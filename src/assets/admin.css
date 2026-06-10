@@ -76,15 +76,7 @@
   background: var(--admin-bg);
 }
 
-.admin-layout h1,
-.admin-layout h2,
-.admin-layout h3,
-.admin-layout h4,
-.admin-layout h5,
-.admin-layout h6 {
-  color: var(--admin-text);
-  font-family: var(--admin-font);
-}
+
 
 .admin-content {
   max-width: 1400px;
@@ -101,8 +93,15 @@
 }
 
 @keyframes adminFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .admin-page-header {
@@ -159,10 +158,25 @@
   flex-shrink: 0;
 }
 
-.admin-stat-icon.green { background: var(--admin-accent-soft); color: var(--admin-accent); }
-.admin-stat-icon.blue { background: var(--admin-stat-blue-bg); color: var(--admin-info); }
-.admin-stat-icon.amber { background: var(--admin-stat-amber-bg); color: var(--admin-warning); }
-.admin-stat-icon.red { background: var(--admin-stat-red-bg); color: var(--admin-danger); }
+.admin-stat-icon.green {
+  background: var(--admin-accent-soft);
+  color: var(--admin-accent);
+}
+
+.admin-stat-icon.blue {
+  background: var(--admin-stat-blue-bg);
+  color: var(--admin-info);
+}
+
+.admin-stat-icon.amber {
+  background: var(--admin-stat-amber-bg);
+  color: var(--admin-warning);
+}
+
+.admin-stat-icon.red {
+  background: var(--admin-stat-red-bg);
+  color: var(--admin-danger);
+}
 
 .admin-stat-label {
   font-size: 0.8rem;
@@ -287,7 +301,9 @@
   color: #fff;
 }
 
-.admin-btn-primary:hover { background: #2f5540; }
+.admin-btn-primary:hover {
+  background: #2f5540;
+}
 
 .admin-btn-secondary {
   background: var(--admin-bg);
@@ -295,7 +311,9 @@
   border: 1px solid var(--admin-border);
 }
 
-.admin-btn-secondary:hover { background: var(--admin-border); }
+.admin-btn-secondary:hover {
+  background: var(--admin-border);
+}
 
 .admin-btn-danger {
   background: var(--admin-btn-danger-bg);
@@ -303,7 +321,9 @@
   border: 1px solid var(--admin-btn-danger-border);
 }
 
-.admin-btn-danger:hover { filter: brightness(1.08); }
+.admin-btn-danger:hover {
+  filter: brightness(1.08);
+}
 
 .admin-btn:disabled {
   opacity: 0.5;
@@ -351,11 +371,30 @@
   text-transform: capitalize;
 }
 
-.admin-badge.success { background: var(--admin-badge-success-bg); color: var(--admin-badge-success-text); }
-.admin-badge.warning { background: var(--admin-badge-warning-bg); color: var(--admin-badge-warning-text); }
-.admin-badge.danger { background: var(--admin-badge-danger-bg); color: var(--admin-danger); }
-.admin-badge.neutral { background: var(--admin-badge-neutral-bg); color: var(--admin-badge-neutral-text); }
-.admin-badge.info { background: var(--admin-badge-info-bg); color: var(--admin-badge-info-text); }
+.admin-badge.success {
+  background: var(--admin-badge-success-bg);
+  color: var(--admin-badge-success-text);
+}
+
+.admin-badge.warning {
+  background: var(--admin-badge-warning-bg);
+  color: var(--admin-badge-warning-text);
+}
+
+.admin-badge.danger {
+  background: var(--admin-badge-danger-bg);
+  color: var(--admin-danger);
+}
+
+.admin-badge.neutral {
+  background: var(--admin-badge-neutral-bg);
+  color: var(--admin-badge-neutral-text);
+}
+
+.admin-badge.info {
+  background: var(--admin-badge-info-bg);
+  color: var(--admin-badge-info-text);
+}
 
 .admin-empty {
   padding: 3rem 1.5rem;
@@ -363,7 +402,10 @@
   color: var(--admin-muted);
 }
 
-.admin-empty svg { opacity: 0.35; margin-bottom: 0.75rem; }
+.admin-empty svg {
+  opacity: 0.35;
+  margin-bottom: 0.75rem;
+}
 
 .admin-loading {
   padding: 3rem;
@@ -393,8 +435,14 @@
   transition: background 0.15s;
 }
 
-.admin-icon-btn:hover { background: var(--admin-border); }
-.admin-icon-btn.danger:hover { background: var(--admin-btn-danger-bg); color: var(--admin-danger); }
+.admin-icon-btn:hover {
+  background: var(--admin-border);
+}
+
+.admin-icon-btn.danger:hover {
+  background: var(--admin-btn-danger-bg);
+  color: var(--admin-danger);
+}
 
 .admin-modal-backdrop {
   position: fixed;
@@ -426,9 +474,14 @@
   border-bottom: 1px solid var(--admin-border);
 }
 
-.admin-modal-header h3 { margin: 0; font-size: 1.15rem; }
+.admin-modal-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
 
-.admin-modal-body { padding: 1.25rem; }
+.admin-modal-body {
+  padding: 1.25rem;
+}
 
 .admin-modal-footer {
   display: flex;
@@ -489,8 +542,12 @@
   animation: adminFadeIn 0.25s ease;
 }
 
-.admin-toast.error { background: var(--admin-danger); }
+.admin-toast.error {
+  background: var(--admin-danger);
+}
 
 @media (max-width: 768px) {
-  .admin-form-row { grid-template-columns: 1fr; }
+  .admin-form-row {
+    grid-template-columns: 1fr;
+  }
 }

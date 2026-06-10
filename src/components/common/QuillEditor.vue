@@ -30,12 +30,13 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   update: [content: string];
   "update:content": [content: string];
-  textChange: [payload: { json: string }];
+  textChange: [payload: { json: string; html: string }];
 }>();
 
 const fileInputRef = ref<HTMLInputElement>();
 const linkUrl = ref("");
 const showLinkInput = ref(false);
+const suppressContentWatch = ref(false);
 
 const editor = useEditor({
   content: props.content,
@@ -58,16 +59,22 @@ const editor = useEditor({
     Subscript,
   ],
   onUpdate({ editor }) {
+    suppressContentWatch.value = true;
+    const html = editor.getHTML();
     const json = JSON.stringify(editor.getJSON());
     emit("update", json);
-    emit("update:content", json);
-    emit("textChange", { json });
+    emit("update:content", html);
+    emit("textChange", { json, html });
   },
 });
 
 watch(
   () => props.content,
   (incoming) => {
+    if (suppressContentWatch.value) {
+      suppressContentWatch.value = false;
+      return;
+    }
     if (!editor.value || !incoming) return;
     try {
       const json = JSON.parse(incoming);

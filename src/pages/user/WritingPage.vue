@@ -5,6 +5,7 @@ import QuillEditor from "../../components/common/QuillEditor.vue";
 import ChapterSidebar from "../../components/writing/ChapterSidebar.vue";
 import SettingsDrawer from "../../components/writing/SettingsDrawer.vue";
 import PublishDialog from "../../components/writing/PublishDialog.vue";
+import PreviewModal from "../../components/writing/PreviewModal.vue";
 import { ArrowLeft, Save, Settings, Eye } from "lucide-vue-next";
 import { useWritingPage } from "../../composables/useWritingPage";
 
@@ -38,9 +39,6 @@ function getChapterMgmt() {
   return chapterMgmt;
 }
 
-// Editor ref
-const editorRef = ref<any>(null);
-
 // Load dropdown data lazily when settings drawer opens
 watch(showSettings, async (open) => {
   if (open && !settingsInitialized) {
@@ -59,17 +57,6 @@ watch(showSettings, async (open) => {
     }
   }
 });
-
-// Editor event handlers
-function onEditorChange() {
-  if (editorRef.value) {
-    const html = editorRef.value.getHTML();
-    if (html !== writing.editorContent.value) {
-      writing.editorContent.value = html;
-      writing.markDirty();
-    }
-  }
-}
 
 // Chapter management wrappers
 async function handleNewChapter(type: any) {
@@ -195,10 +182,10 @@ async function handleConfirmPublish() {
 }
 
 // Preview
+const showPreview = ref(false);
+
 function handlePreview() {
-  if (writing.book.value) {
-    router.push(`/reading/${writing.book.value.id}`);
-  }
+  showPreview.value = true;
 }
 
 function goBack() {
@@ -274,7 +261,6 @@ function goBack() {
 
           <button
             @click="handlePreview"
-            v-if="writing.book.value?.id && writing.book.value.id !== 'new'"
             class="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition font-medium"
           >
             <Eye :size="14" />
@@ -325,9 +311,7 @@ function goBack() {
 
           <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
             <QuillEditor
-              ref="editorRef"
               :content="writing.editorContent.value"
-              @textChange="onEditorChange"
               @update:content="writing.editorContent.value = $event; writing.markDirty()"
             />
           </div>
@@ -362,6 +346,15 @@ function goBack() {
       :isPublishing="publish.isPublishing.value"
       @close="publish.closePublishDialog()"
       @confirm="handleConfirmPublish()"
+    />
+
+    <!-- Preview Modal -->
+    <PreviewModal
+      :open="showPreview"
+      :book-title="writing.book.value?.title || 'Untitled'"
+      :chapter-title="writing.activeChapter.value?.title || ''"
+      :content="writing.editorContent.value"
+      @close="showPreview = false"
     />
   </div>
 </template>

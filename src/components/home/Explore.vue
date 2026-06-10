@@ -1,35 +1,28 @@
 <template>
-    <section ref="sectionRoot" class="reveal-on-scroll bg-white py-10 px-4 md:py-16 md:px-8 lg:px-16">
+    <section class="bg-white py-8 px-4 md:py-14 md:px-8">
         <div class="max-w-[1280px] mx-auto">
 
             <!-- Section Header -->
-            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-10">
+            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-8">
                 <div class="flex flex-col items-start">
-                    <p class="text-[11px] font-bold text-[#c5a050] uppercase tracking-[0.16em] mb-2">
-                        Discover by genre
-                    </p>
-                    <h2 class="font-['Playfair_Display',Georgia,serif] text-[28px] md:text-[32px] font-bold text-[#012D1D]">
+                   
+                    <p class=" text-[28px] font-bold  !text-black  ">
                         Explorations
-                    </h2>
+                    </p>
                 </div>
-                <router-link
-                    to="/explore"
-                    class="text-[11px] font-bold tracking-[0.12em] text-[#1c3a2e] uppercase
-                           hover:text-[#c5a050] transition-colors duration-200 flex items-center gap-1.5 group"
-                >
+                <router-link to="/explore" class="text-[11px] font-bold tracking-[0.12em] text-[#1c3a2e] uppercase hover:text-[#c5a050] transition-colors duration-200 flex items-center gap-1.5">
                     View All Genres
-                    <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                 </router-link>
             </div>
-
             <!-- Genre Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 auto-rows-[220px] lg:auto-rows-[240px]">
 
                 <!-- Khmer Literature — large left hero card -->
-                <div class="genre-card lg:col-span-5 lg:row-span-2 md:row-span-2 row-span-1 relative rounded-2xl overflow-hidden cursor-pointer group"
-                    @click="selectGenre(genres[0])">
+                <div v-if="genres[0]" class="lg:col-span-5 lg:row-span-2 md:row-span-2 row-span-1 relative rounded-2xl overflow-hidden cursor-pointer group"
+                    @click="navigateToGenre(genres[0])">
                     <img :src="genres[0].image" alt="Khmer Literature"
                         class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                     <div class="absolute inset-0 bg-gradient-to-t from-[#0a1e14]/90 via-[#0a1e14]/30 to-transparent">
@@ -74,13 +67,13 @@
 
                 <!-- Education — top middle -->
                 <div v-for="(genre, i) in genres.slice(1, 5)" :key="genre.id" :class="[
-                    'genre-card relative rounded-2xl overflow-hidden cursor-pointer group',
+                    'relative rounded-2xl overflow-hidden cursor-pointer group',
                     'lg:row-span-1',
                     i === 0 ? 'lg:col-span-4' : '',
                     i === 1 ? 'lg:col-span-3' : '',
                     i === 2 ? 'lg:col-span-3' : '',
                     i === 3 ? 'lg:col-span-4' : '',
-                ]" :style="{ background: genre.bg }" @click="selectGenre(genre)">
+                ]" :style="{ background: genre.bg }" @click="navigateToGenre(genre)">
                     <!-- Background image if available -->
                     <img v-if="genre.image" :src="genre.image" :alt="genre.name"
                         class="absolute inset-0 w-full h-full object-cover opacity-20 transition-opacity duration-300 group-hover:opacity-30" />
@@ -94,10 +87,10 @@
                     <div class="relative z-10 p-5 h-full flex flex-col justify-between">
                         <div class="flex items-start justify-between">
                             <span class="text-3xl">{{ genre.icon }}</span>
-                            <span class="text-[10px] font-bold tracking-[0.1em] uppercase px-2.5 py-1 rounded-full"
+                            <!-- <span class="text-[10px] font-bold tracking-[0.1em] uppercase px-2.5 py-1 rounded-full"
                                 :class="genre.badgeClass">
                                 {{ genre.count }}
-                            </span>
+                            </span> -->
                         </div>
                         <div>
                             <h3 class="font-['Playfair_Display'] text-[18px] font-bold leading-tight mb-0.5"
@@ -113,8 +106,8 @@
                 </div>
 
                 <!-- Free Books — bottom right spanning -->
-                <div class="genre-card lg:col-span-7 lg:row-span-1 row-span-1 relative rounded-2xl overflow-hidden cursor-pointer group"
-                    :style="{ background: genres[5].bg }" @click="selectGenre(genres[5])">
+                <div v-if="genres[5]" class="lg:col-span-7 lg:row-span-1 row-span-1 relative rounded-2xl overflow-hidden cursor-pointer group"
+                    :style="{ background: genres[5].bg }" @click="navigateToGenre(genres[5])">
                     <img :src="genres[5].image" alt="Free Books"
                         class="absolute inset-0 w-full h-full object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-300" />
                     <div
@@ -139,7 +132,7 @@
                         </div>
                         <button class="flex-none flex items-center gap-2 bg-[#1c3a2e] text-white
                      text-[12px] font-bold px-5 py-2.5 rounded-xl
-                     group-hover:bg-[#c5a050] transition-colors duration-250">
+                     group-hover:bg-[#c5a050] transition-colors duration-200">
                             Browse Free
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                                 stroke-width="2.5">
@@ -158,7 +151,7 @@
                     activePill === pill
                         ? 'bg-[#1c3a2e] text-white border-[#1c3a2e]'
                         : 'bg-white text-gray-600 border-[#e8e4dc] hover:border-[#c5a050] hover:text-[#c5a050]'
-                ]" @click="selectPill(pill)">
+                ]" @click="navigateToPill(pill)">
                     {{ pill }}
                 </button>
             </div>
@@ -168,146 +161,82 @@
 </template>
 
 <script>
-const module = import.meta.glob('../../assets/images/books/*.{png,jpg,jpeg}', { eager: true })
+import { getGenres } from '../../services/bookApi'
+import { getExploreBooks } from '../../services/exploreApi'
 
-const images = Object.fromEntries(
-    Object.entries(module).map(([path, mod]) => {
-        const name = path.split('/').pop()?.replace(/\.(png|jpg|jpeg)$/, '') || ''
-        return [name, mod.default]
-    })
-)
+const themes = [
+    { bg: '#1c3a2e', textClass: 'text-white', badgeClass: 'bg-[#c5a050] text-white', hoverOverlay: 'bg-[#c5a050]/10' },
+    { bg: '#f5d97a', textClass: 'text-gray-900', badgeClass: 'bg-[#1c3a2e] text-white', hoverOverlay: 'bg-black/5' },
+    { bg: '#f0ece4', textClass: 'text-gray-900', badgeClass: 'bg-[#1c3a2e] text-white', hoverOverlay: 'bg-[#1c3a2e]/5' },
+    { bg: '#e8f0ee', textClass: 'text-gray-900', badgeClass: 'bg-[#1c3a2e] text-white', hoverOverlay: 'bg-[#1c3a2e]/5' },
+    { bg: '#ede8e0', textClass: 'text-gray-900', badgeClass: 'bg-[#c5a050] text-white', hoverOverlay: 'bg-[#c5a050]/10' },
+    { bg: '#e8ede8', textClass: 'text-gray-900', badgeClass: 'bg-[#1c3a2e] text-white', hoverOverlay: '' },
+]
+
+function formatTag(slug) {
+    return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
 export default {
     name: 'ExploreGenres',
 
     data() {
         return {
+            loading: true,
             activePill: 'All',
-            allGenres: [
-                'All', 'Fiction', 'Non-Fiction', 'History', 'Science', 'Philosophy',
-                'Poetry', 'Children', 'Art', 'Religion', 'Law', 'Economics', 'Biography',
-            ],
-            genres: [
-                {
-                    id: 1,
-                    name: 'Khmer Literature',
-                    slug: 'Khmer Literature',
-                    tag: 'Heritage & Culture',
-                    icon: '',
-                    count: '1,240',
-                    image: images['Book 4'],
-                    tags: ['Classic', 'Folk Tales', 'Poetry', 'Modern'],
-                    bg: '#1c3a2e',
-                    textClass: 'text-white',
-                    badgeClass: 'bg-[#c5a050] text-white',
-                    hoverOverlay: 'bg-[#c5a050]/10',
-                },
-                {
-                    id: 2,
-                    name: 'Education',
-                    slug: 'Education',
-                    tag: 'Educational Learning',
-                    icon: '',
-                    count: '843',
-                    image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&q=80',
-                    bg: '#f5d97a',
-                    textClass: 'text-gray-900',
-                    badgeClass: 'bg-[#1c3a2e] text-white',
-                    hoverOverlay: 'bg-black/5',
-                },
-                {
-                    id: 3,
-                    name: 'Novels',
-                    slug: 'Fiction',
-                    tag: 'Fictional Worlds',
-                    icon: '',
-                    count: '2,110',
-                    image: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&q=80',
-                    bg: '#f0ece4',
-                    textClass: 'text-gray-900',
-                    badgeClass: 'bg-[#1c3a2e] text-white',
-                    hoverOverlay: 'bg-[#1c3a2e]/5',
-                },
-                {
-                    id: 4,
-                    name: 'Science',
-                    slug: 'Science',
-                    tag: 'Knowledge & Discovery',
-                    icon: '',
-                    count: '560',
-                    image: 'https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=400&q=80',
-                    bg: '#e8f0ee',
-                    textClass: 'text-gray-900',
-                    badgeClass: 'bg-[#1c3a2e] text-white',
-                    hoverOverlay: 'bg-[#1c3a2e]/5',
-                },
-                {
-                    id: 5,
-                    name: 'History',
-                    slug: 'History',
-                    tag: 'Past & Present',
-                    icon: '',
-                    count: '720',
-                    image: 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=400&q=80',
-                    bg: '#ede8e0',
-                    textClass: 'text-gray-900',
-                    badgeClass: 'bg-[#c5a050] text-white',
-                    hoverOverlay: 'bg-[#c5a050]/10',
-                },
-                {
-                    id: 6,
-                    name: 'Free Books',
-                    slug: 'free',
-                    tag: 'Open Access Gallery',
-                    icon: '',
-                    count: '3,400+',
-                    image: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800&q=80',
-                    bg: '#e8ede8',
-                    textClass: 'text-gray-900',
-                    badgeClass: 'bg-[#1c3a2e] text-white',
-                    hoverOverlay: '',
-                },
-            ],
+            allGenres: ['All'],
+            genres: [],
         }
     },
 
-    mounted() {
-        this.initReveal()
-    },
-    beforeUnmount() {
-        if (this._revealObserver) this._revealObserver.disconnect()
+    async created() {
+        try {
+            const [apiGenres, books] = await Promise.all([
+                getGenres(),
+                getExploreBooks({ limit: 100 }).catch(() => []),
+            ])
+
+            const coverMap = {}
+            for (const book of books) {
+                const g = book.genre
+                const key = (typeof g === 'string' ? g : '').toLowerCase().trim()
+                if (key && book.coverImage && !coverMap[key]) {
+                    coverMap[key] = book.coverImage
+                }
+            }
+
+            this.genres = apiGenres.slice(0, 6).map((g, i) => {
+                const slug = (g.slug || g.name || '').toLowerCase().trim()
+                const theme = themes[i % themes.length]
+                return {
+                    id: g.id,
+                    name: g.name || slug,
+                    tag: formatTag(slug),
+                    icon: g.icon || '\uD83D\uDCD6',
+                    count: g.bookCount ? `${g.bookCount}+` : '0',
+                    image: g.coverImage || coverMap[slug] || '',
+                    tags: g.tags || [],
+                    bg: theme.bg,
+                    textClass: theme.textClass,
+                    badgeClass: theme.badgeClass,
+                    hoverOverlay: theme.hoverOverlay,
+                }
+            })
+
+            const names = apiGenres.map(g => g.name).filter(Boolean)
+            this.allGenres = names.length > 0 ? ['All', ...names] : ['All']
+        } catch {
+        } finally {
+            this.loading = false
+        }
     },
 
     methods: {
-        initReveal() {
-            const root = this.$refs.sectionRoot
-            if (!root || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                root?.classList.add('reveal-visible')
-                return
-            }
-            this._revealObserver = new IntersectionObserver(
-                ([entry]) => {
-                    if (entry?.isIntersecting) {
-                        root.classList.add('reveal-visible')
-                        this._revealObserver?.disconnect()
-                    }
-                },
-                { threshold: 0.06 },
-            )
-            this._revealObserver.observe(root)
+        navigateToGenre(genre) {
+            const query = genre?.name ? { genres: genre.name } : {}
+            this.$router.push({ path: '/explore', query })
         },
-
-        selectGenre(genre) {
-            if (genre.slug === 'free') {
-                this.$router.push({ path: '/explore', query: { category: 'Free' } })
-                return
-            }
-            this.$router.push({
-                path: '/explore',
-                query: genre.slug ? { genres: genre.slug } : {},
-            })
-        },
-
-        selectPill(pill) {
+        navigateToPill(pill) {
             this.activePill = pill
             if (pill === 'All') {
                 this.$router.push('/explore')
@@ -318,16 +247,3 @@ export default {
     },
 }
 </script>
-
-<style scoped>
-@import '../../assets/style/home.css';
-
-.genre-card {
-    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
-}
-
-.genre-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px -12px rgba(1, 45, 29, 0.2);
-}
-</style>
