@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import api from '../services/api';
+import { exchangeService } from '../services/exchange.service';
 
 type ExchangeResult = {
     id: string;
@@ -26,14 +26,12 @@ export function useExchangeSearch() {
     const performSearch = async () => {
         loading.value = true;
         try {
-            const response = await api.get('/exchanges', {
-                params: {
-                    search: searchQuery.value,
-                    condition: selectedCondition.value,
-                    location: selectedLocation.value,
-                    page: currentPage.value,
-                    limit: 10,
-                },
+            const response = await exchangeService.search({
+                search: searchQuery.value,
+                condition: selectedCondition.value,
+                location: selectedLocation.value,
+                page: currentPage.value,
+                limit: 10,
             });
 
             const actualPayload = response.data;
