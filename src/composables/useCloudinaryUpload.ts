@@ -30,11 +30,6 @@ export const useCloudinaryUpload = () => {
       const response = await axios.post(
         `${API_BASE_URL}/upload/${type}`,
         formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        },
       );
 
       return response.data;
