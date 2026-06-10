@@ -5,6 +5,7 @@ import QuillEditor from "../../components/common/QuillEditor.vue";
 import ChapterSidebar from "../../components/writing/ChapterSidebar.vue";
 import SettingsDrawer from "../../components/writing/SettingsDrawer.vue";
 import PublishDialog from "../../components/writing/PublishDialog.vue";
+import PreviewModal from "../../components/writing/PreviewModal.vue";
 import { ArrowLeft, Save, Settings, Eye } from "lucide-vue-next";
 import { useWritingPage } from "../../composables/useWritingPage";
 
@@ -195,10 +196,10 @@ async function handleConfirmPublish() {
 }
 
 // Preview
+const showPreview = ref(false);
+
 function handlePreview() {
-  if (writing.book.value) {
-    router.push(`/reading/${writing.book.value.id}`);
-  }
+  showPreview.value = true;
 }
 
 function goBack() {
@@ -274,7 +275,6 @@ function goBack() {
 
           <button
             @click="handlePreview"
-            v-if="writing.book.value?.id && writing.book.value.id !== 'new'"
             class="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition font-medium"
           >
             <Eye :size="14" />
@@ -362,6 +362,15 @@ function goBack() {
       :isPublishing="publish.isPublishing.value"
       @close="publish.closePublishDialog()"
       @confirm="handleConfirmPublish()"
+    />
+
+    <!-- Preview Modal -->
+    <PreviewModal
+      :open="showPreview"
+      :book-title="writing.book.value?.title || 'Untitled'"
+      :chapter-title="writing.activeChapter.value?.title || ''"
+      :content="writing.editorContent.value"
+      @close="showPreview = false"
     />
   </div>
 </template>
