@@ -1,7 +1,7 @@
 <template>
   <div class="admin-layout" :class="{ 'admin-theme-dark': isDark }">
-    <AdminSidebar />
-    <div class="admin-main">
+    <AdminSidebar @update:collapsed="sidebarCollapsed = $event" />
+    <div class="admin-main" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
       <AdminHeader />
       <main class="admin-content">
         <router-view />
@@ -11,13 +11,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import '../assets/admin.css';
 import AdminSidebar from '../components/admin/AdminSidebar.vue';
 import AdminHeader from '../components/admin/AdminHeader.vue';
 import { useAdminTheme } from '../composables/useAdminTheme';
 
 const { isDark, initTheme } = useAdminTheme();
+const sidebarCollapsed = ref(false);
 
 onMounted(() => initTheme());
 </script>
@@ -35,6 +36,11 @@ onMounted(() => initTheme());
   display: flex;
   flex-direction: column;
   min-width: 0;
+  transition: margin-left 0.25s ease;
+}
+
+.admin-main.sidebar-collapsed {
+  margin-left: 68px;
 }
 
 .admin-content {
@@ -44,7 +50,8 @@ onMounted(() => initTheme());
 }
 
 @media (max-width: 768px) {
-  .admin-main {
+  .admin-main,
+  .admin-main.sidebar-collapsed {
     margin-left: 0;
   }
 
