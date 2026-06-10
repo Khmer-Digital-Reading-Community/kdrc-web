@@ -55,7 +55,47 @@
                 <div class="bar-track">
                   <div
                     class="bar-track-fill"
-                    :style="{ width: statusPercent(row.count) + '%' }"
+                    :style="{ width: statusPercent(row.count, maxBooks) + '%' }"
+                  />
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="admin-card">
+          <div class="admin-card-header"><h3>Exchange listings by status</h3></div>
+          <div class="admin-card-body">
+            <div v-if="!exchangesByStatus.length" class="admin-empty">No exchange listings yet</div>
+            <ul v-else class="status-list">
+              <li v-for="row in exchangesByStatus" :key="row.status">
+                <span class="admin-badge" :class="exchangeTone(row.status)">{{ row.status }}</span>
+                <span class="count">{{ row.count }}</span>
+                <div class="bar-track">
+                  <div
+                    class="bar-track-fill exchange"
+                    :style="{ width: statusPercent(row.count, maxExchanges) + '%' }"
+                  />
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header"><h3>Trades by status</h3></div>
+          <div class="admin-card-body">
+            <div v-if="!tradesByStatus.length" class="admin-empty">No trade proposals yet</div>
+            <ul v-else class="status-list">
+              <li v-for="row in tradesByStatus" :key="row.status">
+                <span class="admin-badge neutral">{{ row.status.replace('_', ' ') }}</span>
+                <span class="count">{{ row.count }}</span>
+                <div class="bar-track">
+                  <div
+                    class="bar-track-fill trade"
+                    :style="{ width: statusPercent(row.count, maxTrades) + '%' }"
                   />
                 </div>
               </li>
@@ -69,7 +109,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Users, BookOpen, MessageSquare, Flag } from 'lucide-vue-next';
+import { Users, BookOpen, MessageSquare, Flag, ArrowLeftRight } from 'lucide-vue-next';
 import { fetchAdminAnalytics } from '../../services/adminApi';
 
 interface AnalyticsPayload {
@@ -82,6 +122,8 @@ interface AnalyticsPayload {
   };
   userGrowth: { month: string; count: string }[];
   booksByStatus: { status: string; count: string }[];
+  exchangesByStatus?: { status: string; count: string }[];
+  tradesByStatus?: { status: string; count: string }[];
 }
 
 const loading = ref(true);
@@ -89,6 +131,8 @@ const data = ref<AnalyticsPayload | null>(null);
 
 const userGrowth = computed(() => data.value?.userGrowth ?? []);
 const booksByStatus = computed(() => data.value?.booksByStatus ?? []);
+const exchangesByStatus = computed(() => data.value?.exchangesByStatus ?? []);
+const tradesByStatus = computed(() => data.value?.tradesByStatus ?? []);
 
 const maxUsers = computed(() =>
   Math.max(...userGrowth.value.map((r) => Number(r.count)), 1),
@@ -96,6 +140,14 @@ const maxUsers = computed(() =>
 
 const maxBooks = computed(() =>
   Math.max(...booksByStatus.value.map((r) => Number(r.count)), 1),
+);
+
+const maxExchanges = computed(() =>
+  Math.max(...exchangesByStatus.value.map((r) => Number(r.count)), 1),
+);
+
+const maxTrades = computed(() =>
+  Math.max(...tradesByStatus.value.map((r) => Number(r.count)), 1),
 );
 
 const metricCards = computed(() => {
@@ -106,20 +158,28 @@ const metricCards = computed(() => {
     { label: 'Books', value: s.totalBooks, icon: BookOpen, tone: 'green' },
     { label: 'Comments', value: s.totalComments, icon: MessageSquare, tone: 'amber' },
     { label: 'Open reports', value: s.totalReports, icon: Flag, tone: 'red' },
+    {
+      label: 'Exchange listings',
+      value: (s as { totalExchangeListings?: number }).totalExchangeListings ?? 0,
+      icon: ArrowLeftRight,
+      tone: 'blue',
+    },
   ];
 });
 
 const barHeight = (count: string) =>
   Math.round((Number(count) / maxUsers.value) * 100);
 
-const statusPercent = (count: string) =>
-  Math.round((Number(count) / maxBooks.value) * 100);
+const statusPercent = (count: string, max: number) =>
+  Math.round((Number(count) / max) * 100);
 
 const statusTone = (s: string) => {
   if (s === 'PUBLISHED') return 'success';
   if (s === 'DRAFT') return 'warning';
   return 'neutral';
 };
+
+const exchangeTone = (s: string) => (s === 'ACTIVE' ? 'success' : 'neutral');
 
 onMounted(async () => {
   try {
@@ -202,6 +262,14 @@ onMounted(async () => {
   height: 100%;
   background: var(--admin-accent);
   border-radius: 4px;
+}
+
+.bar-track-fill.exchange {
+  background: #8b5cf6;
+}
+
+.bar-track-fill.trade {
+  background: #0ea5e9;
 }
 
 @media (max-width: 900px) {

@@ -61,6 +61,7 @@ import {
   LogOut,
   Menu,
   UserCircle2,
+  ArrowLeftRight,
 } from 'lucide-vue-next';
 import { useAuth } from '../../stores/useAuth';
 import { fetchAdminStats } from '../../services/adminApi';
@@ -83,6 +84,7 @@ const navSections = [
     label: 'Content',
     items: [
       { to: '/admin/books', label: 'Books', icon: BookOpen },
+      { to: '/admin/exchanges', label: 'Exchanges', icon: ArrowLeftRight },
       { to: '/admin/challenges', label: 'Challenges', icon: Trophy },
     ],
   },
