@@ -170,7 +170,7 @@ async function handleSaveChapter(data: any) {
 async function handlePublish() {
   if (!writing.book.value) return;
   if (writing.book.value.status === "PUBLISHED") {
-    publish.confirmPublish(writing.book.value);
+    publish.confirmPublish(writing.book.value, writing.chapters.value);
   } else {
     publish.openPublishDialog(writing.chapters.value);
   }
@@ -178,7 +178,7 @@ async function handlePublish() {
 
 async function handleConfirmPublish() {
   if (!writing.book.value) return;
-  await publish.confirmPublish(writing.book.value);
+  await publish.confirmPublish(writing.book.value, writing.chapters.value);
 }
 
 // Preview
