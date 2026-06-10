@@ -19,7 +19,14 @@
         </div>
 
         <div>
-          <h2 class="text-3xl font-bold text-gray-900">
+          <router-link
+            v-if="author.id"
+            :to="`/author/${author.id}`"
+            class="text-3xl font-bold text-gray-900 hover:text-[#c5a050] transition-colors"
+          >
+            {{ author.name }}
+          </router-link>
+          <h2 v-else class="text-3xl font-bold text-gray-900">
             {{ author.name }}
           </h2>
           <p class="text-sm text-gray-500 mt-1">
@@ -31,6 +38,13 @@
       <p class="text-gray-600 leading-8 text-base whitespace-pre-line">
         {{ author.bio || "No biography has been added for this author yet." }}
       </p>
+
+      <div v-if="author.id" class="mt-6">
+        <FollowButton
+          :authorId="author.id"
+          :authorName="author.name"
+        />
+      </div>
     </section>
 
     <aside class="rounded-[28px] overflow-hidden border border-[#E6E0D4] bg-[#0F3B35] text-white shadow-[0_18px_45px_rgba(15,59,53,0.08)]">
@@ -65,6 +79,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { Author } from "../../types/bookDetails";
+import FollowButton from "./FollowButton.vue";
 
 const props = defineProps<{
   author: Author;

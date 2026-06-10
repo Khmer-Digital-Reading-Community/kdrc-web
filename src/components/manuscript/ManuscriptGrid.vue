@@ -14,6 +14,7 @@ defineProps<{
 
 const emit = defineEmits<{
   delete: [id: string];
+  setStatus: [id: string, status: "PUBLISHED" | "DRAFT" | "ARCHIVED"];
 }>();
 
 const router = useRouter();
@@ -42,6 +43,7 @@ const handleEdit = (id: string) => {
       :coverImageUrl="book.coverImageUrl"
       @edit="handleEdit(book.id)"
       @delete="emit('delete', book.id)"
+      @setStatus="emit('setStatus', book.id, $event)"
     />
   </section>
 </template>

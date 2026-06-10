@@ -12,6 +12,7 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
   const selectedGenres = ref<string[]>([]);
   const selectedAuthors = ref<string[]>([]);
   const minRating = ref<number>(0);
+  const showFreeOnly = ref<boolean>(false);
 
   // Initialize filters from URL query params
   const initializeFiltersFromURL = () => {
@@ -35,6 +36,10 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
 
     if (query.rating && typeof query.rating === "string") {
       minRating.value = parseFloat(query.rating) || 0;
+    }
+
+    if (query.isFree === "true") {
+      showFreeOnly.value = true;
     }
   };
 
@@ -102,7 +107,8 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
       activeLanguage.value !== "All" ||
       selectedGenres.value.length > 0 ||
       selectedAuthors.value.length > 0 ||
-      minRating.value > 0
+      minRating.value > 0 ||
+      showFreeOnly.value
     );
   });
 
@@ -142,12 +148,18 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
     syncURLParams();
   };
 
+  const toggleFreeOnly = () => {
+    showFreeOnly.value = !showFreeOnly.value;
+    syncURLParams();
+  };
+
   const clearFilters = () => {
     activeCategory.value = "All Categories";
     activeLanguage.value = "All";
     selectedGenres.value = [];
     selectedAuthors.value = [];
     minRating.value = 0;
+    showFreeOnly.value = false;
     syncURLParams();
   };
 
@@ -173,6 +185,10 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
 
     if (minRating.value > 0) {
       query.rating = minRating.value.toString();
+    }
+
+    if (showFreeOnly.value) {
+      query.isFree = "true";
     }
 
     router.push({
@@ -223,6 +239,13 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
       );
     }
 
+    // Free only filter
+    if (showFreeOnly.value) {
+      result = result.filter(
+        (book: ExploreBook) => book.isFree === true,
+      );
+    }
+
     return result;
   });
 
@@ -233,6 +256,7 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
     selectedGenres,
     selectedAuthors,
     minRating,
+    showFreeOnly,
 
     // Computed
     categories,
@@ -249,6 +273,7 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
     toggleGenre,
     toggleAuthor,
     updateRating,
+    toggleFreeOnly,
     clearFilters,
   };
 }

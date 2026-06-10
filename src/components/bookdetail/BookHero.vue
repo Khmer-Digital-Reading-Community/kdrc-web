@@ -66,13 +66,16 @@
       </div>
 
       <!-- Title -->
-      <h1
-        class="text-4xl md:text-5xl
-               font-extrabold text-gray-900
-               tracking-tight mb-2"
-      >
-        {{ book.title }}
-      </h1>
+      <div class="flex items-center gap-3 mb-2">
+        <h1
+          class="text-4xl md:text-5xl
+                 font-extrabold text-gray-900
+                 tracking-tight"
+        >
+          {{ book.title }}
+        </h1>
+        <PremiumBadge v-if="book.isPremium" />
+      </div>
 
       <!-- Author -->
       <p class="text-gray-500 mb-8">
@@ -102,6 +105,19 @@
         @bookmark="$emit('bookmark')"
       />
 
+      <PurchaseButton
+        :book-id="book.id"
+        :price="book.price"
+        :is-purchasable="book.isPurchasable"
+        :is-free="book.isFree"
+        item-type="BOOK"
+        :item-id="book.id"
+        :item-name="book.title"
+        class="mb-8"
+        @purchased="$emit('read')"
+        @purchase="$emit('purchase', $event)"
+      />
+
       <!-- Stats -->
       <BookMetaStats
         :pages="book.pages"
@@ -119,6 +135,8 @@ import type { BookDetails } from "../../types/bookDetails";
 
 import BookActionButtons from "./BookActionButtons.vue";
 import BookMetaStats from "./BookMetaStats.vue";
+import PurchaseButton from "./PurchaseButton.vue";
+import PremiumBadge from "../common/PremiumBadge.vue";
 
 defineProps<{
   book: BookDetails;
@@ -128,6 +146,7 @@ defineProps<{
 defineEmits([
   "read",
   "bookmark",
+  "purchase",
 ]);
 
 function onCoverError(event: Event) {

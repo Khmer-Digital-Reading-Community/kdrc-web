@@ -10,4 +10,5 @@ export interface ExploreBook {
     coverImage: string;
     tags?: string[];
     createdAt: string;
+    isFree?: boolean;
 }

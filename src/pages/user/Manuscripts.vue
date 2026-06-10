@@ -5,7 +5,7 @@ import Navbar from "@/components/common/Navbar.vue";
 
 import ManuscriptFilters from "@/components/manuscript/ManuscriptFilters.vue";
 import ManuscriptGrid from "@/components/manuscript/ManuscriptGrid.vue";
-import { getMyBooks, deleteBook, type Book } from "@/services/bookApi";
+import { getMyBooks, deleteBook, updateBook, type Book } from "@/services/bookApi";
 
 const books = ref<Book[]>([]);
 const searchQuery = ref("");
@@ -52,6 +52,16 @@ const handleDeleteBook = async (id: string) => {
   }
 };
 
+const handleSetStatus = async (id: string, status: "PUBLISHED" | "DRAFT" | "ARCHIVED") => {
+  try {
+    await updateBook(id, { status } as any);
+    const book = books.value.find((b) => b.id === id);
+    if (book) book.status = status;
+  } catch (error) {
+    alert("Failed to update book status");
+  }
+};
+
 onMounted(fetchBooks);
 </script>
 
@@ -80,6 +90,7 @@ onMounted(fetchBooks);
           v-else
           :books="filteredBooks"
           @delete="handleDeleteBook"
+          @setStatus="handleSetStatus"
         />
       </main>
     </div>

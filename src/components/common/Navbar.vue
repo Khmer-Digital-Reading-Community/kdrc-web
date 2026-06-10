@@ -50,7 +50,7 @@ const publicNavLinks = [
 const authenticatedNavLinks = [
   { label: "Home", path: "/home" },
   { label: "Explore", path: "/explore" },
-  { label: "Library", path: "/exchange-v2" },
+  { label: "Exchange", path: "/exchange-v2" },
   { label: "Trade Center", path: "/dashboard/exchange-dashboard-v2" },
   // { label: 'Stories', path: '/reading/1' },
   { label: "Community", path: "/community" },

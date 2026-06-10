@@ -232,123 +232,140 @@
   </section>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import api from "../../services/api";
+import { fetchRecommendations } from "../../services/community";
 import { useBookmarks } from "../../composables/useBookmarks";
+import { token } from "../../services/auth";
+import { resolveCoverUrl } from "../../services/exploreApi";
 
-export default {
-  name: "RecommendedSection",
+const { fetchBookmarks, isBookmarked, toggleBookBookmark } = useBookmarks();
 
-  setup() {
-    const { fetchBookmarks, isBookmarked, toggleBookBookmark } = useBookmarks();
+interface RecBook {
+  id: string;
+  title: string;
+  author: string;
+  genre: string;
+  desc: string;
+  cover: string | null;
+  rating: string;
+  readTime: string;
+  saved: boolean;
+  tab: string;
+}
 
-    return {
-      fetchBookmarks,
-      isBookmarked,
-      toggleBookBookmark,
-    };
-  },
+interface TopBook {
+  id: string;
+  title: string;
+  meta: string;
+  cover: string | null;
+}
 
-  data() {
-    return {
-      activeTab: "Popular",
-      tabs: ["Popular", "Newest", "Critics"],
-      books: [],
-      topBooks: [],
-      loading: false,
-    };
-  },
+const activeTab = ref("Popular");
+const tabs = ["Popular", "Newest", "Critics"];
+const books = ref<RecBook[]>([]);
+const topBooks = ref<TopBook[]>([]);
+const loading = ref(false);
+const sectionRoot = ref<HTMLElement | null>(null);
+let _revealObserver: IntersectionObserver | null = null;
 
-  computed: {
-    filteredBooks() {
-      return this.books.filter((b) => b.tab === this.activeTab);
-    },
-  },
+const filteredBooks = computed(() =>
+  books.value.filter((b) => b.tab === activeTab.value),
+);
 
-  async created() {
-    await this.fetchBookmarks();
-    await this.fetchBooks();
-  },
+function mapBook(book: any, tab: string): RecBook {
+  return {
+    id: book.id,
+    title: book.title || "Untitled",
+    author: book.author?.name || "Unknown Author",
+    genre: book.categories?.[0]?.name || book.genre?.name || "General",
+    desc: book.description
+      ? book.description.replace(/<[^>]*>/g, "").substring(0, 200) + "..."
+      : "No description available.",
+    cover: resolveCoverUrl(book.coverImageUrl),
+    rating: book.rating ? Number(book.rating).toFixed(1) : (4.5 + Math.random() * 0.5).toFixed(1),
+    readTime: book.pageCount
+      ? `${Math.ceil(book.pageCount * 1.5)} min read`
+      : `${10 + Math.floor(Math.random() * 20)} min read`,
+    saved: isBookmarked(book.id),
+    tab,
+  };
+}
 
-  mounted() {
-    this.initReveal();
-  },
+async function fetchBooks() {
+  loading.value = true;
+  try {
+    let allBooks: any[] = [];
 
-  beforeUnmount() {
-    if (this._revealObserver) this._revealObserver.disconnect();
-  },
-
-  methods: {
-    initReveal() {
-      const root = this.$refs.sectionRoot;
-      if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        root?.classList.add("reveal-visible");
-        return;
-      }
-      this._revealObserver = new IntersectionObserver(
-        ([entry]) => {
-          if (entry?.isIntersecting) {
-            root.classList.add("reveal-visible");
-            this._revealObserver?.disconnect();
-          }
-        },
-        { threshold: 0.06 },
-      );
-      this._revealObserver.observe(root);
-    },
-
-    async fetchBooks() {
-      this.loading = true;
+    if (token.value) {
       try {
-        const response = await api.get("/books");
-        const payload = response.data;
-        const allBooks = Array.isArray(payload)
-          ? payload
-          : Array.isArray(payload?.data)
-            ? payload.data
-            : [];
+        allBooks = await fetchRecommendations(12);
+      } catch {
+        // fallback to general books list
+      }
+    }
 
-        // Map API books into the display format and assign tabs cyclically
-        const tabMap = ["Popular", "Newest", "Critics"];
-        this.books = allBooks.map((book, index) => ({
-          id: book.id,
-          title: book.title || "Untitled",
-          author: book.author?.name || "Unknown Author",
-          genre: book.categories?.[0]?.name || book.genre?.name || book.genre || "General",
-          desc: book.description
-            ? book.description.replace(/<[^>]*>/g, "").substring(0, 200) + "..."
-            : "No description available.",
-          cover: book.cover || book.coverImageUrl || null,
-          rating: book.rating || (4.5 + Math.random() * 0.5).toFixed(1),
-          readTime: book.pageCount
-            ? `${Math.ceil(book.pageCount * 1.5)} min read`
-            : `${10 + Math.floor(Math.random() * 20)} min read`,
-          saved: this.isBookmarked(book.id),
-          tab: tabMap[index % tabMap.length],
-        }));
+    if (!allBooks.length) {
+      const response = await api.get("/books");
+      const payload = response.data;
+      allBooks = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+          ? payload.data
+          : [];
+    }
 
-        // Use first 3 books as top books
-        this.topBooks = allBooks.slice(0, 3).map((book) => ({
-          id: book.id,
-          title: book.title || "Untitled",
-          meta: `${book.categories?.[0]?.name || "General"} • ${book.pageCount || "—"} pages`,
-          cover: book.cover || book.coverImageUrl || null,
-        }));
-      } catch (err) {
-        console.error("Error fetching recommended books:", err);
-        this.books = [];
-        this.topBooks = [];
-      } finally {
-        this.loading = false;
+    const tabMap = ["Popular", "Newest", "Critics"];
+    books.value = allBooks.map((book, i) => mapBook(book, tabMap[i % tabMap.length]));
+
+    topBooks.value = allBooks.slice(0, 3).map((book) => ({
+      id: book.id,
+      title: book.title || "Untitled",
+      meta: `${book.categories?.[0]?.name || book.genre?.name || "General"} • ${book.pageCount || "—"} pages`,
+      cover: resolveCoverUrl(book.coverImageUrl),
+    }));
+  } catch (err) {
+    console.error("Error fetching recommended books:", err);
+    books.value = [];
+    topBooks.value = [];
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function toggleSave(book: RecBook) {
+  await toggleBookBookmark(book.id);
+  book.saved = isBookmarked(book.id);
+}
+
+function initReveal() {
+  const root = sectionRoot.value;
+  if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    root?.classList.add("reveal-visible");
+    return;
+  }
+  _revealObserver = new IntersectionObserver(
+    ([entry]) => {
+      if (entry?.isIntersecting) {
+        root.classList.add("reveal-visible");
+        _revealObserver?.disconnect();
       }
     },
+    { threshold: 0.06 },
+  );
+  _revealObserver.observe(root);
+}
 
-    async toggleSave(book) {
-      await this.toggleBookBookmark(book.id);
-      book.saved = this.isBookmarked(book.id);
-    },
-  },
-};
+onMounted(async () => {
+  await fetchBookmarks();
+  await fetchBooks();
+  initReveal();
+});
+
+onBeforeUnmount(() => {
+  _revealObserver?.disconnect();
+});
 </script>
 
 <style scoped>
