@@ -58,6 +58,11 @@
               <BookOpen :size="20" />
               <span>Manage books</span>
             </router-link>
+            <router-link to="/admin/exchanges" class="quick-card">
+              <ArrowLeftRight :size="20" />
+              <span>Manage exchanges</span>
+              <span v-if="stats?.pendingExchangeRequests" class="quick-badge">{{ stats.pendingExchangeRequests }} pending</span>
+            </router-link>
           </div>
         </div>
       </div>
@@ -73,6 +78,7 @@ import {
   MessageSquare,
   Flag,
   Trophy,
+  ArrowLeftRight,
 } from 'lucide-vue-next';
 import {
   fetchAdminStats,
@@ -116,6 +122,13 @@ const statCards = computed(() => {
       hint: `${s.totalReviews} reviews`,
       icon: Trophy,
       tone: 'green',
+    },
+    {
+      label: 'Exchange listings',
+      value: (s.totalExchangeListings ?? 0).toLocaleString(),
+      hint: `${s.activeExchangeListings ?? 0} active · ${s.pendingExchangeRequests ?? 0} pending trades`,
+      icon: ArrowLeftRight,
+      tone: 'blue',
     },
   ];
 });
@@ -187,6 +200,8 @@ onMounted(async () => {
 .activity-icon.book_added { background: var(--admin-info); }
 .activity-icon.comment { background: var(--admin-warning); }
 .activity-icon.report { background: var(--admin-danger); }
+.activity-icon.exchange_listing { background: #8b5cf6; }
+.activity-icon.exchange_trade { background: #0ea5e9; }
 
 .activity-title {
   margin: 0;

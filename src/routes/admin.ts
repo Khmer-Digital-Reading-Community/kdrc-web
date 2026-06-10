@@ -8,6 +8,7 @@ export default [
             { path: '', redirect: { name: 'admin-dashboard' } },
             { path: 'dashboard', name: 'admin-dashboard', component: () => import('../pages/admin/page.vue') },
             { path: 'books', name: 'admin-books', component: () => import('../pages/admin/Books.vue') },
+            { path: 'exchanges', name: 'admin-exchanges', component: () => import('../pages/admin/Exchanges.vue') },
             { path: 'challenges', name: 'admin-challenges', component: () => import('../pages/admin/Challenges.vue') },
             { path: 'users', name: 'admin-users', component: () => import('../pages/admin/Users.vue') },
             { path: 'notifications', name: 'admin-notifications', component: () => import('../pages/admin/Notifications.vue') },

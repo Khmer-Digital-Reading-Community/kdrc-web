@@ -12,14 +12,64 @@ export interface AdminStats {
   pendingReports: number;
   newUsersThisMonth: number;
   newBooksThisMonth: number;
+  totalExchangeListings: number;
+  activeExchangeListings: number;
+  totalExchangeRequests: number;
+  pendingExchangeRequests: number;
+  newExchangeListingsThisMonth: number;
 }
 
 export interface AdminActivityItem {
   id: string;
-  type: 'user_registered' | 'book_added' | 'comment' | 'report';
+  type: 'user_registered' | 'book_added' | 'comment' | 'report' | 'exchange_listing' | 'exchange_trade';
   title: string;
   subtitle: string;
   timestamp: string;
+}
+
+export interface AdminExchangeListing {
+  id: string;
+  title: string;
+  author: string;
+  imageUrl: string;
+  condition: string;
+  exchangeType: string;
+  location: string;
+  listingStatus: string;
+  contactNumber?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  owner?: { id: string; name?: string; email: string } | null;
+}
+
+export interface AdminExchangeRequest {
+  id: string;
+  status: string;
+  message?: string | null;
+  meetingLocation?: string | null;
+  meetingTime?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  exchange?: {
+    id: string;
+    title: string;
+    author: string;
+    imageUrl: string;
+    location: string;
+    owner?: { id: string; name?: string; email: string } | null;
+  } | null;
+  requester?: { id: string; name?: string; email: string } | null;
+  offeredExchange?: {
+    id: string;
+    title: string;
+    author: string;
+    imageUrl: string;
+  } | null;
+}
+
+export interface PaginatedAdminResult<T> {
+  data: T[];
+  meta: { total: number; page: number; lastPage: number };
 }
 
 export interface AdminUser {
@@ -93,3 +143,37 @@ export const deleteAdminReport = (id: string) =>
 
 export const updateMyProfile = (data: { name?: string; bio?: string; avatarUrl?: string }) =>
   api.patch('/users/me', data).then((r) => r.data);
+
+export const fetchAdminExchanges = (params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  listingStatus?: string;
+}) =>
+  api
+    .get<PaginatedAdminResult<AdminExchangeListing>>('/admin/exchanges', { params })
+    .then((r) => r.data);
+
+export const updateAdminExchange = (
+  id: string,
+  data: { listingStatus: string },
+) => api.patch(`/admin/exchanges/${id}`, data).then((r) => r.data);
+
+export const deleteAdminExchange = (id: string) =>
+  api.delete(`/admin/exchanges/${id}`).then((r) => r.data);
+
+export const fetchAdminExchangeRequests = (params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+}) =>
+  api
+    .get<PaginatedAdminResult<AdminExchangeRequest>>('/admin/exchange-requests', { params })
+    .then((r) => r.data);
+
+export const updateAdminExchangeRequest = (id: string, status: string) =>
+  api.patch(`/admin/exchange-requests/${id}`, { status }).then((r) => r.data);
+
+export const deleteAdminExchangeRequest = (id: string) =>
+  api.delete(`/admin/exchange-requests/${id}`).then((r) => r.data);
