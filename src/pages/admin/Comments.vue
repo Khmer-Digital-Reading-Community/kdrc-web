@@ -298,6 +298,7 @@ interface Comment {
   id: string;
   content: string;
   bookId?: string;
+  pageNumber?: number;
   userId: string;
   user?: User;
   likes: number;
