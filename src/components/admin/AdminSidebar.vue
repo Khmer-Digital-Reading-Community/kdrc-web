@@ -124,13 +124,10 @@ import {
   UserCircle2,
   PanelLeftClose,
   PanelLeftOpen,
+  ArrowLeftRight,
 } from "lucide-vue-next";
 import { useAuth } from "../../stores/useAuth";
 import { fetchAdminStats } from "../../services/adminApi";
-
-const emit = defineEmits<{
-  (e: "update:collapsed", value: boolean): void;
-}>();
 
 const route = useRoute();
 const router = useRouter();
@@ -152,6 +149,7 @@ const navSections = [
     label: "Content",
     items: [
       { to: "/admin/books", label: "Books", icon: BookOpen },
+      { to: "/admin/exchanges", label: "Exchanges", icon: ArrowLeftRight },
       { to: "/admin/challenges", label: "Challenges", icon: Trophy },
     ],
   },

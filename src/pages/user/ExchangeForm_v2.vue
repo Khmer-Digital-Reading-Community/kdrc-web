@@ -149,7 +149,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { exchangeService } from '../../services/exchange.service'; 
+import { exchangeService } from '../../services/exchange.service';
+import { authState } from '../../services/auth';
 
 const router = useRouter();
 const route = useRoute();
@@ -192,6 +193,14 @@ const form = reactive<ExchangeForm>({
 });
 
 onMounted(() => {
+  if (!authState.token.value) {
+    router.push({
+      path: '/login',
+      query: { redirect: route.fullPath },
+    });
+    return;
+  }
+
   const title = route.query.title;
   const author = route.query.author;
 
@@ -252,7 +261,11 @@ const submitForm = async () => {
     formData.append('exchangeType', form.exchangeType);
     formData.append('author', form.author);
     formData.append('tradingFor', form.tradingFor);
-    
+
+    if (form.contactNumber.trim()) {
+      formData.append('contactNumber', form.contactNumber.trim());
+    }
+
     if (form.exchangeType === 'SELL' && form.price) {
       formData.append('price', form.price.toString());
     }
