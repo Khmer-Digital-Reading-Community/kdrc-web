@@ -84,25 +84,32 @@ export const useReadingProgress = () => {
   }
 
   /**
-   * Get all reading progress
+   * Populate in-memory cache from localStorage on first access
    */
-  const getAllProgress = (): ReadingProgressData[] => {
-    const allProgress: ReadingProgressData[] = []
-
-    // Load all from localStorage
+  const loadAllFromLocalStorage = () => {
+    const map = new Map<string, ReadingProgressData>()
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
       if (key?.startsWith('reading_progress_')) {
         try {
+          const chapterId = key.replace('reading_progress_', '')
           const data = JSON.parse(localStorage.getItem(key) || '{}')
-          allProgress.push(data)
-        } catch (error) {
-          console.error('Failed to parse progress data:', error)
-        }
+          map.set(chapterId, data)
+        } catch {}
       }
     }
+    progressData.value = map
+  }
 
-    return allProgress.sort((a, b) => {
+  /**
+   * Get all reading progress from in-memory cache
+   */
+  const getAllProgress = (): ReadingProgressData[] => {
+    if (progressData.value.size === 0) {
+      loadAllFromLocalStorage()
+    }
+
+    return Array.from(progressData.value.values()).sort((a, b) => {
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     })
   }
@@ -138,11 +145,8 @@ export const useReadingProgress = () => {
    * Clear all progress
    */
   const clearAllProgress = () => {
-    for (let i = localStorage.length - 1; i >= 0; i--) {
-      const key = localStorage.key(i)
-      if (key?.startsWith('reading_progress_')) {
-        localStorage.removeItem(key)
-      }
+    for (const chapterId of progressData.value.keys()) {
+      localStorage.removeItem(`reading_progress_${chapterId}`)
     }
     progressData.value.clear()
     updateStats()

@@ -4,10 +4,15 @@
       <h3 class="text-sm font-medium text-[#1a3330]">Active Challenges</h3>
     </div>
 
-    <div class="flex flex-col gap-3">
+    <div v-if="activeChallenges.length === 0" class="bg-white border border-[#e0ddd6] rounded-xl p-6 text-center">
+      <p class="text-[13px] text-[#8a8580]">No active challenges. Join one to get started!</p>
+    </div>
+
+    <div v-else class="flex flex-col gap-3">
       <div
         v-for="c in activeChallenges" :key="c.id"
         class="bg-white border border-[#e0ddd6] rounded-xl p-5"
+        :class="c.expired ? 'opacity-60' : ''"
       >
         <div class="flex items-start gap-4">
           <div
@@ -23,6 +28,18 @@
                 <h3 class="text-sm font-medium text-[#1a3330]">{{ c.title }}</h3>
                 <p class="text-[12px] text-[#8a8580] mt-0.5">{{ c.description }}</p>
               </div>
+              <span
+                v-if="c.completedAt"
+                class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 whitespace-nowrap"
+              >
+                Completed
+              </span>
+              <span
+                v-else-if="c.expired"
+                class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600 whitespace-nowrap"
+              >
+                Expired
+              </span>
             </div>
 
             <div class="mt-3">
@@ -50,14 +67,18 @@
                   <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
                   <line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
-                {{ c.daysLeft ? c.daysLeft + ' days remaining' : 'No deadline' }}
+                <span v-if="c.expired">Expired</span>
+                <span v-else-if="c.completedAt">Completed</span>
+                <span v-else>{{ c.daysLeft ? c.daysLeft + ' days remaining' : 'No deadline' }}</span>
               </span>
 
-              <button
-                class="text-[12px] font-medium px-4 py-1.5 rounded-lg bg-[#1a3330] text-white hover:bg-[#142c22] transition-colors"
+              <router-link
+                v-if="!c.expired && !c.completedAt"
+                :to="'/home'"
+                class="text-[12px] font-medium px-4 py-1.5 rounded-lg bg-[#1a3330] text-white hover:bg-[#142c22] transition-colors inline-block"
               >
                 Continue →
-              </button>
+              </router-link>
             </div>
           </div>
         </div>
@@ -90,7 +111,7 @@ export default {
   },
   computed: {
     activeChallenges() {
-      return this.challenges.filter(c => c.joined)
+      return this.challenges.filter(c => c.joined && !c.completedAt && !c.expired)
     },
   },
   methods: {
