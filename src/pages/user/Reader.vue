@@ -152,6 +152,20 @@
 
           <div class="flex items-center gap-2">
             <button
+              @click="showCommentsDrawer = !showCommentsDrawer"
+              class="p-2 rounded-full hover:bg-black/10 transition-colors relative"
+              title="Page Comments"
+            >
+              <MessageSquare :size="20" />
+              <span
+                v-if="comments.length > 0"
+                class="absolute -top-1 -right-1 bg-amber-600 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center scale-90 animate-pulse"
+              >
+                {{ comments.length }}
+              </span>
+            </button>
+
+            <button
               @click="showSettings = !showSettings"
               class="p-2 rounded-full hover:bg-black/10 transition-colors"
               title="Reader Settings"
@@ -350,6 +364,17 @@
                 End of Chapter {{ currentChapter.chapterNumber }}
               </p>
 
+              <!-- Inline Comments Banner -->
+              <div class="mb-8 flex justify-center">
+                <button
+                  @click="showCommentsDrawer = true"
+                  class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-amber-600/30 bg-amber-500/5 hover:bg-amber-500/10 text-amber-800 font-bold text-xs transition-all duration-200"
+                >
+                  <MessageSquare :size="16" />
+                  Discussion for Page {{ currentPageNumber }} ({{ comments.length }})
+                </button>
+              </div>
+
               <div
                 class="flex flex-col sm:flex-row items-center justify-center gap-4"
               >
@@ -387,6 +412,105 @@
 
       </div>
     </div>
+
+    <!-- Comments Sliding Drawer -->
+    <transition name="drawer-slide">
+      <div
+        v-if="showCommentsDrawer"
+        class="fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-white/95 backdrop-blur-lg shadow-2xl border-l border-gray-200/50 flex flex-col transition-all duration-300 text-gray-800"
+      >
+        <!-- Drawer Header -->
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-lg font-serif">Page {{ currentPageNumber }} Comments</h3>
+            <p class="text-xs opacity-60">Discuss this section with other readers</p>
+          </div>
+          <button
+            @click="showCommentsDrawer = false"
+            class="p-2 rounded-full hover:bg-black/5 transition-colors"
+          >
+            <X :size="20" />
+          </button>
+        </div>
+
+        <!-- Comments List -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-4">
+          <div v-if="isCommentsLoading" class="flex flex-col items-center justify-center py-12 gap-3">
+            <div class="w-8 h-8 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-xs opacity-60">Loading comments...</span>
+          </div>
+          <template v-else>
+            <div v-if="comments.length === 0" class="text-center py-12 opacity-50">
+              <MessageSquare class="mx-auto mb-2 opacity-40 text-amber-600" :size="32" />
+              <p class="text-sm font-semibold">No comments on this page yet</p>
+              <p class="text-xs">Be the first to share your thoughts!</p>
+            </div>
+            <div
+              v-for="comment in comments"
+              :key="comment.id"
+              class="flex gap-3 items-start"
+            >
+              <div class="w-8 h-8 rounded-full bg-amber-600/10 text-amber-700 font-bold flex items-center justify-center flex-none text-xs">
+                {{ comment.user?.name?.charAt(0).toUpperCase() || 'U' }}
+              </div>
+              <div class="flex-1 min-w-0 bg-gray-50 rounded-2xl rounded-tl-sm px-4 py-3 border border-gray-100/50">
+                <div class="flex justify-between items-baseline mb-1">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="text-xs font-bold truncate max-w-[120px]">{{ comment.user?.name || 'Reader' }}</span>
+                    <span
+                      v-if="comment.status === 'pending'"
+                      class="text-[9px] font-bold bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded-sm flex-none uppercase tracking-wider"
+                    >
+                      Pending
+                    </span>
+                  </div>
+                  <span class="text-[10px] opacity-40">{{ formatDate(comment.createdAt) }}</span>
+                </div>
+                <p class="text-xs leading-relaxed break-words whitespace-pre-wrap">{{ comment.content }}</p>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Submit Toast -->
+        <transition name="fade">
+          <div v-if="showSubmitMessage" class="mx-6 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-800 font-medium flex items-start gap-2">
+            <MessageSquare :size="16" class="shrink-0 mt-0.5 opacity-60" />
+            <span>{{ submitMessage }}</span>
+          </div>
+        </transition>
+
+        <!-- Drawer Input -->
+        <div class="p-6 border-t border-gray-100 flex gap-2 items-end">
+          <div class="flex-1 relative">
+            <textarea
+              v-model="newCommentContent"
+              class="w-full bg-gray-50 border border-gray-200/50 rounded-2xl px-4 py-2.5 text-xs outline-none focus:border-amber-600 focus:bg-white transition-all duration-200 resize-none max-h-24"
+              placeholder="Write a comment on page..."
+              rows="2"
+              @keydown.enter.prevent="handleAddComment"
+            ></textarea>
+          </div>
+          <button
+            @click="handleAddComment"
+            :disabled="isSubmittingComment || !newCommentContent.trim()"
+            class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-amber-600/20 flex-none"
+          >
+            <span v-if="isSubmittingComment" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" d="M12 19l9-2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Backdrop overlay -->
+    <div
+      v-if="showCommentsDrawer"
+      @click="showCommentsDrawer = false"
+      class="fixed inset-0 z-40 bg-black/20 backdrop-blur-xs transition-opacity duration-300"
+    ></div>
   </div>
 </template>
 
@@ -411,6 +535,7 @@ import {
   ShoppingCart,
   Crown,
   Lock,
+  MessageSquare,
 } from "lucide-vue-next";
 import { useChapterNavigation } from "../../composables/useChapterNavigation";
 import { renderContent } from "../../utils/content";
@@ -419,6 +544,7 @@ import ReadingProgress from "../../components/reader/ReadingProgress.vue";
 import ChapterSidebar from "../../components/reader/ChapterSidebar.vue";
 import { getBookBasic } from "../../services/bookApi";
 import { upsertReadingProgress, upsertChapterProgress, fetchSingleChapterProgress } from "../../services/community";
+import { getCommentsForPage, submitComment, type Comment } from "../../services/commentApi";
 import debounce from "lodash/debounce";
 
 const route = useRoute();
@@ -461,6 +587,78 @@ const isMobile = ref(false);
 
 const toggleSidebar = () => {
   showSidebar.value = !showSidebar.value;
+};
+
+// Comments state
+const comments = ref<Comment[]>([]);
+const isCommentsLoading = ref(false);
+const showCommentsDrawer = ref(false);
+const newCommentContent = ref("");
+const isSubmittingComment = ref(false);
+const submitMessage = ref("");
+const showSubmitMessage = ref(false);
+const currentScrollPercent = ref(0);
+
+const currentPageNumber = computed(() => {
+  return Math.min(10, Math.floor(currentScrollPercent.value / 10) + 1);
+});
+
+const fetchComments = async () => {
+  if (!currentChapter.value) return;
+  try {
+    isCommentsLoading.value = true;
+    comments.value = await getCommentsForPage(currentChapter.value.id, currentPageNumber.value);
+  } catch (err) {
+    console.error("Failed to load comments:", err);
+  } finally {
+    isCommentsLoading.value = false;
+  }
+};
+
+watch([currentPageNumber, () => currentChapter.value?.id], () => {
+  if (currentChapter.value?.id) {
+    fetchComments();
+  }
+});
+
+const handleAddComment = async () => {
+  if (!newCommentContent.value.trim() || !currentChapter.value) return;
+  try {
+    isSubmittingComment.value = true;
+    submitMessage.value = "";
+    showSubmitMessage.value = false;
+
+    await submitComment(
+      currentChapter.value.id,
+      currentPageNumber.value,
+      newCommentContent.value.trim()
+    );
+
+    newCommentContent.value = "";
+    submitMessage.value = "Your comment has been submitted and is pending moderator approval.";
+    showSubmitMessage.value = true;
+
+    setTimeout(() => {
+      showSubmitMessage.value = false;
+    }, 4000);
+
+    await fetchComments();
+  } catch (err: any) {
+    submitMessage.value = err.message || "Failed to submit comment.";
+    showSubmitMessage.value = true;
+  } finally {
+    isSubmittingComment.value = false;
+  }
+};
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 // Progressive content rendering state
@@ -668,6 +866,7 @@ const handleProgressUpdate = (progress: {
   chapterId?: string;
   timeSpent: number;
 }) => {
+  currentScrollPercent.value = progress.scroll;
   syncProgressToBackend(progress.scroll);
   syncChapterScrollToBackend(progress.scroll);
 };
