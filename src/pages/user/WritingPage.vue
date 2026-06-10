@@ -7,6 +7,7 @@ import SettingsDrawer from "../../components/writing/SettingsDrawer.vue";
 import PublishDialog from "../../components/writing/PublishDialog.vue";
 import { ArrowLeft, Save, Settings, Eye } from "lucide-vue-next";
 import { useWritingPage } from "../../composables/useWritingPage";
+
 import { useChapterManagement } from "../../composables/useChapterManagement";
 import { usePublishFlow } from "../../composables/usePublishFlow";
 import { getGenres, getCategories, getTags, type Genre, type Category, type Tag } from "../../services/bookApi";
