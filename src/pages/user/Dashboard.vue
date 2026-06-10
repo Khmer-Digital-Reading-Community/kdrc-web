@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import Sidebar from "@/components/common/Sidebar.vue";
-import Navbar from "@/components/common/Navbar.vue";
 
 import WelcomeBanner from "@/components/dashboard/WelcomeBanner.vue";
 import StatCard from "@/components/dashboard/StatCard.vue";
@@ -37,19 +35,8 @@ onMounted(fetchDashboardData);
 </script>
 
 <template>
-  <div class="h-screen bg-[#F6F1E8] flex overflow-hidden">
-    <!-- Fixed Sidebar -->
-    <Sidebar class="shrink-0" />
-
-    <!-- Right Content Area -->
-    <div class="flex-1 flex flex-col min-w-0">
-      <!-- Fixed Navbar -->
-      <Navbar class="shrink-0" />
-
-      <!-- Scrollable Content -->
-      <main class="flex-1 overflow-y-auto">
-        <div class="p-3 sm:p-4 lg:p-6">
-          <WelcomeBanner />
+  <div class="p-3 sm:p-4 lg:p-6">
+    <WelcomeBanner />
 
           <div v-if="isLoading" class="flex justify-center py-12">
             <div
@@ -93,8 +80,5 @@ onMounted(fetchDashboardData);
               </div>
             </section>
           </template>
-        </div>
-      </main>
-    </div>
   </div>
 </template>

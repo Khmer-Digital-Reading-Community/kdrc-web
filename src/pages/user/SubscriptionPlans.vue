@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Sidebar from "@/components/common/Sidebar.vue";
-import Navbar from "@/components/common/Navbar.vue";
 import PlanCard from "@/components/subscription/PlanCard.vue";
 import { useSubscription } from "../../composables/useSubscription";
 import { token } from "../../services/auth";
@@ -32,15 +30,7 @@ const handleCancel = async () => {
 </script>
 
 <template>
-  <div class="relative flex h-screen overflow-hidden bg-[#F6F1E8]">
-    <Sidebar />
-    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
-      <div class="sticky top-0 z-30">
-        <Navbar />
-      </div>
-
-      <main class="flex-1 overflow-y-auto">
-        <div class="max-w-4xl mx-auto p-3 sm:p-4 lg:p-6">
+  <div class="max-w-4xl mx-auto p-3 sm:p-4 lg:p-6">
           <div class="mb-8">
             <h1 class="text-3xl sm:text-4xl font-bold mt-2">
               Subscription Plans
@@ -115,8 +105,5 @@ const handleCancel = async () => {
               Sign In
             </router-link>
           </div>
-        </div>
-      </main>
-    </div>
   </div>
 </template>

@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import Sidebar from "@/components/common/Sidebar.vue";
-import Navbar from "@/components/common/Navbar.vue";
 import EarningsOverview from "@/components/earnings/EarningsOverview.vue";
 import EarningsChart from "@/components/earnings/EarningsChart.vue";
 import EarningsBreakdown from "@/components/earnings/EarningsBreakdown.vue";
@@ -127,21 +125,8 @@ const transactions = ref<Transaction[]>([
 </script>
 
 <template>
-  <div class="relative flex h-screen overflow-hidden bg-[#F6F1E8]">
-    <!-- Sidebar -->
-    <Sidebar />
-
-    <!-- Main Content -->
-    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
-      <!-- Sticky Navbar -->
-      <div class="sticky top-0 z-30">
-        <Navbar />
-      </div>
-
-      <!-- Scrollable Content -->
-      <main class="flex-1 overflow-y-auto">
-        <div class="p-3 sm:p-4 lg:p-6">
-          <!-- Breadcrumb -->
+  <div class="p-3 sm:p-4 lg:p-6">
+    <!-- Breadcrumb -->
           <div
             class="text-[10px] sm:text-[11px] lg:text-sm uppercase tracking-[0.15em] text-gray-500 mb-4 sm:mb-6"
           >
@@ -226,8 +211,5 @@ const transactions = ref<Transaction[]>([
               <EarningsWithdrawal :pending="earningsData.pendingWithdrawal" />
             </div>
           </div>
-        </div>
-      </main>
-    </div>
   </div>
 </template>

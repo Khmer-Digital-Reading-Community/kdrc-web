@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import Sidebar from "@/components/common/Sidebar.vue";
-import Navbar from "@/components/common/Navbar.vue";
 import ReadingListCard from "@/components/communitys/ReadingListCard.vue";
 import { useReadingLists } from "../../composables/useReadingLists";
 import { token } from "../../services/auth";
@@ -39,15 +37,7 @@ const handleCreate = async () => {
 </script>
 
 <template>
-  <div class="relative flex h-screen overflow-hidden bg-[#F6F1E8]">
-    <Sidebar />
-    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
-      <div class="sticky top-0 z-30">
-        <Navbar />
-      </div>
-
-      <main class="flex-1 overflow-y-auto">
-        <div class="max-w-4xl mx-auto p-3 sm:p-4 lg:p-6">
+  <div class="max-w-4xl mx-auto p-3 sm:p-4 lg:p-6">
           <div class="flex items-center justify-between mb-8">
             <div>
               <h1 class="text-3xl sm:text-4xl font-bold mt-2">
@@ -139,8 +129,5 @@ const handleCreate = async () => {
               />
             </div>
           </section>
-        </div>
-      </main>
-    </div>
   </div>
 </template>

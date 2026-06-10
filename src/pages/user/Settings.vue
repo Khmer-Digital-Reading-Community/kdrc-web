@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useToast } from "vue-toastification";
-import Sidebar from "@/components/common/Sidebar.vue";
-import Navbar from "@/components/common/Navbar.vue";
 import {
   Lock,
   Globe,
@@ -155,15 +153,7 @@ const savePassword = async () => {
 </script>
 
 <template>
-  <div class="settings-root">
-    <Sidebar />
-
-    <div class="settings-main">
-      <div class="sticky top-0 z-30">
-        <Navbar />
-      </div>
-
-      <main class="settings-content">
+  <div class="settings-content">
         <!-- Page Header -->
         <div class="settings-header">
           <div class="settings-header-text">
@@ -370,8 +360,6 @@ const savePassword = async () => {
 
           </div>
         </div>
-      </main>
-    </div>
   </div>
 </template>
 
@@ -399,8 +387,6 @@ const savePassword = async () => {
 }
 
 .settings-content {
-  flex: 1;
-  overflow-y: auto;
   padding: 1.5rem 1.75rem 3rem;
 }
 

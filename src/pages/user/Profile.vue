@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useToast } from "vue-toastification";
-import Sidebar from "@/components/common/Sidebar.vue";
-import Navbar from "@/components/common/Navbar.vue";
 import {
   User,
   Mail,
@@ -186,15 +184,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="profile-root relative flex h-screen overflow-hidden text-[var(--text)] transition-colors duration-300">
-    <Sidebar />
-    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
-      <div class="sticky top-0 z-30">
-        <Navbar />
-      </div>
-
-      <main class="flex-1 overflow-y-auto">
-        <div class="p-3 sm:p-4 lg:p-6">
+  <div class="p-3 sm:p-4 lg:p-6">
           <!-- Breadcrumb -->
           <div class="text-[10px] sm:text-[11px] lg:text-sm uppercase tracking-[0.15em] text-gray-500 mb-4 sm:mb-6">
             Atelier &gt;
@@ -344,9 +334,6 @@ onMounted(() => {
             </div>
 
           </div>
-        </div>
-      </main>
-    </div>
   </div>
 </template>
 

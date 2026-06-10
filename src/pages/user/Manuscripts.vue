@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
-import Sidebar from "@/components/common/Sidebar.vue";
-import Navbar from "@/components/common/Navbar.vue";
 
 import ManuscriptFilters from "@/components/manuscript/ManuscriptFilters.vue";
 import ManuscriptGrid from "@/components/manuscript/ManuscriptGrid.vue";
@@ -66,16 +64,8 @@ onMounted(fetchBooks);
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-[#F6F1E8]">
-    <Sidebar />
-
-    <div class="flex-1 flex flex-col overflow-hidden">
-      <div class="sticky top-0 z-30">
-        <Navbar />
-      </div>
-
-      <main class="flex-1 overflow-y-auto p-6">
-        <ManuscriptFilters
+  <div class="p-6">
+    <ManuscriptFilters
           v-model:search="searchQuery"
           v-model:status="statusFilter"
         />
@@ -92,7 +82,5 @@ onMounted(fetchBooks);
           @delete="handleDeleteBook"
           @setStatus="handleSetStatus"
         />
-      </main>
-    </div>
   </div>
 </template>
