@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import { useRouter } from "vue-router";
 import QuillEditor from "../../components/common/QuillEditor.vue";
 import ChapterSidebar from "../../components/writing/ChapterSidebar.vue";
@@ -7,6 +7,7 @@ import SettingsDrawer from "../../components/writing/SettingsDrawer.vue";
 import PublishDialog from "../../components/writing/PublishDialog.vue";
 import { ArrowLeft, Save, Settings, Eye } from "lucide-vue-next";
 import { useWritingPage } from "../../composables/useWritingPage";
+import { useBookSettings } from "../../composables/useBookSettings";
 import { useChapterManagement } from "../../composables/useChapterManagement";
 import { usePublishFlow } from "../../composables/usePublishFlow";
 import { getGenres, getCategories, getTags, type Genre, type Category, type Tag } from "../../services/bookApi";
