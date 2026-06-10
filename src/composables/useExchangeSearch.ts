@@ -10,7 +10,7 @@ type ExchangeResult = {
     imageUrl: string;
     tradingFor?: string;
     exchangeType?: string;
-    price?: number;
+    price?: number | string | null;
     createdAt?: string;
 };
 

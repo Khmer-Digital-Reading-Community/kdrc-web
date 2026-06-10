@@ -129,6 +129,10 @@ import {
 import { useAuth } from "../../stores/useAuth";
 import { fetchAdminStats } from "../../services/adminApi";
 
+const emit = defineEmits<{
+  (e: "update:collapsed", value: boolean): void;
+}>();
+
 const route = useRoute();
 const router = useRouter();
 const { logout: authLogout } = useAuth();
