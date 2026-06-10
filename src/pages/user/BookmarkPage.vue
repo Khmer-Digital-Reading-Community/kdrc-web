@@ -1,14 +1,5 @@
 <template>
-  <div class="relative flex h-screen overflow-hidden bg-[#F6F1E8]">
-    <Sidebar />
-    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
-
-      <div class="sticky top-0 z-30">
-        <Navbar />
-      </div>
-
-      <main class="flex-1 overflow-y-auto">
-        <div class="p-3 sm:p-4 lg:p-6">
+  <div class="p-3 sm:p-4 lg:p-6">
           <div class="mb-8">
             <h1 class="text-3xl sm:text-4xl font-bold mt-2">
               Your Books Saved
@@ -61,20 +52,11 @@
             />
           </div>
 
-        </div>
-
-      </main>
-
-    </div>
-
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-
-import Sidebar from "@/components/common/Sidebar.vue";
-import Navbar from "@/components/common/Navbar.vue";
 
 import BookmarkTabs from "@/components/bookmarks/BookmarkTabs.vue";
 import BookmarkCard from "@/components/bookmarks/BookmarkCard.vue";

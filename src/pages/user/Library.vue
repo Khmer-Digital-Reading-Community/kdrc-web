@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import Sidebar from "@/components/common/Sidebar.vue";
-import Navbar from "@/components/common/Navbar.vue";
 import { usePurchases } from "../../composables/usePurchases";
 import { token } from "../../services/auth";
 import { resolveCoverUrl } from "../../services/exploreApi";
@@ -24,15 +22,7 @@ const goToBook = (bookId: string) => {
 </script>
 
 <template>
-  <div class="relative flex h-screen overflow-hidden bg-[#F6F1E8]">
-    <Sidebar />
-    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
-      <div class="sticky top-0 z-30">
-        <Navbar />
-      </div>
-
-      <main class="flex-1 overflow-y-auto">
-        <div class="p-3 sm:p-4 lg:p-6">
+  <div class="p-3 sm:p-4 lg:p-6">
           <div class="mb-8">
             <h1 class="text-3xl sm:text-4xl font-bold mt-2">My Library</h1>
             <p class="text-gray-500 mt-2">
@@ -124,8 +114,5 @@ const goToBook = (bookId: string) => {
               </div>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
   </div>
 </template>

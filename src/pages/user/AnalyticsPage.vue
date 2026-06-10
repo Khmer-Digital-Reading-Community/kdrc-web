@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { TrendingUp, Users, Eye, BookOpen } from "lucide-vue-next";
-import Sidebar from "@/components/common/Sidebar.vue";
-import Navbar from "@/components/common/Navbar.vue";
 import AnalyticsOverview from "@/components/analytics/AnalyticsOverview.vue";
 import ReadingTrendChart from "@/components/analytics/ReadingTrendChart.vue";
 import ChapterPerformance from "@/components/analytics/ChapterPerformance.vue";
@@ -143,21 +141,8 @@ const engagementMetrics = ref([
 </script>
 
 <template>
-  <div class="relative flex h-screen overflow-hidden bg-[#F6F1E8]">
-    <!-- Sidebar -->
-    <Sidebar />
-
-    <!-- Main Content -->
-    <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
-      <!-- Sticky Navbar -->
-      <div class="sticky top-0 z-30">
-        <Navbar />
-      </div>
-
-      <!-- Scrollable Content -->
-      <main class="flex-1 overflow-y-auto">
-        <div class="p-3 sm:p-4 lg:p-6">
-          <!-- Breadcrumb -->
+  <div class="p-3 sm:p-4 lg:p-6">
+    <!-- Breadcrumb -->
           <div
             class="text-[11px] sm:text-sm uppercase tracking-[0.15em] text-gray-500 mb-6"
           >
@@ -217,8 +202,5 @@ const engagementMetrics = ref([
 
           <!-- Audience Insights -->
           <AudienceInsights :audience="audienceData" />
-        </div>
-      </main>
-    </div>
   </div>
 </template>
