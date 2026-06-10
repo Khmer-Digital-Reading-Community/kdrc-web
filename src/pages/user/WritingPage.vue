@@ -39,9 +39,6 @@ function getChapterMgmt() {
   return chapterMgmt;
 }
 
-// Editor ref
-const editorRef = ref<any>(null);
-
 // Load dropdown data lazily when settings drawer opens
 watch(showSettings, async (open) => {
   if (open && !settingsInitialized) {
@@ -60,17 +57,6 @@ watch(showSettings, async (open) => {
     }
   }
 });
-
-// Editor event handlers
-function onEditorChange() {
-  if (editorRef.value) {
-    const html = editorRef.value.getHTML();
-    if (html !== writing.editorContent.value) {
-      writing.editorContent.value = html;
-      writing.markDirty();
-    }
-  }
-}
 
 // Chapter management wrappers
 async function handleNewChapter(type: any) {
@@ -325,9 +311,7 @@ function goBack() {
 
           <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
             <QuillEditor
-              ref="editorRef"
               :content="writing.editorContent.value"
-              @textChange="onEditorChange"
               @update:content="writing.editorContent.value = $event; writing.markDirty()"
             />
           </div>
