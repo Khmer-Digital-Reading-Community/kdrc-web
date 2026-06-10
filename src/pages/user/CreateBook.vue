@@ -3,7 +3,6 @@ import ContentTypeStep from "../../components/writing/ContentTypeStep.vue";
 import MetadataStep from "../../components/writing/MetadataStep.vue";
 import BookDetailsStep from "../../components/writing/BookDetailsStep.vue";
 import { useBookWizard } from "../../composables/useBookWizard";
-import type { ContentType } from "../../composables/useBookWizard";
 
 const wizard = useBookWizard();
 
