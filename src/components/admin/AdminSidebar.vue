@@ -27,8 +27,14 @@
 
     <!-- Nav -->
     <nav class="sidebar-nav">
-      <div v-for="section in navSections" :key="section.label" class="nav-section">
-        <p v-if="!collapsed || isMobile" class="section-label">{{ section.label }}</p>
+      <div
+        v-for="section in navSections"
+        :key="section.label"
+        class="nav-section"
+      >
+        <p v-if="!collapsed || isMobile" class="section-label">
+          {{ section.label }}
+        </p>
         <div v-else class="section-divider" />
 
         <router-link
@@ -41,10 +47,19 @@
         >
           <span class="nav-icon">
             <component :is="item.icon" :size="18" />
-            <span v-if="item.badge && pendingComments > 0 && collapsed && !isMobile" class="nav-badge-dot" />
+            <span
+              v-if="item.badge && pendingComments > 0 && collapsed && !isMobile"
+              class="nav-badge-dot"
+            />
           </span>
-          <span v-if="!collapsed || isMobile" class="nav-label">{{ item.label }}</span>
-          <span v-if="item.badge && pendingComments > 0 && (!collapsed || isMobile)" class="nav-badge">{{ pendingComments }}</span>
+          <span v-if="!collapsed || isMobile" class="nav-label">{{
+            item.label
+          }}</span>
+          <span
+            v-if="item.badge && pendingComments > 0 && (!collapsed || isMobile)"
+            class="nav-badge"
+            >{{ pendingComments }}</span
+          >
 
           <!-- Tooltip when collapsed -->
           <span v-if="collapsed && !isMobile" class="nav-tooltip">
@@ -58,8 +73,12 @@
     <div class="sidebar-footer">
       <router-link to="/home" class="nav-item subtle">
         <Home :size="18" />
-        <span v-if="!collapsed || isMobile" class="nav-label">Back to site</span>
-        <span v-if="collapsed && !isMobile" class="nav-tooltip">Back to site</span>
+        <span v-if="!collapsed || isMobile" class="nav-label"
+          >Back to site</span
+        >
+        <span v-if="collapsed && !isMobile" class="nav-tooltip"
+          >Back to site</span
+        >
       </router-link>
       <button type="button" class="nav-item subtle logout" @click="logout">
         <LogOut :size="18" />
@@ -79,12 +98,16 @@
   >
     <Menu :size="22" />
   </button>
-  <div v-if="mobileOpen && isMobile" class="sidebar-overlay" @click="mobileOpen = false" />
+  <div
+    v-if="mobileOpen && isMobile"
+    class="sidebar-overlay"
+    @click="mobileOpen = false"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, watch, onMounted, onBeforeUnmount } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   LayoutDashboard,
   BookOpen,
@@ -101,12 +124,12 @@ import {
   UserCircle2,
   PanelLeftClose,
   PanelLeftOpen,
-} from 'lucide-vue-next';
-import { useAuth } from '../../stores/useAuth';
-import { fetchAdminStats } from '../../services/adminApi';
+} from "lucide-vue-next";
+import { useAuth } from "../../stores/useAuth";
+import { fetchAdminStats } from "../../services/adminApi";
 
 const emit = defineEmits<{
-  (e: 'update:collapsed', value: boolean): void;
+  (e: "update:collapsed", value: boolean): void;
 }>();
 
 const route = useRoute();
@@ -119,33 +142,38 @@ const pendingComments = ref(0);
 
 const navSections = [
   {
-    label: 'Overview',
+    label: "Overview",
     items: [
-      { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+      { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
     ],
   },
   {
-    label: 'Content',
+    label: "Content",
     items: [
-      { to: '/admin/books', label: 'Books', icon: BookOpen },
-      { to: '/admin/challenges', label: 'Challenges', icon: Trophy },
+      { to: "/admin/books", label: "Books", icon: BookOpen },
+      { to: "/admin/challenges", label: "Challenges", icon: Trophy },
     ],
   },
   {
-    label: 'Community',
+    label: "Community",
     items: [
-      { to: '/admin/users', label: 'Users', icon: Users },
-      { to: '/admin/comments', label: 'Comments', icon: MessageSquare, badge: true },
-      { to: '/admin/reports', label: 'Reports', icon: Flag },
-      { to: '/admin/notifications', label: 'Notifications', icon: Bell },
+      { to: "/admin/users", label: "Users", icon: Users },
+      {
+        to: "/admin/comments",
+        label: "Comments",
+        icon: MessageSquare,
+        badge: true,
+      },
+      { to: "/admin/reports", label: "Reports", icon: Flag },
+      { to: "/admin/notifications", label: "Notifications", icon: Bell },
     ],
   },
   {
-    label: 'System',
+    label: "System",
     items: [
-      { to: '/admin/profile', label: 'Profile', icon: UserCircle2 },
-      { to: '/admin/settings', label: 'Settings', icon: Settings },
+      { to: "/admin/profile", label: "Profile", icon: UserCircle2 },
+      { to: "/admin/settings", label: "Settings", icon: Settings },
     ],
   },
 ];
@@ -154,7 +182,7 @@ const isActive = (path: string) => route.path.startsWith(path);
 
 const logout = async () => {
   await authLogout();
-  router.push('/login');
+  router.push("/login");
 };
 
 const checkMobile = () => {
@@ -165,12 +193,12 @@ const checkMobile = () => {
 };
 
 watch(collapsed, (val) => {
-  emit('update:collapsed', val);
+  emit("update:collapsed", val);
 });
 
 onMounted(() => {
   checkMobile();
-  window.addEventListener('resize', checkMobile);
+  window.addEventListener("resize", checkMobile);
 
   fetchAdminStats()
     .then((stats) => {
@@ -182,7 +210,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', checkMobile);
+  window.removeEventListener("resize", checkMobile);
 });
 </script>
 
@@ -271,7 +299,9 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
   z-index: 10;
 }
 
@@ -324,7 +354,9 @@ onBeforeUnmount(() => {
   background: none;
   width: 100%;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   position: relative;
   white-space: nowrap;
   overflow: hidden;
@@ -409,7 +441,7 @@ onBeforeUnmount(() => {
 }
 
 .nav-tooltip::before {
-  content: '';
+  content: "";
   position: absolute;
   right: 100%;
   top: 50%;
@@ -459,7 +491,9 @@ onBeforeUnmount(() => {
 @media (max-width: 768px) {
   .admin-sidebar {
     transform: translateX(-100%);
-    transition: transform 0.25s ease, width 0.25s ease;
+    transition:
+      transform 0.25s ease,
+      width 0.25s ease;
     width: 260px !important;
   }
 
