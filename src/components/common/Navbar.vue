@@ -57,9 +57,9 @@ function onNotifPopupLeave() {
 // Derive auth state only from the session token.
 const isAuthed = computed(() => Boolean(token.value));
 const isAdmin = computed(() => authState.user.value?.role === "ADMIN");
-const showSearch = computed(() => {
-  return route.name !== 'exchange-v2';
-});
+// const showSearch = computed(() => {
+//   return route.name !== 'exchange-v2';
+// });
 
 const { unreadCount } = useNotifications();
 
