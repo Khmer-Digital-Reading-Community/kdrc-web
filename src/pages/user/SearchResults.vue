@@ -24,7 +24,7 @@
                         <input
                             v-model="searchQuery"
                             type="text"
-                            placeholder="Search by title, author, or genre..."
+                            placeholder="Enter book title or author name..."
                             class="w-full px-4 py-3 border border-gray-300 rounded-[12px] focus:outline-none focus:ring-2 focus:ring-[#B4690E] focus:border-transparent"
                             @keyup.enter="handleSearch"
                         />
