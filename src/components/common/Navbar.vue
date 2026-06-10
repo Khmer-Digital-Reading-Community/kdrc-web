@@ -18,6 +18,10 @@ const router = useRouter();
 const route = useRoute();
 const { logout, user, loginRole } = useAuth();
 
+const showNavbarSearch = computed(() => {
+  return !route.meta.hideNavbarSearch
+})
+
 const mobileOpen = ref(false);
 const langOpen = ref(false);
 const profileOpen = ref(false);
@@ -156,7 +160,7 @@ async function handleLogout() {
         </div>
       </div>
 
-      <div v-if="showSearch" class="w-full max-w-md relative order-3 lg:order-none lg:flex-1 lg:max-w-lg flex items-center">
+      <div v-if="showNavbarSearch" class="w-full max-w-md relative order-3 lg:order-none lg:flex-1 lg:max-w-lg flex items-center">
         <SearchBar />
       </div>
 
