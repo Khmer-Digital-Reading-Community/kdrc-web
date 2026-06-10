@@ -2,7 +2,7 @@
 
 <template>
   <header
-    class="mb-6 pt-2 sm:mb-8"
+    class="mb-6 pt-1 sm:mb-8"
   >
     <h1
       class="font-['Manrope'] text-[34px] font-extrabold leading-tight text-[#203229] sm:text-[40px]"
