@@ -45,6 +45,10 @@ function mapToBookDetails(raw: any): BookDetails {
     publisher: raw.publisher ?? "Self-published",
     rating: computeRating(reviews) || 0,
     reviewCount: reviews.length,
+    isFree: raw.isFree ?? false,
+    price: Number(raw.price ?? 0),
+    isPurchasable: raw.isPurchasable ?? false,
+    isPremium: raw.isPremium ?? false,
     author: {
       id: raw.author?.id,
       name: raw.author?.name ?? "Unknown Author",
@@ -57,8 +61,13 @@ function mapToBookDetails(raw: any): BookDetails {
       duration: ch.wordCount
         ? `${Math.max(1, Math.ceil(ch.wordCount / 200))} min`
         : "5 min",
-      isPremium: false,
+      isPremium: ch.isPremium ?? false,
       isPublic: ch.status === "PUBLISHED",
+      isFree: ch.isPremium
+        ? false
+        : (ch.price != null ? (ch.price === 0 || ch.isFree === true) : (raw.isFree ?? false)),
+      price: Number(ch.price ?? 0),
+      isPurchasable: ch.isPurchasable ?? false,
     })),
     reviews: reviews.map((r: any) => {
       const content = splitReviewContent(r.comment);

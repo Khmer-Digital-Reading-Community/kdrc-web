@@ -13,22 +13,33 @@ export interface Chapter {
   description?: string;
   order: number;
   type: string;
+  status?: string;
+  price?: number;
+  isPurchasable?: boolean;
+  isPremium?: boolean;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface AccessError {
+  reason: string;
+  chapterId?: string;
+  requiresLogin?: boolean;
+  requiresPurchase?: boolean;
+  requiresSubscription?: boolean;
 }
 
 export function useChapterNavigation() {
   const router = useRouter();
 
-  // State — shallowRef for large content to avoid deep reactivity overhead
   const chapters = ref<Chapter[]>([]);
   const currentChapter = ref<Chapter | null>(null);
   const currentChapterContent = shallowRef<string>('');
   const contentCacheKey = ref(0);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+  const accessError = ref<AccessError | null>(null);
 
-  // Computed properties
   const currentChapterIndex = computed(() => {
     if (!currentChapter.value) return -1;
     return chapters.value.findIndex(ch => ch.id === currentChapter.value!.id);
@@ -59,23 +70,39 @@ export function useChapterNavigation() {
     return ((currentChapterIndex.value + 1) / totalChapters.value) * 100;
   });
 
-  /**
-   * Scroll to top of the main content area
-   */
   const scrollToTop = () => {
-    // Try to scroll main content area
     const mainElement = document.querySelector('main');
     if (mainElement) {
       mainElement.scrollTop = 0;
     } else {
-      // Fallback to window scroll
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  /**
-   * Fetch all chapters for a specific book
-   */
+  function parseAccessError(err: any, chapterId?: string): AccessError {
+    const status = err?.response?.status;
+    const message =
+      err?.response?.data?.message ||
+      err?.response?.data?.data?.message ||
+      err?.message ||
+      'Access denied';
+
+    const lower = message.toLowerCase();
+    if (status === 403 || status === 401) {
+      if (lower.includes('login') || status === 401) {
+        return { reason: message, chapterId, requiresLogin: true };
+      }
+      if (lower.includes('subscription') || lower.includes('premium')) {
+        return { reason: message, chapterId, requiresSubscription: true };
+      }
+      if (lower.includes('purchase') || lower.includes('own')) {
+        return { reason: message, chapterId, requiresPurchase: true };
+      }
+      return { reason: message, chapterId, requiresLogin: true };
+    }
+    return { reason: message, chapterId };
+  }
+
   const fetchChapters = async (bookId: string) => {
     if (!bookId) {
       error.value = 'Book ID is required';
@@ -85,10 +112,10 @@ export function useChapterNavigation() {
     try {
       isLoading.value = true;
       error.value = null;
-      
+      accessError.value = null;
+
       const response = await api.get(`/chapters/book/${bookId}`);
-      // Sort chapters by chapter number to ensure correct order
-      chapters.value = (response.data || []).sort((a: Chapter, b: Chapter) => 
+      chapters.value = (response.data || []).sort((a: Chapter, b: Chapter) =>
         a.chapterNumber - b.chapterNumber
       );
     } catch (err: any) {
@@ -99,9 +126,6 @@ export function useChapterNavigation() {
     }
   };
 
-  /**
-   * Fetch content for a specific chapter
-   */
   const fetchChapterContent = async (chapterId: string) => {
     if (!chapterId) {
       error.value = 'Chapter ID is required';
@@ -111,15 +135,22 @@ export function useChapterNavigation() {
     try {
       isLoading.value = true;
       error.value = null;
-      
+      accessError.value = null;
+
       const response = await api.get(`/chapters/${chapterId}/content`);
       const chapterData = response.data;
-      
+
       currentChapter.value = chapterData;
       currentChapterContent.value = chapterData.content || '';
       contentCacheKey.value++;
     } catch (err: any) {
-      error.value = err.message || 'Failed to fetch chapter content';
+      const ae = parseAccessError(err, chapterId);
+      if (ae.requiresLogin || ae.requiresPurchase || ae.requiresSubscription) {
+        accessError.value = ae;
+        error.value = ae.reason;
+      } else {
+        error.value = err.message || 'Failed to fetch chapter content';
+      }
       currentChapterContent.value = '';
       contentCacheKey.value++;
     } finally {
@@ -128,24 +159,70 @@ export function useChapterNavigation() {
   };
 
   /**
-   * Initialize chapter reading - fetch both chapters list and current chapter
+   * Find the first free published chapter that doesn't require payment or subscription.
+   * Used when navigating to a book without a specific chapter in mind.
    */
+  const findFirstFreeChapter = (): Chapter | undefined => {
+    return chapters.value.find((ch) => {
+      if (ch.status !== 'PUBLISHED') return false;
+      if (ch.isPremium) return false;
+      if (ch.isPurchasable && Number(ch.price ?? 0) > 0) return false;
+      return true;
+    });
+  };
+
   const initializeReading = async (bookId: string, chapterId?: string) => {
-    // Fetch all chapters for the book
+    accessError.value = null;
+    error.value = null;
     await fetchChapters(bookId);
 
-    // Set current chapter
     if (chapterId) {
       await fetchChapterContent(chapterId);
-    } else if (chapters.value.length > 0) {
-      // If no chapter specified, load the first one
-      await fetchChapterContent(chapters.value[0].id);
+      return;
+    }
+
+    if (chapters.value.length === 0) {
+      error.value = 'This book has no chapters yet.';
+      return;
+    }
+
+    // Try to load the first free chapter
+    const free = findFirstFreeChapter();
+    if (free) {
+      await fetchChapterContent(free.id);
+      return;
+    }
+
+    // No free chapters — check if there are paid/premium chapters
+    const hasPaidOrPremium = chapters.value.some(
+      (ch) => ch.status === 'PUBLISHED' && (ch.isPremium || (ch.isPurchasable && Number(ch.price ?? 0) > 0)),
+    );
+
+    if (hasPaidOrPremium) {
+      const first = chapters.value.find((ch) => ch.status === 'PUBLISHED');
+      accessError.value = {
+        reason: first?.isPremium
+          ? 'This book requires a subscription to read.'
+          : 'This book requires purchase to read.',
+        chapterId: first?.id,
+        requiresPurchase: !first?.isPremium && (first?.isPurchasable && Number(first?.price ?? 0) > 0) || undefined,
+        requiresSubscription: first?.isPremium || undefined,
+      };
+    } else {
+      error.value = 'No readable chapters found.';
     }
   };
 
-  /**
-   * Navigate to the next chapter
-   */
+  const navigateWithCleanUrl = async () => {
+    if (currentChapter.value?.bookId) {
+      await router.push({
+        name: 'readingpage',
+        params: { id: currentChapter.value.bookId },
+        query: { chapterId: currentChapter.value.id },
+      });
+    }
+  };
+
   const goToNextChapter = async () => {
     if (!hasNextChapter.value || !nextChapter.value) {
       error.value = 'No next chapter available';
@@ -155,29 +232,15 @@ export function useChapterNavigation() {
     try {
       isLoading.value = true;
       scrollToTop();
-      
       await fetchChapterContent(nextChapter.value.id);
-      
-      // Update URL if using route params
-      if (currentChapter.value && currentChapter.value.bookId) {
-        await router.push({
-          name: 'readingpage',
-          params: {
-            id: currentChapter.value.bookId,
-            chapterId: currentChapter.value.id
-          }
-        });
-      }
-    } catch (err: any) {
-      error.value = 'Failed to navigate to next chapter';
+      await navigateWithCleanUrl();
+    } catch {
+      // error already set by fetchChapterContent
     } finally {
       isLoading.value = false;
     }
   };
 
-  /**
-   * Navigate to the previous chapter
-   */
   const goToPreviousChapter = async () => {
     if (!hasPreviousChapter.value || !previousChapter.value) {
       error.value = 'No previous chapter available';
@@ -187,32 +250,17 @@ export function useChapterNavigation() {
     try {
       isLoading.value = true;
       scrollToTop();
-      
       await fetchChapterContent(previousChapter.value.id);
-      
-      // Update URL if using route params
-      if (currentChapter.value && currentChapter.value.bookId) {
-        await router.push({
-          name: 'readingpage',
-          params: {
-            id: currentChapter.value.bookId,
-            chapterId: currentChapter.value.id
-          }
-        });
-      }
-    } catch (err: any) {
-      error.value = 'Failed to navigate to previous chapter';
+      await navigateWithCleanUrl();
+    } catch {
+      // error already set by fetchChapterContent
     } finally {
       isLoading.value = false;
     }
   };
 
-  /**
-   * Jump to a specific chapter
-   */
   const goToChapter = async (chapterId: string) => {
     const chapter = chapters.value.find(ch => ch.id === chapterId);
-    
     if (!chapter) {
       error.value = 'Chapter not found';
       return;
@@ -221,36 +269,24 @@ export function useChapterNavigation() {
     try {
       isLoading.value = true;
       scrollToTop();
-      
       await fetchChapterContent(chapterId);
-      
-      // Update URL
-      if (currentChapter.value && currentChapter.value.bookId) {
-        await router.push({
-          name: 'readingpage',
-          params: {
-            id: currentChapter.value.bookId,
-            chapterId: currentChapter.value.id
-          }
-        });
-      }
-    } catch (err: any) {
-      error.value = 'Failed to navigate to chapter';
+      await navigateWithCleanUrl();
+    } catch {
+      // error already set by fetchChapterContent
     } finally {
       isLoading.value = false;
     }
   };
 
   return {
-    // State
     chapters,
     currentChapter,
     currentChapterContent,
     contentCacheKey,
     isLoading,
     error,
+    accessError,
 
-    // Computed
     currentChapterIndex,
     hasNextChapter,
     hasPreviousChapter,
@@ -259,7 +295,6 @@ export function useChapterNavigation() {
     totalChapters,
     progressPercentage,
 
-    // Methods
     fetchChapters,
     fetchChapterContent,
     initializeReading,

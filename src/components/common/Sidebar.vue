@@ -155,14 +155,14 @@
                                 @click="setActive(item)"
                                 :class="[
                                     'w-full flex items-center gap-3 px-4 py-2.5 rounded-none text-left relative transition-all duration-150 group',
-                                    $route.path === item.route
+                                    this.isItemActive(item)
                                         ? 'text-[#1c3a2e] font-semibold bg-white/60'
                                         : 'text-gray-500 hover:text-[#1c3a2e] hover:bg-white/40',
                                 ]"
                             >
                                 <!-- Active indicator bar -->
                                 <span
-                                    v-if="$route.path === item.route"
+                                    v-if="this.isItemActive(item)"
                                     class="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-[#c5a050] rounded-l-full"
                                 ></span>
 
@@ -230,6 +230,8 @@
 
 <script>
 import Dashboard from "../../pages/user/Dashboard.vue";
+import { loginRole } from "../../stores/useAuth";
+import { authState } from "../../services/auth";
 
 export default {
     name: "DashboardSidebar",
@@ -327,6 +329,13 @@ export default {
                      </svg>`,
                         },
                         {
+                            label: "Profile",
+                            route: "/settings/profile",
+                            icon: `<svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                       <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                     </svg>`,
+                        },
+                        {
                             label: "Settings",
                             route: "/settings",
                             icon: `<svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -365,11 +374,34 @@ export default {
         setActive(item) {
             this.mobileOpen = false;
 
-            if (item.route && this.$route.path !== item.route) {
-                this.$router.push(item.route);
+            const currentRole = loginRole.value || (authState.user.value?.role === 'ADMIN' ? 'admin' : 'user');
+            let targetRoute = item.route;
+            if (currentRole === 'admin') {
+                if (item.route === '/settings/profile') {
+                    targetRoute = '/admin/profile';
+                } else if (item.route === '/settings') {
+                    targetRoute = '/admin/settings';
+                }
+            }
+
+            if (targetRoute && this.$route.path !== targetRoute) {
+                this.$router.push(targetRoute);
             }
 
             this.$emit("navigate", item.label);
+        },
+
+        isItemActive(item) {
+            const currentRole = loginRole.value || (authState.user.value?.role === 'ADMIN' ? 'admin' : 'user');
+            let targetRoute = item.route;
+            if (currentRole === 'admin') {
+                if (item.route === '/settings/profile') {
+                    targetRoute = '/admin/profile';
+                } else if (item.route === '/settings') {
+                    targetRoute = '/admin/settings';
+                }
+            }
+            return this.$route.path === targetRoute;
         },
 
         createNewDraft() {

@@ -19,6 +19,16 @@ export interface RawBookmarkRecord {
         id: string;
         title?: string;
         bookId?: string;
+
+        book?: {
+            id: string;
+            title?: string;
+            coverImageUrl?: string;
+
+            author?: {
+                name?: string;
+            };
+        };
     };
 }
 

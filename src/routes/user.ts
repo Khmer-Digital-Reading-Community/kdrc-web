@@ -61,12 +61,37 @@ export default [
         component: () => import("../pages/user/exchangeDashboard_v2.vue"),
       },
       { path: "book-detail/:id", name: "book-detail", component: BookDetail },
+      {
+        path: "author/:id",
+        name: "author-profile",
+        component: () => import("../pages/user/AuthorProfile.vue"),
+      },
+      {
+        path: "library",
+        name: "library",
+        component: () => import("../pages/user/Library.vue"),
+      },
+      {
+        path: "subscriptions",
+        name: "subscriptions",
+        component: () => import("../pages/user/SubscriptionPlans.vue"),
+      },
+      {
+        path: "reading-lists",
+        name: "reading-lists",
+        component: () => import("../pages/user/ReadingLists.vue"),
+      },
     ],
   },
   {
     path: "/settings",
     name: "settings",
     component: () => import("../pages/user/Settings.vue"),
+  },
+  {
+    path: "/settings/profile",
+    name: "user-profile",
+    component: () => import("../pages/user/Profile.vue"),
   },
   {
     path: "/:id/write",

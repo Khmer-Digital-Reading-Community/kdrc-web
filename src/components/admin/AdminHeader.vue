@@ -69,7 +69,8 @@
 
       <div class="profile-wrap" v-click-outside="() => (profileOpen = false)">
         <button type="button" class="profile-btn" @click="profileOpen = !profileOpen">
-          <span class="avatar">{{ initials }}</span>
+          <img v-if="authState.user.value?.avatarUrl" :src="authState.user.value.avatarUrl" alt="Avatar" class="avatar avatar-img-header" />
+          <span v-else class="avatar">{{ initials }}</span>
           <span class="profile-meta">
             <span class="profile-name">{{ displayName }}</span>
             <span class="profile-role">Administrator</span>
@@ -273,6 +274,11 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.avatar-img-header {
+  object-fit: cover;
+  background: transparent;
 }
 
 .profile-meta {

@@ -5,11 +5,13 @@ defineProps<{
   sortBy: string;
   activeCategory: string;
   activeLanguage: string;
+  showFreeOnly: boolean;
 }>();
 
 const emit = defineEmits([
   "toggleFilter",
   "updateSort",
+  "toggleFree",
 ]);
 
 const sortOpen = ref(false);
@@ -64,6 +66,17 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="ml-auto flex items-center gap-2 sm:gap-3">
+      <button
+        type="button"
+        class="flex items-center gap-1.5 rounded-lg border px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] shadow-sm transition-colors"
+        :class="showFreeOnly
+          ? 'border-[#c5a050] bg-[#c5a050] text-white'
+          : 'border-[#e6dece] bg-white text-[#093A3F] hover:bg-white'"
+        @click="emit('toggleFree')"
+      >
+        Free Books
+      </button>
+
       <button
         type="button"
         class="flex items-center gap-1.5 rounded-lg border border-[#e6dece] bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[#093A3F] shadow-sm transition-colors hover:bg-white lg:hidden"

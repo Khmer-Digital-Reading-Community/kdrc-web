@@ -16,7 +16,7 @@ import { useLanguage } from "../../composables/useLanguage";
 
 const router = useRouter();
 const route = useRoute();
-const { logout, user } = useAuth();
+const { logout, user, loginRole } = useAuth();
 
 const mobileOpen = ref(false);
 const langOpen = ref(false);
@@ -50,18 +50,19 @@ const publicNavLinks = [
 const authenticatedNavLinks = [
   { label: "Home", path: "/home" },
   { label: "Explore", path: "/explore" },
-  { label: "Library", path: "/exchange-v2" },
+  { label: "Exchange", path: "/exchange-v2" },
   { label: "Trade Center", path: "/dashboard/exchange-dashboard-v2" },
   // { label: 'Stories', path: '/reading/1' },
   { label: "Community", path: "/community" },
 ];
 
 const profileMenuItems = computed(() => {
+  const roleChosen = loginRole.value || (user.value?.role === 'ADMIN' ? 'admin' : 'user');
   const items = [
-    { label: "Profile", path: "/settings" },
-    { label: "Dashboard", path: "/dashboard" },
+    { label: "Profile", path: roleChosen === 'admin' ? "/admin/profile" : "/settings/profile" },
+    { label: "Dashboard", path: roleChosen === 'admin' ? "/admin/dashboard" : "/dashboard" },
   ];
-  if (isAdmin.value) {
+  if (roleChosen !== 'admin' && isAdmin.value) {
     items.splice(1, 0, { label: "Admin Panel", path: "/admin/dashboard" });
   }
   return items;

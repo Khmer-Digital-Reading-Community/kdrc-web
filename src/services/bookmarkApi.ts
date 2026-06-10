@@ -16,23 +16,46 @@ const formatSavedDate = (value?: string) => {
 
 const mapBookmarkRecord = (record: RawBookmarkRecord): Bookmark => {
     const isBookBookmark = record.type === "BOOK";
+
     const targetId = isBookBookmark
         ? (record.book?.id ?? record.bookId ?? record.id)
         : (record.chapter?.id ?? record.chapterId ?? record.id);
 
+    const coverImageUrl = isBookBookmark
+        ? record.book?.coverImageUrl
+        : record.chapter?.book?.coverImageUrl;
+
     return {
         id: record.id,
+
         title: isBookBookmark
             ? (record.book?.title ?? "Untitled Book")
             : (record.chapter?.title ?? "Untitled Chapter"),
-        coverImage: resolveCoverUrl(record.book?.coverImageUrl),
+
+        coverImage: resolveCoverUrl(coverImageUrl),
+
         type: record.type,
-        author: record.book?.author?.name,
-        source: isBookBookmark ? record.book?.publisher : undefined,
+
+        author:
+            record.book?.author?.name ??
+            record.chapter?.book?.author?.name,
+
+        // source: isBookBookmark
+        //     ? record.book?.publisher
+        //     : record.chapter?.book?.author,
+
         createdAt: formatSavedDate(record.createdAt),
+
         targetId,
-        bookId: record.book?.id ?? record.bookId ?? record.chapter?.bookId,
-        chapterId: record.chapter?.id ?? record.chapterId,
+
+        bookId:
+            record.book?.id ??
+            record.bookId ??
+            record.chapter?.bookId,
+
+        chapterId:
+            record.chapter?.id ??
+            record.chapterId,
     };
 };
 

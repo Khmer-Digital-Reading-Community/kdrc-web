@@ -4,6 +4,9 @@ export interface Chapter {
     duration: string;
     isPremium: boolean;
     isPublic: boolean;
+    isFree: boolean;
+    price: number;
+    isPurchasable: boolean;
 }
 
 export interface Review {
@@ -35,6 +38,10 @@ export interface BookDetails {
     publisher: string;
     rating: number;
     reviewCount: number;
+    isFree: boolean;
+    price: number;
+    isPurchasable: boolean;
+    isPremium: boolean;
     author: Author;
     chapters: Chapter[];
     reviews: Review[];
