@@ -111,7 +111,7 @@ const displayedExchanges = computed(() => results.value);
 
             <div v-else>
                 <div v-if="results.length === 0" class="flex items-center justify-between gap-4 mb-6 rounded-2xl border border-dashed border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm">
-                    <span>No exchange listings were returned from the API, so sample listings are shown below.</span>
+                    <span>No exchange listings match your search. Try adjusting filters or post the first book.</span>
                     <button @click="clearFilters" class="rounded-lg bg-[#093A3F] px-4 py-2 font-medium text-[#FDE9D0] transition-colors hover:bg-[#0d4d54]">
                         Reset Filters
                     </button>

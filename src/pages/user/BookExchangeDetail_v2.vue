@@ -136,28 +136,21 @@
           
           <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
             <div class="relative mb-4">
-              <img src="https://ui-avatars.com/api/?name=User&background=random" alt="Avatar" class="w-24 h-24 rounded-full border-4 border-white shadow-md" />
+              <img :src="ownerAvatar" alt="Avatar" class="w-24 h-24 rounded-full border-4 border-white shadow-md object-cover" />
               <div class="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></div>
             </div>
             
-            <h3 class="text-xl font-bold text-gray-900 mb-1">Community Member</h3>
+            <h3 class="text-xl font-bold text-gray-900 mb-1">{{ ownerName }}</h3>
             <span class="px-3 py-1 bg-purple-100 text-[#6D28D9] text-[10px] font-extrabold uppercase tracking-widest rounded-full mb-6">
               ACTIVE EXCHANGER
             </span>
-            
-            <div class="grid grid-cols-2 w-full border-y border-gray-100 py-4 mb-6">
-              <div class="flex flex-col items-center border-r border-gray-100">
-                <span class="text-xl font-bold text-gray-900">4.9 <span class="text-yellow-400 text-sm">★</span></span>
-                <span class="text-xs text-gray-400 font-bold tracking-wider uppercase mt-1">RATING</span>
-              </div>
-              <div class="flex flex-col items-center">
-                <span class="text-xl font-bold text-gray-900">100%</span>
-                <span class="text-xs text-gray-400 font-bold tracking-wider uppercase mt-1">RESPONSE</span>
-              </div>
-            </div>
+
+            <p v-if="book.contactNumber" class="text-sm text-gray-600 mb-4 font-medium">
+              Contact: {{ book.contactNumber }}
+            </p>
 
             <p class="text-sm text-gray-500 italic">
-              "Passionate reader from Cambodia. Usually finishing two books a week and looking for new perspectives."
+              {{ ownerBio }}
             </p>
           </div>
 
@@ -179,7 +172,7 @@
       <div class="mt-8 bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
           <p class="text-xs text-gray-500 font-bold tracking-wider uppercase mb-1">EXCHANGE STATUS</p>
-          <p class="text-lg font-bold text-gray-900">Available for trade</p>
+          <p class="text-lg font-bold text-gray-900">{{ listingStatusLabel }}</p>
         </div>
         <div class="flex gap-4 w-full md:w-auto">
           <button class="flex-1 md:flex-none bg-purple-50 text-[#6D28D9] hover:bg-purple-100 px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors">
@@ -188,12 +181,12 @@
           </button>
           <button
             type="button"
-            @click="hasPendingRequest ? showToast('You already have a pending request for this book.', 'error') : (showModal = true)"
+            @click="openProposalModal"
             class="flex-1 md:flex-none bg-[#093A3F] hover:bg-[#0d4d54] text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-md disabled:opacity-60"
-            :disabled="hasPendingRequest"
+            :disabled="hasPendingRequest || isOwnListing || book?.listingStatus === 'CLOSED'"
           >
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-            {{ hasPendingRequest ? 'Request Pending' : 'Propose Exchange' }}
+            {{ proposeButtonLabel }}
           </button>
         </div>
       </div>
@@ -214,7 +207,13 @@
             <div class="px-6 py-6 space-y-6">
               <div>
                 <h4 class="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3">Select a book to offer</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div v-if="offeredBooks.length === 0" class="rounded-2xl border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
+                  You need an active listing to propose a trade.
+                  <router-link to="/post-exchange" class="mt-2 block font-semibold text-[#8B5CF6] hover:underline">
+                    Post a book first
+                  </router-link>
+                </div>
+                <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <label
                     v-for="offer in offeredBooks"
                     :key="offer.id"
@@ -275,44 +274,20 @@
           </router-link>
         </div>
         
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-          
-          <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+        <div v-if="relatedListings.length" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          <router-link
+            v-for="item in relatedListings"
+            :key="item.id"
+            :to="{ name: 'book-exchange-detail-v2', params: { id: item.id } }"
+            class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+          >
             <div class="bg-gray-100 h-48 rounded-xl mb-4 w-full flex items-center justify-center overflow-hidden">
-                <img src="https://covers.openlibrary.org/b/isbn/9780062457714-L.jpg" class="h-full object-cover" />
+              <img :src="item.imageUrl" :alt="item.title" class="h-full w-full object-cover" />
             </div>
-            <span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md uppercase mb-2 inline-block">Like New</span>
-            <h4 class="font-bold text-gray-900 text-sm line-clamp-1">The Subtle Art</h4>
-            <p class="text-xs text-gray-500 mt-1">Phnom Penh</p>
-          </div>
-
-          <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-            <div class="bg-gray-100 h-48 rounded-xl mb-4 w-full flex items-center justify-center overflow-hidden">
-                <img src="https://covers.openlibrary.org/b/isbn/9780812968255-L.jpg" class="h-full object-cover" />
-            </div>
-            <span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md uppercase mb-2 inline-block">Good</span>
-            <h4 class="font-bold text-gray-900 text-sm line-clamp-1">Meditations</h4>
-            <p class="text-xs text-gray-500 mt-1">Siem Reap</p>
-          </div>
-
-          <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer hidden md:block">
-            <div class="bg-gray-100 h-48 rounded-xl mb-4 w-full flex items-center justify-center overflow-hidden">
-                <img src="https://covers.openlibrary.org/b/isbn/9780135957059-L.jpg" class="h-full object-cover" />
-            </div>
-            <span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md uppercase mb-2 inline-block">Acceptable</span>
-            <h4 class="font-bold text-gray-900 text-sm line-clamp-1">Pragmatic Programmer</h4>
-            <p class="text-xs text-gray-500 mt-1">Phnom Penh</p>
-          </div>
-
-          <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer hidden lg:block">
-            <div class="bg-gray-100 h-48 rounded-xl mb-4 w-full flex items-center justify-center overflow-hidden">
-                <img src="https://covers.openlibrary.org/b/isbn/9781501124020-L.jpg" class="h-full object-cover" />
-            </div>
-            <span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md uppercase mb-2 inline-block">New</span>
-            <h4 class="font-bold text-gray-900 text-sm line-clamp-1">Principles</h4>
-            <p class="text-xs text-gray-500 mt-1">Kampot</p>
-          </div>
-
+            <span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md uppercase mb-2 inline-block">{{ item.condition.replace('_', ' ') }}</span>
+            <h4 class="font-bold text-gray-900 text-sm line-clamp-1">{{ item.title }}</h4>
+            <p class="text-xs text-gray-500 mt-1">{{ item.location }}</p>
+          </router-link>
         </div>
       </div>
 
@@ -321,33 +296,51 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { computed, ref, reactive, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import api from '../../services/api';
+import { authState } from '../../services/auth';
+import { exchangeService } from '../../services/exchange.service';
+import type { ExchangeListing } from '../../types/exchange';
 
 const route = useRoute();
 const router = useRouter();
 
-const book = ref<any>(null);
+const book = ref<ExchangeListing | null>(null);
+const relatedListings = ref<ExchangeListing[]>([]);
+const offeredBooks = ref<ExchangeListing[]>([]);
 const loading = ref(true);
 const error = ref(false);
 const showModal = ref(false);
 const isSubmitting = ref(false);
-const selectedOffer = ref<number | null>(null);
+const selectedOffer = ref<string | null>(null);
 const customMessage = ref('');
 const hasPendingRequest = ref(false);
-
-const offeredBooks = [
-  { id: 1, title: 'Atomic Habits', author: 'James Clear' },
-  { id: 2, title: 'The Alchemist', author: 'Paulo Coelho' },
-  { id: 3, title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman' },
-  { id: 4, title: 'Deep Work', author: 'Cal Newport' },
-];
 
 const toast = reactive({
   show: false,
   message: '',
   type: 'success' as 'success' | 'error',
+});
+
+const ownerName = computed(() => book.value?.owner?.name || 'Community Member');
+const ownerAvatar = computed(() =>
+  book.value?.owner?.avatarUrl ||
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(ownerName.value)}&background=random`,
+);
+const ownerBio = computed(
+  () => book.value?.owner?.bio || 'Passionate reader looking to swap great books with the community.',
+);
+const isOwnListing = computed(
+  () => Boolean(book.value?.owner?.id && authState.user.value?.id === book.value.owner.id),
+);
+const listingStatusLabel = computed(() =>
+  book.value?.listingStatus === 'CLOSED' ? 'No longer available' : 'Available for trade',
+);
+const proposeButtonLabel = computed(() => {
+  if (isOwnListing.value) return 'Your Listing';
+  if (book.value?.listingStatus === 'CLOSED') return 'Closed';
+  if (hasPendingRequest.value) return 'Request Pending';
+  return 'Propose Exchange';
 });
 
 const showToast = (msg: string, type: 'success' | 'error') => {
@@ -361,22 +354,43 @@ const closeModal = () => {
   showModal.value = false;
 };
 
-const submitProposal = () => {
+const openProposalModal = () => {
+  if (!authState.token.value) {
+    router.push({ path: '/login', query: { redirect: route.fullPath } });
+    return;
+  }
+  if (hasPendingRequest.value) {
+    showToast('You already have a pending request for this book.', 'error');
+    return;
+  }
+  if (isOwnListing.value) {
+    showToast('You cannot request your own listing.', 'error');
+    return;
+  }
+  showModal.value = true;
+};
+
+const submitProposal = async () => {
+  if (!book.value || !selectedOffer.value) return;
+
   isSubmitting.value = true;
-
-  console.log('Sending trade offer:', {
-    offeredBookId: selectedOffer.value,
-    message: customMessage.value,
-  });
-
-  setTimeout(() => {
-    isSubmitting.value = false;
+  try {
+    await exchangeService.createRequest({
+      exchangeId: book.value.id,
+      offeredExchangeId: selectedOffer.value,
+      message: customMessage.value.trim() || undefined,
+    });
     closeModal();
     showToast('Proposal sent successfully!', 'success');
     hasPendingRequest.value = true;
     selectedOffer.value = null;
     customMessage.value = '';
-  }, 1200);
+  } catch (err: any) {
+    const message = err?.response?.data?.message || 'Failed to send proposal.';
+    showToast(Array.isArray(message) ? message[0] : message, 'error');
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
 const onImgError = (e: Event) => {
@@ -384,14 +398,47 @@ const onImgError = (e: Event) => {
   if (t) t.src = 'https://via.placeholder.com/300x450?text=No+Cover';
 };
 
+const loadOfferedBooks = async () => {
+  if (!authState.token.value) return;
+  try {
+    const response = await exchangeService.findMine();
+    offeredBooks.value = (response.data || []).filter(
+      (listing) => listing.listingStatus !== 'CLOSED' && listing.id !== book.value?.id,
+    );
+  } catch {
+    offeredBooks.value = [];
+  }
+};
+
+const loadRelatedListings = async () => {
+  if (!book.value) return;
+  try {
+    const response = await exchangeService.search({
+      location: book.value.location,
+      limit: 6,
+    });
+    relatedListings.value = (response.data?.data || []).filter((item) => item.id !== book.value?.id).slice(0, 5);
+  } catch {
+    relatedListings.value = [];
+  }
+};
+
 onMounted(async () => {
   const bookId = route.params.id as string;
   try {
-    const resp = await api.get(`/exchanges/${bookId}`);
-    // support both wrapped responses ({ data, meta }) and raw objects
-    book.value = resp.data?.data ?? resp.data ?? null;
+    const response = await exchangeService.findOne(bookId);
+    book.value = response.data;
+    await Promise.all([
+      loadOfferedBooks(),
+      loadRelatedListings(),
+      authState.token.value
+        ? exchangeService.hasPendingRequest(bookId).then((res) => {
+            hasPendingRequest.value = res.data.hasPending;
+          })
+        : Promise.resolve(),
+    ]);
   } catch (err) {
-    console.error("Failed to load book:", err);
+    console.error('Failed to load book:', err);
     error.value = true;
   } finally {
     loading.value = false;
