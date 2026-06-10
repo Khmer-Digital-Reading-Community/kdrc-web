@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, onBeforeUnmount } from "vue";
 import { useToast } from "vue-toastification";
 import {
   User,
@@ -10,7 +10,6 @@ import {
   Save,
   Check,
   CalendarDays,
-  Sparkles,
   Settings,
 } from "lucide-vue-next";
 import { useRouter } from "vue-router";
@@ -39,6 +38,10 @@ const bio = ref("");
 const avatarUrl = ref("");
 const role = ref("");
 const createdAt = ref("");
+
+// Local image uploading refs
+const avatarFile = ref<File | null>(null);
+const avatarPreviewUrl = ref<string | null>(null);
 
 const translations = {
   EN: {
@@ -116,6 +119,7 @@ const loadProfile = async () => {
     phoneNumber.value = profile.phoneNumber || "";
     bio.value = profile.bio || "";
     avatarUrl.value = profile.avatarUrl || "";
+    avatarPreviewUrl.value = profile.avatarUrl || "";
     role.value = profile.role || "user";
     createdAt.value = profile.createdAt || "";
   } catch (error: any) {
@@ -125,55 +129,97 @@ const loadProfile = async () => {
   }
 };
 
+const onFileSelected = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  const isImage = file.type.startsWith("image/");
+  if (!isImage) {
+    toast.error("Please select a valid image file.");
+    target.value = "";
+    return;
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    toast.error("File size must be under 2MB.");
+    target.value = "";
+    return;
+  }
+
+  // Revoke previous blob url if one exists
+  if (avatarPreviewUrl.value && avatarPreviewUrl.value.startsWith("blob:")) {
+    URL.revokeObjectURL(avatarPreviewUrl.value);
+  }
+
+  avatarFile.value = file;
+  avatarPreviewUrl.value = URL.createObjectURL(file);
+};
+
+const removeAvatar = () => {
+  if (avatarPreviewUrl.value && avatarPreviewUrl.value.startsWith("blob:")) {
+    URL.revokeObjectURL(avatarPreviewUrl.value);
+  }
+  avatarFile.value = null;
+  avatarPreviewUrl.value = "";
+};
+
 const saveProfile = async () => {
   savingProfile.value = true;
   try {
+    let finalAvatarUrl = avatarUrl.value;
+
+    // Upload selected file first, if changed
+    if (avatarFile.value) {
+      uploadingAvatar.value = true;
+      const result = await uploadAvatarFile(avatarFile.value);
+      if (result?.url) {
+        finalAvatarUrl = result.url;
+      }
+      uploadingAvatar.value = false;
+    } else if (avatarPreviewUrl.value === "") {
+      // User cleared the avatar
+      finalAvatarUrl = "";
+    }
+
     const updated = await updateUserProfile({
       name: name.value,
       email: email.value,
       phoneNumber: phoneNumber.value,
       bio: bio.value,
+      avatarUrl: finalAvatarUrl,
     });
+
     if (authUser.value) {
       authUser.value.name = updated.name;
       authUser.value.email = updated.email;
       authUser.value.phoneNumber = updated.phoneNumber;
       (authUser.value as any).bio = updated.bio;
+      authUser.value.avatarUrl = updated.avatarUrl;
     }
+
+    avatarUrl.value = updated.avatarUrl || "";
+    avatarPreviewUrl.value = updated.avatarUrl || "";
+    avatarFile.value = null;
+
     toast.success(t.value.successSave);
   } catch (error: any) {
     const apiData = error.response?.data;
-    const nestedData = apiData && typeof apiData === 'object' ? (apiData as any).data : null;
-    let errMsg = (nestedData && nestedData.message) || apiData?.message || apiData?.error || error.message || t.value.errorGeneric;
+    const nestedData = apiData && typeof apiData === "object" ? (apiData as any).data : null;
+    let errMsg =
+      (nestedData && nestedData.message) ||
+      apiData?.message ||
+      apiData?.error ||
+      error.message ||
+      t.value.errorGeneric;
     if (nestedData && Array.isArray(nestedData.errors)) {
-      errMsg = nestedData.errors.join('; ');
+      errMsg = nestedData.errors.join("; ");
     } else if (nestedData && nestedData.errors) {
       errMsg = String(nestedData.errors);
     }
     toast.error(errMsg);
   } finally {
     savingProfile.value = false;
-  }
-};
-
-const onFileSelected = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-  if (!file) return;
-  uploadingAvatar.value = true;
-  try {
-    const result = await uploadAvatarFile(file);
-    if (result?.url) {
-      avatarUrl.value = result.url;
-      const updated = await updateUserProfile({ avatarUrl: result.url });
-      if (authUser.value) {
-        authUser.value.avatarUrl = updated.avatarUrl;
-      }
-      toast.success("Avatar updated!");
-    }
-  } catch (error: any) {
-    toast.error(error?.message || "Failed to upload avatar");
-  } finally {
     uploadingAvatar.value = false;
   }
 };
@@ -181,686 +227,215 @@ const onFileSelected = async (event: Event) => {
 onMounted(() => {
   loadProfile();
 });
+
+onBeforeUnmount(() => {
+  if (avatarPreviewUrl.value && avatarPreviewUrl.value.startsWith("blob:")) {
+    URL.revokeObjectURL(avatarPreviewUrl.value);
+  }
+});
 </script>
 
 <template>
   <div class="p-3 sm:p-4 lg:p-6">
-          <!-- Breadcrumb -->
-          <div class="text-[10px] sm:text-[11px] lg:text-sm uppercase tracking-[0.15em] text-gray-500 mb-4 sm:mb-6">
-            Atelier &gt;
-            <span class="font-bold text-black dark:text-white">{{ t.profile }}</span>
-          </div>
+    <!-- Breadcrumb -->
+    <div class="text-[10px] sm:text-[11px] lg:text-xs uppercase tracking-[0.2em] text-[#7a5b3e] mb-6 font-bold">
+      Atelier &gt;
+      <span class="text-gray-900">{{ t.profile }}</span>
+    </div>
 
-          <!-- Loading -->
-          <div v-if="pageLoading" class="flex flex-col items-center justify-center min-h-[50vh] py-12">
-            <Loader2 class="w-12 h-12 animate-spin text-[#0f6d5f] dark:text-[#4cc2a5] mb-4" />
-            <p class="text-sm font-medium tracking-wide text-gray-500 dark:text-gray-400">Loading profile...</p>
-          </div>
+    <!-- Loading -->
+    <div v-if="pageLoading" class="flex flex-col items-center justify-center min-h-[50vh] py-12">
+      <Loader2 class="w-12 h-12 animate-spin text-[#0f6d5f] mb-4" />
+      <p class="text-sm font-semibold tracking-wide text-gray-500">Loading profile...</p>
+    </div>
 
-          <div v-else class="profile-page animate-fadeIn max-w-5xl">
-            <!-- Header -->
-            <div class="profile-page-header">
-              <div>
-                <h2>{{ t.profile }}</h2>
-                <p>{{ t.subtitle }}</p>
+    <div v-else class="profile-page animate-fadeIn max-w-5xl mx-auto space-y-6">
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/70 backdrop-blur-md p-6 rounded-2xl border border-gray-200/50 shadow-sm transition-colors duration-300">
+        <div>
+          <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight leading-none mb-1.5 font-['Playfair_Display',serif]">{{ t.profile }}</h2>
+          <p class="text-xs text-[#7a5b3e]">{{ t.subtitle }}</p>
+        </div>
+        <button
+          type="button"
+          class="flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-white text-gray-700 border border-gray-200 hover:bg-[#F6F1E8] rounded-xl transition duration-200 shadow-sm"
+          @click="router.push('/settings')"
+        >
+          <Settings :size="14" />
+          {{ t.goToSettings }}
+        </button>
+      </div>
+
+      <!-- Main Columns: Avatar Selection + Main Details -->
+      <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 items-start">
+        
+        <!-- Left: Photo/Avatar selection -->
+        <div class="flex flex-col gap-6">
+          <div class="bg-white p-6 rounded-2xl border border-gray-200/50 shadow-sm flex flex-col items-center text-center transition-colors duration-300">
+            <span class="text-[10px] uppercase font-bold tracking-widest text-[#7a5b3e] mb-6 w-full text-left">Avatar Card</span>
+            
+            <!-- Avatar Container -->
+            <div class="relative w-36 h-36 mb-6">
+              <div class="w-full h-full rounded-2xl overflow-hidden border-4 border-white shadow-md bg-gradient-to-tr from-[#0f6d5f] to-[#4cc2a5] flex items-center justify-center transition-colors duration-300">
+                <img
+                  v-if="avatarPreviewUrl"
+                  :src="avatarPreviewUrl"
+                  alt="Avatar"
+                  class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                />
+                <div v-else class="text-white text-5xl font-extrabold font-['Playfair_Display',serif]">
+                  {{ initials }}
+                </div>
               </div>
-              <button type="button" class="profile-btn profile-btn-secondary profile-settings-btn" @click="router.push('/settings')">
-                <Settings :size="15" />
-                {{ t.goToSettings }}
+
+              <!-- Clear/Delete Overlay Button in Corner -->
+              <button
+                v-if="avatarPreviewUrl"
+                type="button"
+                @click="removeAvatar"
+                class="absolute -top-2 -right-2 w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center hover:scale-110 transition shadow-md border-2 border-white text-sm font-bold"
+                title="Remove photo"
+              >
+                &times;
               </button>
             </div>
 
-            <!-- Hero Profile Card -->
-            <div class="profile-hero-card">
-              <!-- Banner -->
-              <div class="profile-banner">
-                <div class="banner-orb banner-orb-1"></div>
-                <div class="banner-orb banner-orb-2"></div>
-              </div>
+            <!-- Upload CTA -->
+            <div class="w-full space-y-3">
+              <label class="w-full flex justify-center items-center gap-2 px-4 py-2.5 bg-[#0f6d5f] hover:bg-[#0c574c] text-white font-bold text-xs rounded-xl cursor-pointer transition shadow-sm text-center">
+                <Camera :size="14" />
+                <span>Upload Avatar</span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  class="hidden"
+                  @change="onFileSelected"
+                />
+              </label>
 
-              <!-- Avatar + Meta -->
-              <div class="profile-hero-body">
-                <div class="profile-avatar-wrap">
-                  <div class="profile-avatar-outer">
-                    <div class="profile-avatar group">
-                      <img v-if="avatarUrl" :src="avatarUrl" alt="Avatar" class="avatar-img" />
-                      <div v-else class="avatar-initials">{{ initials }}</div>
+              <button
+                v-if="avatarPreviewUrl"
+                type="button"
+                @click="removeAvatar"
+                class="w-full py-1 text-xs font-semibold text-red-600 hover:text-red-700 transition text-center"
+              >
+                Remove Avatar
+              </button>
 
-                      <!-- Upload overlay -->
-                      <label class="avatar-overlay">
-                        <Camera v-if="!uploadingAvatar" :size="20" color="white" />
-                        <Loader2 v-else :size="20" color="white" class="spin-icon" />
-                        <span>{{ uploadingAvatar ? t.uploading : 'Change' }}</span>
-                        <input type="file" accept="image/*" class="hidden" @change="onFileSelected" :disabled="uploadingAvatar" />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="profile-meta">
-                  <div class="profile-meta-left">
-                    <h3 class="profile-name">{{ name || t.writer }}</h3>
-                    <p class="profile-email">{{ email }}</p>
-                    <div class="profile-badges">
-                      <span class="badge badge-user">
-                        <Sparkles :size="11" />
-                        {{ role }}
-                      </span>
-                      <span class="badge badge-active">
-                        <Check :size="11" />
-                        {{ t.activeAccount }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <p class="text-[10px] text-gray-400 leading-tight mt-1">PNG or JPG up to 2MB. Updates only after saving changes.</p>
             </div>
-
-            <!-- Stats Strip -->
-            <div class="profile-stats-grid">
-              <div class="profile-stat-card">
-                <div class="stat-icon stat-icon-teal">
-                  <Sparkles :size="18" />
-                </div>
-                <div>
-                  <p class="stat-label">{{ t.role }}</p>
-                  <p class="stat-value capitalize">{{ role || '—' }}</p>
-                </div>
-              </div>
-              <div class="profile-stat-card">
-                <div class="stat-icon stat-icon-blue">
-                  <CalendarDays :size="18" />
-                </div>
-                <div>
-                  <p class="stat-label">{{ t.joined }}</p>
-                  <p class="stat-value">{{ joinedFormatted }}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Edit Form Card -->
-            <div class="profile-card">
-              <div class="profile-card-header">
-                <h3 class="flex items-center gap-2">
-                  <User :size="16" /> {{ t.personalInfo }}
-                </h3>
-              </div>
-              <div class="profile-card-body">
-                <form @submit.prevent="saveProfile" class="profile-form">
-                  <div class="profile-form-grid">
-                    <!-- Name -->
-                    <div class="profile-form-group">
-                      <label for="user-name">{{ t.fullName }}</label>
-                      <div class="input-icon-wrap">
-                        <User :size="15" class="input-icon" />
-                        <input id="user-name" v-model="name" type="text" required placeholder="e.g. John Doe" />
-                      </div>
-                    </div>
-
-                    <!-- Email -->
-                    <div class="profile-form-group">
-                      <label for="user-email">{{ t.email }} <span class="label-badge">{{ t.readOnly }}</span></label>
-                      <div class="input-icon-wrap">
-                        <Mail :size="15" class="input-icon" />
-                        <input id="user-email" v-model="email" type="email" disabled class="input-disabled" />
-                      </div>
-                    </div>
-
-                    <!-- Phone -->
-                    <div class="profile-form-group">
-                      <label for="user-phone">{{ t.phone }}</label>
-                      <div class="input-icon-wrap">
-                        <Phone :size="15" class="input-icon" />
-                        <input id="user-phone" v-model="phoneNumber" type="text" placeholder="e.g. +855 12 345 678" />
-                      </div>
-                    </div>
-
-                    <!-- Bio -->
-                    <div class="profile-form-group full-width">
-                      <label for="user-bio">{{ t.bio }}</label>
-                      <textarea id="user-bio" v-model="bio" rows="3" :placeholder="t.bioPlaceholder" class="profile-textarea"></textarea>
-                    </div>
-                  </div>
-
-                  <div class="form-actions">
-                    <button type="submit" class="profile-btn profile-btn-primary" :disabled="savingProfile">
-                      <Loader2 v-if="savingProfile" :size="14" class="spin-icon" />
-                      <Save v-else :size="14" />
-                      {{ savingProfile ? t.saving : t.saveChanges }}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-
           </div>
+
+          <!-- Quick Stats Cards -->
+          <div class="bg-white p-6 rounded-2xl border border-gray-200/50 shadow-sm space-y-4 transition-colors duration-300">
+            <div class="flex items-center gap-3">
+              <div class="p-2 bg-amber-500/10 text-amber-600 rounded-xl">
+                <CalendarDays :size="16" />
+              </div>
+              <div class="text-left">
+                <p class="text-[9px] uppercase font-bold tracking-wider text-gray-400">{{ t.joined }}</p>
+                <p class="text-xs font-bold text-gray-800 mt-0.5">{{ joinedFormatted }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Edit Form Card -->
+        <div class="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200/50 shadow-sm transition-colors duration-300">
+          <h3 class="text-base font-extrabold text-gray-900 flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
+            <User :size="16" class="text-[#0f6d5f]" />
+            {{ t.personalInfo }}
+          </h3>
+
+          <form @submit.prevent="saveProfile" class="space-y-6 text-left">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              
+              <!-- Name -->
+              <div class="space-y-1.5">
+                <label for="user-name" class="block text-xs font-bold text-[#7a5b3e]">{{ t.fullName }}</label>
+                <div class="relative">
+                  <User :size="14" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    id="user-name"
+                    v-model="name"
+                    type="text"
+                    required
+                    placeholder="e.g. John Doe"
+                    class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition duration-150"
+                  />
+                </div>
+              </div>
+
+              <!-- Email (Read-only) -->
+              <div class="space-y-1.5">
+                <label for="user-email" class="block text-xs font-bold text-[#7a5b3e]">
+                  {{ t.email }}
+                  <span class="ml-1.5 text-[8px] font-extrabold px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded uppercase tracking-wider">{{ t.readOnly }}</span>
+                </label>
+                <div class="relative">
+                  <Mail :size="14" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    id="user-email"
+                    v-model="email"
+                    type="email"
+                    disabled
+                    class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-400 text-xs cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              <!-- Phone -->
+              <div class="space-y-1.5 sm:col-span-2">
+                <label for="user-phone" class="block text-xs font-bold text-[#7a5b3e]">{{ t.phone }}</label>
+                <div class="relative">
+                  <Phone :size="14" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    id="user-phone"
+                    v-model="phoneNumber"
+                    type="text"
+                    placeholder="e.g. +855 12 345 678"
+                    class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition duration-150"
+                  />
+                </div>
+              </div>
+
+              <!-- Bio -->
+              <div class="space-y-1.5 sm:col-span-2">
+                <label for="user-bio" class="block text-xs font-bold text-[#7a5b3e]">{{ t.bio }}</label>
+                <textarea
+                  id="user-bio"
+                  v-model="bio"
+                  rows="4"
+                  :placeholder="t.bioPlaceholder"
+                  class="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition duration-150 resize-y min-h-[100px]"
+                ></textarea>
+              </div>
+
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-end pt-4 border-t border-gray-100 mt-6">
+              <button
+                type="submit"
+                class="flex items-center gap-2 px-6 py-3 bg-[#0f6d5f] hover:bg-[#0c574c] text-white font-bold text-xs rounded-xl transition duration-150 shadow-md shadow-emerald-500/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                :disabled="savingProfile || uploadingAvatar"
+              >
+                <Loader2 v-if="savingProfile || uploadingAvatar" :size="14" class="animate-spin" />
+                <Save v-else :size="14" />
+                <span>
+                  {{ uploadingAvatar ? t.uploading : savingProfile ? t.saving : t.saveChanges }}
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.profile-root {
-  background: #ffffff;
-}
-
-:global(.dark) .profile-root {
-  background: #171612;
-}
-
-/* ——— Page Layout ——— */
-.profile-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.profile-page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.profile-page-header h2 {
-  margin: 0 0 0.25rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text-h);
-}
-
-.profile-page-header p {
-  margin: 0;
-  color: var(--text-muted, #6b7c6f);
-  font-size: 0.9rem;
-}
-
-/* ——— Hero Card ——— */
-.profile-hero-card {
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15, 22, 17, 0.06), 0 8px 24px rgba(15, 22, 17, 0.04);
-  overflow: hidden;
-}
-
-:global(.dark) .profile-hero-card {
-  background: #1f1e1a;
-}
-
-.profile-banner {
-  position: relative;
-  height: 120px;
-  background: linear-gradient(135deg, #0f6d5f 0%, #1a8a78 50%, #4cc2a5 100%);
-  overflow: hidden;
-}
-
-.banner-orb {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.banner-orb-1 {
-  width: 200px;
-  height: 200px;
-  top: -80px;
-  right: -40px;
-}
-
-.banner-orb-2 {
-  width: 120px;
-  height: 120px;
-  bottom: -60px;
-  left: 15%;
-}
-
-.profile-hero-body {
-  padding: 0 1.5rem 1.5rem;
-  display: flex;
-  align-items: flex-end;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.profile-avatar-wrap {
-  margin-top: -44px;
-}
-
-.profile-avatar-outer {
-  border-radius: 18px;
-  border: 4px solid #ffffff;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
-  overflow: hidden;
-  width: 96px;
-  height: 96px;
-  flex-shrink: 0;
-  background: #ffffff;
-}
-
-:global(.dark) .profile-avatar-outer {
-  border-color: #1f1e1a;
-  background: #1f1e1a;
-}
-
-.profile-avatar {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.profile-avatar:hover .avatar-img {
-  transform: scale(1.08);
-}
-
-.avatar-initials {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #0f6d5f, #4cc2a5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 2.2rem;
-  font-weight: 800;
-}
-
-.avatar-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  opacity: 0;
-  cursor: pointer;
-  transition: opacity 0.25s ease;
-  color: white;
-  font-size: 0.65rem;
-  font-weight: 600;
-}
-
-.profile-avatar:hover .avatar-overlay {
-  opacity: 1;
-}
-
-.profile-meta {
-  flex: 1;
-  padding-top: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.profile-name {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--text-h);
-  letter-spacing: -0.02em;
-}
-
-.profile-email {
-  margin: 0.25rem 0 0;
-  font-size: 0.85rem;
-  color: var(--text-muted, #6b7c6f);
-}
-
-.profile-badges {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-top: 0.5rem;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.2rem 0.65rem;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
-.badge-user {
-  background: rgba(15, 109, 95, 0.1);
-  color: #0f6d5f;
-  border: 1px solid rgba(15, 109, 95, 0.2);
-}
-
-:global(.dark) .badge-user {
-  background: rgba(76, 194, 165, 0.15);
-  color: #4cc2a5;
-  border: 1px solid rgba(76, 194, 165, 0.2);
-}
-
-.badge-active {
-  background: #e8f5ec;
-  color: #2d6a4f;
-  border: 1px solid rgba(45, 106, 79, 0.2);
-}
-
-:global(.dark) .badge-active {
-  background: rgba(143, 212, 168, 0.2);
-  color: #8fd4a8;
-  border: 1px solid rgba(143, 212, 168, 0.3);
-}
-
-/* ——— Stats Strip ——— */
-.profile-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-}
-
-.profile-stat-card {
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.1rem 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 1px 3px rgba(15, 22, 17, 0.06), 0 8px 24px rgba(15, 22, 17, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-:global(.dark) .profile-stat-card {
-  background: #1f1e1a;
-}
-
-.profile-stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(15, 22, 17, 0.08);
-}
-
-.stat-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.stat-icon-teal {
-  background: rgba(15, 109, 95, 0.1);
-  color: #0f6d5f;
-}
-
-:global(.dark) .stat-icon-teal {
-  background: rgba(76, 194, 165, 0.15);
-  color: #4cc2a5;
-}
-
-.stat-icon-blue {
-  background: rgba(59, 130, 196, 0.1);
-  color: #3b82c4;
-}
-
-:global(.dark) .stat-icon-blue {
-  background: rgba(59, 130, 196, 0.15);
-  color: #7eb8e8;
-}
-
-.stat-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted, #6b7c6f);
-  margin: 0;
-}
-
-.stat-value {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-h);
-  margin: 0.15rem 0 0;
-}
-
-/* ——— Profile Card & Form ——— */
-.profile-card {
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(15, 22, 17, 0.06), 0 8px 24px rgba(15, 22, 17, 0.04);
-  overflow: hidden;
-}
-
-:global(.dark) .profile-card {
-  background: #1f1e1a;
-}
-
-.profile-card-header {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.profile-card-header h3 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-h);
-}
-
-.profile-card-body {
-  padding: 1.25rem;
-}
-
-.profile-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
-}
-
-@media (max-width: 640px) {
-  .profile-form-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.profile-form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.profile-form-group.full-width {
-  grid-column: 1 / -1;
-}
-
-.profile-form-group label {
-  display: block;
-  margin-bottom: 0.35rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-h);
-}
-
-.input-icon-wrap {
-  position: relative;
-}
-
-.input-icon {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted, #6b7c6f);
-  pointer-events: none;
-}
-
-.input-icon-wrap input {
-  width: 100%;
-  padding: 0.65rem 0.75rem 0.65rem 2.25rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  background: #ffffff;
-  color: var(--text-h);
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-:global(.dark) .input-icon-wrap input {
-  background: #171612;
-}
-
-.input-icon-wrap input:focus {
-  border-color: #0f6d5f;
-  box-shadow: 0 0 0 3px rgba(15, 109, 95, 0.1);
-}
-
-:global(.dark) .input-icon-wrap input:focus {
-  border-color: #4cc2a5;
-  box-shadow: 0 0 0 3px rgba(76, 194, 165, 0.15);
-}
-
-.input-disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.label-badge {
-  display: inline-block;
-  margin-left: 0.4rem;
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 0.05rem 0.4rem;
-  border-radius: 4px;
-  background: #f0f3f1;
-  color: #5a6b5e;
-  vertical-align: middle;
-}
-
-:global(.dark) .label-badge {
-  background: #242e28;
-  color: #a8b8ad;
-}
-
-.profile-textarea {
-  width: 100%;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-family: inherit;
-  background: #ffffff;
-  color: var(--text-h);
-  resize: vertical;
-  min-height: 90px;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-:global(.dark) .profile-textarea {
-  background: #171612;
-}
-
-.profile-textarea:focus {
-  border-color: #0f6d5f;
-  box-shadow: 0 0 0 3px rgba(15, 109, 95, 0.1);
-}
-
-:global(.dark) .profile-textarea:focus {
-  border-color: #4cc2a5;
-  box-shadow: 0 0 0 3px rgba(76, 194, 165, 0.15);
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 1.25rem;
-}
-
-/* ——— Buttons ——— */
-.profile-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.55rem 1rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: all 0.15s ease;
-}
-
-.profile-btn-primary {
-  background: #0f6d5f;
-  color: #fff;
-}
-
-.profile-btn-primary:hover {
-  background: #0c574c;
-}
-
-:global(.dark) .profile-btn-primary {
-  background: #4cc2a5;
-  color: #093A3F;
-}
-
-:global(.dark) .profile-btn-primary:hover {
-  background: #3eb094;
-}
-
-.profile-btn-secondary {
-  background: #ffffff;
-  color: var(--text-h);
-  border: 1px solid var(--border);
-}
-
-.profile-btn-secondary:hover {
-  background: #f6f5f0;
-}
-
-:global(.dark) .profile-btn-secondary {
-  background: #1f1e1a;
-  border-color: var(--border);
-}
-
-:global(.dark) .profile-btn-secondary:hover {
-  background: #2b2a25;
-}
-
-.profile-settings-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-/* ——— Spinner ——— */
-.spin-icon {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-input.hidden {
-  display: none;
-}
-
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
@@ -869,4 +444,3 @@ input.hidden {
   animation: fadeIn 0.45s ease-out forwards;
 }
 </style>
-
