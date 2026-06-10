@@ -195,12 +195,12 @@ const emit = defineEmits<{
   reorder: [orderedIds: string[]];
 }>();
 
-const activeFilter = ref<"All" | "Drafts" | "Published">("All");
+const activeFilter = ref<string>("All");
 const showNewMenu = ref(false);
 const showArchived = ref(false);
 const openMenu = ref<string | null>(null);
 const dragIdx = ref<number | null>(null);
-const newMenuRef = ref<HTMLElement | null>(null);
+
 
 const filters = ["All", "Drafts", "Published"];
 
@@ -252,7 +252,7 @@ function onDragStart(e: DragEvent, idx: number) {
   e.dataTransfer!.effectAllowed = "move";
 }
 
-function onDragOver(_e: DragEvent, idx: number) {
+function onDragOver(_e: DragEvent, _idx: number) {
   // Visual feedback handled by CSS
 }
 

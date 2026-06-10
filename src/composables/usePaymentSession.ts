@@ -6,7 +6,6 @@ import {
   confirmPaymentSession,
   cancelPaymentSession,
   type PaymentSession,
-  type PaymentSessionStatus,
 } from "../services/paymentApi";
 
 export type PaymentPhase =

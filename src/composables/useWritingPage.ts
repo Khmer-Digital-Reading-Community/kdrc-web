@@ -3,6 +3,7 @@ import { useRoute, useRouter } from "vue-router";
 import {
   getBookDetail,
   updateBook,
+  createBook,
   type Book,
 } from "../services/bookApi";
 import {

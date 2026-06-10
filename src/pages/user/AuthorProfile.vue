@@ -3,7 +3,7 @@ import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getAuthorProfile } from "../../services/followApi";
 import FollowButton from "../../components/bookdetail/FollowButton.vue";
-import ExploreBookCard from "../../components/explore/ExploreBookCard.vue";
+
 
 const route = useRoute();
 const router = useRouter();

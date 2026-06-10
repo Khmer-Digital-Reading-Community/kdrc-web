@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
 // import { createPinia } from 'pinia';
-import './assets/style/style.css';
+import './assets/style/user.css';
 import App from './App.vue';
 import router from './routes';
 import { restoreSession } from './services/auth';
@@ -13,15 +13,15 @@ const app = createApp(App);
 // app.use(pinia);
 app.use(router);
 app.use(Toast, {
-	position: 'top-right',
-	timeout: 3500,
-	closeOnClick: true,
-	pauseOnHover: true,
-	draggable: true,
+  position: 'top-right',
+  timeout: 3500,
+  closeOnClick: true,
+  pauseOnHover: true,
+  draggable: true,
 });
 
 restoreSession()
-	.catch(() => undefined)
-	.finally(() => {
-		app.mount('#app');
-	});
+  .catch(() => undefined)
+  .finally(() => {
+    app.mount('#app');
+  });

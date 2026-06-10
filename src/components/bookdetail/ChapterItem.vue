@@ -83,7 +83,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { Lock, ChevronRight, Globe, ShoppingCart, Star, FileText } from "lucide-vue-next";
+import { Lock, ChevronRight, Globe, ShoppingCart, Star } from "lucide-vue-next";
 import type { Chapter } from "../../types/bookDetails";
 
 const props = defineProps<{
