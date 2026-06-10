@@ -149,7 +149,7 @@ const stats = [
           <img
             :src="literatureImage"
             alt="Literature and books"
-            class="w-full h-auto rounded-3xl shadow-2xl shadow-[#012D1D]/15
+            class="w-full h-[590px] rounded-3xl shadow-2xl shadow-[#012D1D]/15
                    ring-1 ring-white/80 object-cover"
           />
           <img

@@ -140,8 +140,8 @@ export default {
         <router-link
           to="/explore"
           class="group flex items-center gap-2 bg-[#1c3a2e] text-white text-[13px] font-semibold
-                 px-5 py-2.5 rounded-xl hover:bg-[#c5a050] transition-all duration-300
-                 hover:shadow-lg shrink-0"
+                px-5 py-2.5 rounded-xl hover:bg-[#c5a050] transition-all duration-300
+                hover:shadow-lg shrink-0"
         >
           More Books
           <svg
@@ -230,7 +230,7 @@ export default {
             :key="book.id"
             class="book-card flex-none w-[280px] cursor-pointer group/card"
             :style="{ animationDelay: `${index * 80}ms` }"
-            @click="$router.push(`/reading/${book.id}`)"
+            @click="$router.push(`/book-detail/${book.id}`)"
           >
             <!-- Cover Container -->
             <div
