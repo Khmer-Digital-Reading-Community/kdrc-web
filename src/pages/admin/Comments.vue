@@ -69,7 +69,15 @@
                 <div class="comment-preview">
                   <p class="comment-text">{{ truncateText(comment.content, 100) }}</p>
                   <small class="book-info">
-                    Chapter ID: <code class="code-id">{{ comment.bookId }}</code>
+                    <span v-if="comment.chapter">
+                      Chapter {{ comment.chapter.chapterNumber }}: <strong>{{ comment.chapter.title }}</strong>
+                    </span>
+                    <span v-else-if="comment.chapterId">
+                      Chapter ID: <code class="code-id">{{ comment.chapterId }}</code>
+                    </span>
+                    <span v-else>
+                      Chapter ID: <code class="code-id">{{ comment.bookId }}</code>
+                    </span>
                     <span v-if="comment.pageNumber"> (Page {{ comment.pageNumber }})</span>
                   </small>
                 </div>
@@ -210,8 +218,8 @@
                 <input readonly type="text" :value="formatDate(selectedComment.createdAt)" />
               </div>
               <div class="admin-form-group">
-                <label>Chapter ID</label>
-                <input readonly type="text" :value="selectedComment.bookId ?? 'N/A'" />
+                <label>Chapter</label>
+                <input readonly type="text" :value="selectedComment.chapter ? `Chapter ${selectedComment.chapter.chapterNumber}: ${selectedComment.chapter.title}` : (selectedComment.chapterId || selectedComment.bookId || 'N/A')" />
               </div>
             </div>
 
@@ -298,6 +306,12 @@ interface Comment {
   id: string;
   content: string;
   bookId?: string;
+  chapterId?: string;
+  chapter?: {
+    id: string;
+    title: string;
+    chapterNumber: number;
+  };
   pageNumber?: number;
   userId: string;
   user?: User;

@@ -635,7 +635,7 @@ const handleAddComment = async () => {
     );
 
     newCommentContent.value = "";
-    submitMessage.value = "Your comment has been submitted and is pending moderator approval.";
+    submitMessage.value = "Your comment has been posted successfully.";
     showSubmitMessage.value = true;
 
     setTimeout(() => {

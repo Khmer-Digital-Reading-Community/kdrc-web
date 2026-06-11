@@ -10,7 +10,13 @@ export interface User {
 export interface Comment {
   id: string;
   content: string;
-  bookId?: string; // Mapped to Chapter ID in DB
+  bookId?: string; // Retained for backwards compatibility if needed
+  chapterId?: string;
+  chapter?: {
+    id: string;
+    title: string;
+    chapterNumber: number;
+  };
   userId: string;
   user?: User;
   status: 'pending' | 'approved' | 'rejected';
@@ -36,7 +42,7 @@ export async function getCommentsForPage(chapterId: string, pageNumber: number):
 
 export async function submitComment(chapterId: string, pageNumber: number, content: string): Promise<Comment> {
   const res = await api.post('/comments', {
-    bookId: chapterId,
+    chapterId,
     pageNumber,
     content,
   });
