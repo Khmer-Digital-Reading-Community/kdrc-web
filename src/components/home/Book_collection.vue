@@ -137,7 +137,9 @@ export default {
         </div>
         <router-link
           to="/explore"
-          class="group flex items-center gap-2 bg-[#1c3a2e] text-white text-[13px] font-semibold px-5 py-2.5 rounded-xl hover:bg-[#c5a050] transition-all duration-300 hover:shadow-lg shrink-0"
+          class="group flex items-center gap-2 bg-[#1c3a2e] text-white text-[13px] font-semibold
+                px-5 py-2.5 rounded-xl hover:bg-[#c5a050] transition-all duration-300
+                hover:shadow-lg shrink-0"
         >
           More Books
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

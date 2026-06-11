@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen bg-gray-50 py-8 md:py-12">
+    <div class="min-h-screen bg-gray-50 py-8 md:py-4">
         <div class="container mx-auto px-4 md:px-6 lg:px-8">
             <!-- Header -->
             <div class="mb-8 md:mb-12">
@@ -24,7 +24,7 @@
                         <input
                             v-model="searchQuery"
                             type="text"
-                            placeholder="Search by title, author, or genre..."
+                            placeholder="Enter book title or author name..."
                             class="w-full px-4 py-3 border border-gray-300 rounded-[12px] focus:outline-none focus:ring-2 focus:ring-[#B4690E] focus:border-transparent"
                             @keyup.enter="handleSearch"
                         />

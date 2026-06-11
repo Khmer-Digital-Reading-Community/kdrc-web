@@ -23,6 +23,9 @@ export default [
         path: "search",
         name: "search",
         component: () => import("../pages/user/SearchResults.vue"),
+        meta: {
+          hideNavbarSearch: true
+        }
       },
       { path: "exchange", redirect: "/exchange-v2" },
       {
