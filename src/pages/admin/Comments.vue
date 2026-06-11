@@ -328,8 +328,25 @@ const selectedComments = ref<string[]>([]);
 const selectedComment = ref<Comment | null>(null);
 const searchQuery = ref('');
 const selectedStatus = ref('All');
+const getPageSizePreference = (): number => {
+  const PREFS_KEY = 'kdrc-admin-prefs';
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.itemsPerPage) {
+        const val = parseInt(parsed.itemsPerPage, 10);
+        if (!isNaN(val)) return val;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to parse admin prefs:', e);
+  }
+  return 10;
+};
+
 const currentPage = ref(1);
-const pageSize = ref(10);
+const pageSize = ref(getPageSizePreference());
 const totalComments = ref(0);
 const loading = ref(false);
 
