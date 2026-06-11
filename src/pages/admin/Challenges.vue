@@ -40,6 +40,9 @@
             </td>
             <td>
               <div class="actions">
+                <button class="action-btn users" title="Participants" @click="openParticipants(c)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                </button>
                 <button class="action-btn edit" title="Edit" @click="openEdit(c)">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
@@ -142,11 +145,58 @@
         </div>
       </div>
     </div>
+
+    <!-- ───── PARTICIPANTS MODAL ───── -->
+    <div v-if="showParticipants" class="modal-overlay" @click.self="closeParticipants">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h3>Participants: {{ selectedChallenge?.title }}</h3>
+          <button class="modal-close" @click="closeParticipants">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div v-if="participantsLoading" class="loading-state">Loading participants...</div>
+          <div v-else-if="participantsError" class="empty-state">{{ participantsError }}</div>
+          <div v-else-if="!participants.length" class="empty-state">No one has joined this challenge yet.</div>
+          <table v-else class="participants-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Progress</th>
+                <th>Joined</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="p in participants" :key="p.id">
+                <td class="participant-user">
+                  <div class="participant-avatar" :style="{ background: avatarColor(p.name) }">
+                    {{ initials(p.name) }}
+                  </div>
+                  <span>{{ p.name }}</span>
+                </td>
+                <td>{{ p.email }}</td>
+                <td>{{ p.completedBooks }} / {{ selectedChallenge?.targetBooks }} books</td>
+                <td>{{ formatDate(p.joinedAt) }}</td>
+                <td>
+                  <span class="participant-badge" :class="statusClass(p)">
+                    {{ statusLabel(p) }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="closeParticipants">Close</button>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
 <script>
-import { fetchChallenges, createChallenge, updateChallenge, deleteChallenge } from '../../services/community'
+import { fetchChallenges, createChallenge, updateChallenge, deleteChallenge, fetchChallengeParticipants } from '../../services/community'
 
 export default {
   name: 'AdminChallenges',
@@ -159,6 +209,11 @@ export default {
       editing: null,
       deleting: null,
       saving: false,
+      showParticipants: false,
+      selectedChallenge: null,
+      participants: [],
+      participantsLoading: false,
+      participantsError: null,
       form: this.emptyForm(),
       presetColors: ['#1c3a2e', '#7a3d92', '#3a5fa5', '#c5a050', '#0f6e56', '#a04040', '#2d6b5e', '#d4a574', '#4a7c6f', '#8b5cf6'],
       presetIcons: [
@@ -184,6 +239,49 @@ export default {
     this.load()
   },
   methods: {
+    async openParticipants(c) {
+      this.selectedChallenge = c
+      this.showParticipants = true
+      this.participantsLoading = true
+      this.participantsError = null
+      try {
+        this.participants = await fetchChallengeParticipants(c.id)
+      } catch (e) {
+        this.participantsError = e.message || 'Failed to load participants'
+        this.participants = []
+      }
+      this.participantsLoading = false
+    },
+    closeParticipants() {
+      this.showParticipants = false
+      this.selectedChallenge = null
+      this.participants = []
+      this.participantsError = null
+    },
+    initials(name) {
+      if (!name) return '?'
+      return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    },
+    avatarColor(name) {
+      const colors = ['#3d6b4f', '#7a3d92', '#3a5fa5', '#c8861a', '#a04040', '#2d6b5e', '#d4a574', '#5a9f72']
+      let hash = 0
+      for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+      return colors[Math.abs(hash) % colors.length]
+    },
+    formatDate(d) {
+      if (!d) return '—'
+      return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    },
+    statusClass(p) {
+      if (p.expired) return 'danger'
+      if (p.completedAt) return 'success'
+      return 'neutral'
+    },
+    statusLabel(p) {
+      if (p.expired) return 'Expired'
+      if (p.completedAt) return 'Completed'
+      return 'In Progress'
+    },
     emptyForm() {
       return { title: '', description: '', targetBooks: 10, deadline: '', color: '#1c3a2e', icon: '' }
     },
@@ -269,25 +367,25 @@ export default {
 .page-header h2 {
   margin: 0 0 4px;
   font-size: 1.5rem;
-  color: #1f2d20;
+  color: var(--admin-text, #1f2d20);
 }
 
 .page-header p {
   margin: 0;
-  color: #8a9f8f;
+  color: var(--admin-muted, #8a9f8f);
   font-size: 0.9rem;
 }
 
 .loading-state {
   text-align: center;
   padding: 60px 20px;
-  color: #8a9f8f;
+  color: var(--admin-muted, #8a9f8f);
 }
 
 .table-container {
-  background: white;
+  background: var(--admin-surface, #ffffff);
   border-radius: 8px;
-  border: 1px solid #e0e4e0;
+  border: 1px solid var(--admin-border, #e0e4e0);
   overflow-x: auto;
 }
 
@@ -297,26 +395,26 @@ export default {
 }
 
 .challenges-table th {
-  background: #f8f9f7;
+  background: var(--admin-table-head, #f8f9f7);
   padding: 12px 16px;
   text-align: left;
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
-  color: #8a9f8f;
-  border-bottom: 1px solid #e0e4e0;
+  color: var(--admin-muted, #8a9f8f);
+  border-bottom: 1px solid var(--admin-border, #e0e4e0);
   white-space: nowrap;
 }
 
 .challenges-table td {
   padding: 12px 16px;
-  border-bottom: 1px solid #f0f2ee;
+  border-bottom: 1px solid var(--admin-table-row-border, #f0f2ee);
   font-size: 0.9rem;
-  color: #5a675f;
+  color: var(--admin-muted, #5a675f);
 }
 
 .challenge-row:hover {
-  background: #f8f9f7;
+  background: var(--admin-table-row-hover, #f8f9f7);
 }
 
 .challenge-icon {
@@ -335,7 +433,7 @@ export default {
 }
 
 .challenge-title {
-  color: #1f2d20 !important;
+  color: var(--admin-text, #1f2d20) !important;
   min-width: 140px;
 }
 
@@ -351,7 +449,7 @@ export default {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2px solid #e0e4e0;
+  border: 2px solid var(--admin-border, #e0e4e0);
 }
 
 .actions {
@@ -371,28 +469,37 @@ export default {
   transition: all 0.15s;
 }
 
+.action-btn.users {
+  background: var(--admin-accent-soft, #e8f0ea);
+  color: var(--admin-accent, #3d6b4f);
+}
+
+.action-btn.users:hover {
+  background: var(--admin-accent-soft, #d0e4d5);
+}
+
 .action-btn.edit {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: var(--admin-stat-blue-bg, #e8f0fa);
+  color: var(--admin-info, #3b82c4);
 }
 
 .action-btn.edit:hover {
-  background: #c8e6c9;
+  background: var(--admin-badge-info-bg, #d0e4f5);
 }
 
 .action-btn.delete {
-  background: #fbe9e7;
-  color: #c62828;
+  background: var(--admin-btn-danger-bg, #fbe9e7);
+  color: var(--admin-danger, #c62828);
 }
 
 .action-btn.delete:hover {
-  background: #ffccbc;
+  background: var(--admin-badge-danger-bg, #ffccbc);
 }
 
 .empty-state {
   text-align: center !important;
   padding: 40px 16px !important;
-  color: #c0c4c0 !important;
+  color: var(--admin-muted, #c0c4c0) !important;
 }
 
 /* Modal */
@@ -410,7 +517,7 @@ export default {
 }
 
 .modal {
-  background: white;
+  background: var(--admin-surface, #ffffff);
   border-radius: 12px;
   width: 520px;
   max-width: 90vw;
@@ -423,6 +530,10 @@ export default {
   width: 400px;
 }
 
+.modal-lg {
+  width: 700px;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -433,14 +544,14 @@ export default {
 .modal-header h3 {
   margin: 0;
   font-size: 1.2rem;
-  color: #1f2d20;
+  color: var(--admin-text, #1f2d20);
 }
 
 .modal-close {
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #8a9f8f;
+  color: var(--admin-muted, #8a9f8f);
   cursor: pointer;
   padding: 0 4px;
 }
@@ -456,6 +567,79 @@ export default {
   padding: 0 24px 20px;
 }
 
+/* Participants table */
+.participants-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.participants-table th {
+  text-align: left;
+  padding: 10px 12px;
+  background: var(--admin-table-head, #f8f9f7);
+  color: var(--admin-muted, #8a9f8f);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--admin-border, #e0e4e0);
+}
+
+.participants-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--admin-table-row-border, #f0f2ee);
+  font-size: 0.85rem;
+  color: var(--admin-muted, #5a675f);
+}
+
+.participants-table tbody tr:hover {
+  background: var(--admin-table-row-hover, #f8f9f7);
+}
+
+.participant-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--admin-text, #1f2d20);
+  font-weight: 500;
+}
+
+.participant-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.participant-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.participant-badge.success {
+  background: var(--admin-badge-success-bg, #e8f5ec);
+  color: var(--admin-badge-success-text, #2d6a4f);
+}
+
+.participant-badge.danger {
+  background: var(--admin-badge-danger-bg, #fdecec);
+  color: var(--admin-danger, #c62828);
+}
+
+.participant-badge.neutral {
+  background: var(--admin-badge-neutral-bg, #f0f3f1);
+  color: var(--admin-badge-neutral-text, #5a6b5e);
+}
+
 .form-group {
   margin-bottom: 16px;
 }
@@ -464,26 +648,26 @@ export default {
   display: block;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #5a675f;
+  color: var(--admin-muted, #5a675f);
   margin-bottom: 6px;
 }
 
 .form-input {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #e0e4e0;
+  border: 1px solid var(--admin-border, #e0e4e0);
   border-radius: 6px;
   font-size: 0.9rem;
-  color: #1f2d20;
-  background: #fafbfa;
+  color: var(--admin-text, #1f2d20);
+  background: var(--admin-bg, #fafbfa);
   box-sizing: border-box;
   transition: border-color 0.15s;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #1f2d20;
-  background: white;
+  border-color: var(--admin-accent, #1f2d20);
+  background: var(--admin-surface, #ffffff);
 }
 
 .form-input-mono {
@@ -521,8 +705,8 @@ export default {
 }
 
 .color-swatch.selected {
-  border-color: #1f2d20;
-  box-shadow: 0 0 0 2px white, 0 0 0 4px #1f2d20;
+  border-color: var(--admin-accent, #1f2d20);
+  box-shadow: 0 0 0 2px var(--admin-surface, white), 0 0 0 4px var(--admin-accent, #1f2d20);
 }
 
 .color-input {
@@ -543,28 +727,28 @@ export default {
 .icon-option {
   width: 40px;
   height: 40px;
-  border: 2px solid #e0e4e0;
+  border: 2px solid var(--admin-border, #e0e4e0);
   border-radius: 8px;
-  background: #fafbfa;
+  background: var(--admin-bg, #fafbfa);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.15s;
   padding: 0;
-  color: #5a675f;
+  color: var(--admin-muted, #5a675f);
 }
 
 .icon-option:hover {
-  border-color: #1f2d20;
-  background: #f0f2ee;
+  border-color: var(--admin-accent, #1f2d20);
+  background: var(--admin-accent-soft, #f0f2ee);
 }
 
 .icon-option.selected {
-  border-color: #1f2d20;
-  background: #e8f5e9;
-  color: #1f2d20;
-  box-shadow: 0 0 0 2px white, 0 0 0 4px #1f2d20;
+  border-color: var(--admin-accent, #1f2d20);
+  background: var(--admin-badge-success-bg, #e8f5e9);
+  color: var(--admin-text, #1f2d20);
+  box-shadow: 0 0 0 2px var(--admin-surface, white), 0 0 0 4px var(--admin-accent, #1f2d20);
 }
 
 .custom-icon-details {
@@ -573,24 +757,24 @@ export default {
 
 .custom-icon-summary {
   font-size: 0.8rem;
-  color: #8a9f8f;
+  color: var(--admin-muted, #8a9f8f);
   cursor: pointer;
   padding: 4px 0;
 }
 
 .custom-icon-summary:hover {
-  color: #1f2d20;
+  color: var(--admin-text, #1f2d20);
 }
 
 .icon-preview {
   margin-top: 8px;
   padding: 12px;
-  background: #f8f9f7;
+  background: var(--admin-table-row-hover, #f8f9f7);
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #e0e4e0;
+  border: 1px solid var(--admin-border, #e0e4e0);
 }
 
 .icon-preview :deep(svg) {
@@ -612,12 +796,13 @@ export default {
 }
 
 .btn-primary {
-  background: #1f2d20;
+  background: var(--admin-accent, #1f2d20);
   color: white;
 }
 
 .btn-primary:hover {
-  background: #2d4030;
+  background: var(--admin-accent, #2d4030);
+  filter: brightness(1.15);
 }
 
 .btn-primary:disabled {
@@ -626,21 +811,21 @@ export default {
 }
 
 .btn-secondary {
-  background: #f0f2ee;
-  color: #5a675f;
+  background: var(--admin-badge-neutral-bg, #f0f2ee);
+  color: var(--admin-muted, #5a675f);
 }
 
 .btn-secondary:hover {
-  background: #e0e4e0;
+  background: var(--admin-border, #e0e4e0);
 }
 
 .btn-danger {
-  background: #c62828;
+  background: var(--admin-danger, #c62828);
   color: white;
 }
 
 .btn-danger:hover {
-  background: #d32f2f;
+  filter: brightness(1.15);
 }
 
 .btn-danger:disabled {
@@ -649,7 +834,7 @@ export default {
 }
 
 .text-muted {
-  color: #8a9f8f;
+  color: var(--admin-muted, #8a9f8f);
   font-size: 0.85rem;
 }
 </style>

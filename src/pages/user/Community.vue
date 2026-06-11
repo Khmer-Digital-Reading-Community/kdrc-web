@@ -193,7 +193,7 @@
 
       <!-- ───── MY STATS TAB ───── -->
       <template v-else-if="activeNav === 'My Stats'">
-        <MyStats v-if="isAuthenticated" :stats-data="myStats" />
+        <MyStats v-if="isAuthenticated" />
         <div v-else class="text-center py-16 bg-white border border-[#e0ddd6] rounded-xl">
           <div class="flex justify-center mb-4">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#c0bbb2" stroke-width="1.2">
