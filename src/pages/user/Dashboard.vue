@@ -61,7 +61,7 @@
 
               <div>
                 <AnalyticsChart
-                  :streak-days="stats?.streakDays || 0"
+                  :books="allBooks"
                 />
               </div>
 
@@ -89,6 +89,7 @@ import { getFollowerCounts } from "@/services/followApi";
 import { authState } from "@/services/auth";
 
 const stats = ref<AuthorStats | null>(null);
+const allBooks = ref<Book[]>([]);
 const recentBooks = ref<Book[]>([]);
 const followersCount = ref(0);
 const followingCount = ref(0);
@@ -104,6 +105,7 @@ const fetchDashboardData = async () => {
     ]);
 
     stats.value = statsData;
+    allBooks.value = booksData;
     recentBooks.value = booksData.slice(0, 5);
 
     const currentUser = authState.user.value;
