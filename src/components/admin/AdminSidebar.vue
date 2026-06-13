@@ -114,6 +114,7 @@ import {
   Trophy,
   Users,
   MessageSquare,
+  MessageCircle,
   Flag,
   Bell,
   BarChart3,
@@ -160,15 +161,16 @@ const navSections = [
   {
     label: "Community",
     items: [
-      { to: "/admin/users", label: "Users", icon: Users },
+      { to: '/admin/users', label: 'Users', icon: Users },
       {
-        to: "/admin/comments",
-        label: "Comments",
+        to: '/admin/comments',
+        label: 'Comments',
         icon: MessageSquare,
         badge: true,
       },
-      { to: "/admin/reports", label: "Reports", icon: Flag },
-      { to: "/admin/notifications", label: "Notifications", icon: Bell },
+      { to: '/admin/chat-messages', label: 'Chat Messages', icon: MessageCircle },
+      { to: '/admin/reports', label: 'Reports', icon: Flag },
+      { to: '/admin/notifications', label: 'Notifications', icon: Bell },
     ],
   },
   {
