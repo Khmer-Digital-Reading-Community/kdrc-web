@@ -126,24 +126,16 @@ const transactions = ref<Transaction[]>([
 
 <template>
   <div class="p-3 sm:p-4 lg:p-6">
-    <!-- Breadcrumb -->
-          <div
-            class="text-[10px] sm:text-[11px] lg:text-sm uppercase tracking-[0.15em] text-gray-500 mb-4 sm:mb-6"
-          >
-            Atelier >
-            <span class="font-bold text-black">Earnings</span>
-          </div>
-
           <!-- Header Section -->
           <div
             class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-3 sm:gap-4"
           >
             <div class="w-full sm:w-auto">
-              <h1
-                class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2"
+              <p
+                class="text-xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2"
               >
                 Earnings Dashboard
-              </h1>
+              </p>
               <p class="text-gray-600 text-[12px] sm:text-[13px] lg:text-sm">
                 Track your earnings and performance metrics
               </p>
