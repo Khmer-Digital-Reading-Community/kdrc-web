@@ -136,7 +136,7 @@ const transactions = ref<Transaction[]>([
               >
                 Earnings Dashboard
               </p>
-              <p class="text-gray-600 text-[12px] sm:text-[13px] lg:text-sm">
+              <p class="text-gray-600 text-[12px] sm:text-[13px] lg:text-sm pt-2">
                 Track your earnings and performance metrics
               </p>
             </div>
