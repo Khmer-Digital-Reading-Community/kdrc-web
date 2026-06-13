@@ -4,10 +4,10 @@ import { useRouter } from "vue-router";
 import {
   getPlans,
   getMySubscription,
-  toggleAutoRenew,
   getPaymentHistory,
   subscribe,
   cancelSubscription,
+  toggleAutoRenew,
   type SubscriptionPlan,
   type UserSubscription,
 } from "../../services/subscriptionApi";
@@ -78,9 +78,7 @@ const handleSelectPlan = async (plan: SubscriptionPlan) => {
     if (mySubscription.value) {
       await cancelSubscription();
     }
-    if (Number(plan.price) > 0) {
-      await subscribe(plan.id);
-    }
+    await subscribe(plan.id);
     const [s, h] = await Promise.all([
       getMySubscription(),
       getPaymentHistory(),
@@ -106,8 +104,8 @@ onMounted(async () => {
     plans.value = p;
     mySubscription.value = s;
     history.value = h;
-  } catch (e) {
-    console.error(e);
+  } catch (e: any) {
+    errorMessage.value = e?.response?.data?.message || "Failed to load billing info.";
   } finally {
     loading.value = false;
   }
@@ -118,7 +116,7 @@ onMounted(async () => {
   <div class="max-w-5xl mx-auto p-6">
     <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-2xl font-bold text-gray-900">Plan & Billing</h1>
+      <h1 class="text-2xl font-bold" style="color: #093A3F">Plan & Billing</h1>
       <p class="text-gray-500 text-sm mt-1">
         Manage your membership and billing preferences.
       </p>
@@ -132,52 +130,48 @@ onMounted(async () => {
       <!-- Active Subscription Card -->
       <div
         v-if="mySubscription && currentPlan"
-        class="bg-[#093A3F] text-white rounded-2xl p-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+        class="rounded-2xl p-6 mb-6"
+        style="background-color: #093A3F; color: #f7f1e6"
       >
-        <div>
-          <span class="text-xs font-semibold uppercase tracking-widest opacity-60">
+        <!-- Badge -->
+        <div class="flex items-center gap-2 mb-4">
+          <span class="w-2 h-2 rounded-full bg-[#F9AE5B]"></span>
+          <span class="text-xs font-semibold uppercase tracking-widest opacity-70">
             Active Subscription
           </span>
-          <h2 class="text-xl font-bold mt-1">{{ currentPlan.name }}</h2>
-          <p class="text-sm opacity-70 mt-1">
-            You are currently enjoying {{ currentPlan.features?.join(", ") }}.
-          </p>
-          <div class="flex gap-6 mt-4 text-sm">
-            <div>
-              <p class="opacity-60 text-xs uppercase tracking-wide">Next Payment</p>
-              <p class="font-semibold">{{ nextPayment }}</p>
-            </div>
-            <div>
-              <p class="opacity-60 text-xs uppercase tracking-wide">Amount Due</p>
-              <p class="font-semibold">${{ currentPlan.price }}/mo</p>
-            </div>
-          </div>
         </div>
 
-        <!-- Manage Renewal Toggle -->
-        <div class="flex flex-col items-start md:items-end gap-2">
-          <p class="text-xs opacity-60 uppercase tracking-wide">Auto Renewal</p>
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+          <div>
+            <h2 class="text-2xl font-bold mb-2">{{ currentPlan.name }}</h2>
+            <p class="text-sm opacity-70 max-w-sm">
+              You are currently enjoying {{ currentPlan.features?.join(" & ") }}.
+            </p>
+            <div class="flex gap-8 mt-5 text-sm">
+              <div>
+                <p class="text-xs uppercase tracking-wide opacity-50 mb-1">Next Payment</p>
+                <p class="font-bold text-base">{{ nextPayment }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase tracking-wide opacity-50 mb-1">Amount Due</p>
+                <p class="font-bold text-base">${{ Number(currentPlan.price).toFixed(2)}}<span class="text-sm font-normal opacity-60">/mo</span></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Auto Renewal Toggle (premium only) -->
           <button
+            v-if="Number(currentPlan.price) > 0"
             @click="handleToggleRenew"
             :disabled="toggleLoading"
-            class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition"
-            :class="
-              mySubscription.autoRenew
-                ? 'bg-white text-[#093A3F] hover:bg-gray-100'
-                : 'bg-white/20 text-white hover:bg-white/30'
-            "
+            class="self-start md:self-end px-6 py-3 rounded-xl text-sm font-semibold transition hover:opacity-90 whitespace-nowrap flex items-center gap-2"
+            style="background-color: #F9AE5B; color: #093A3F"
           >
             <span
-              class="w-3 h-3 rounded-full"
-              :class="mySubscription.autoRenew ? 'bg-green-500' : 'bg-gray-400'"
+              class="w-2.5 h-2.5 rounded-full"
+              :class="mySubscription.autoRenew ? 'bg-green-600' : 'bg-gray-400'"
             ></span>
-            {{
-              toggleLoading
-                ? "Updating..."
-                : mySubscription.autoRenew
-                ? "On — Click to Cancel"
-                : "Off — Click to Enable"
-            }}
+            {{ toggleLoading ? "Updating..." : mySubscription.autoRenew ? "Auto Renew: On" : "Auto Renew: Off" }}
           </button>
         </div>
       </div>
@@ -197,10 +191,10 @@ onMounted(async () => {
 
       <!-- Pricing Cards -->
       <div class="mb-8">
-        <h2 class="text-lg font-bold text-gray-900 mb-4">
+        <h2 class="text-lg font-bold mb-4" style="color: #093A3F">
           Change Your Perspective
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div
             v-for="plan in plans"
             :key="plan.id"
@@ -260,7 +254,7 @@ onMounted(async () => {
       <!-- Billing History Preview -->
       <div>
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-lg font-bold text-gray-900">Billing History</h2>
+          <h2 class="text-lg font-bold" style="color: #093A3F">Billing History</h2>
           <button
             @click="router.push('/dashboard/billing/history')"
             class="text-sm text-[#093A3F] font-semibold hover:underline"

@@ -18,7 +18,7 @@
           <h3 class="text-3xl font-bold text-black mb-3">
             {{ stat.value }}
           </h3>
-          <div class="flex items-center gap-2">
+          <div v-if="stat.change" class="flex items-center gap-2">
             <div
               :class="[
                 'flex items-center gap-1 px-2 py-1 rounded-lg text-sm font-medium',
@@ -48,9 +48,9 @@
 defineProps<{
   stats: Array<{
     title: string;
-    value: string;
-    change: string;
-    isPositive: boolean;
+    value: string | number;
+    change?: string;
+    isPositive?: boolean;
     icon: any;
     color: string;
   }>;

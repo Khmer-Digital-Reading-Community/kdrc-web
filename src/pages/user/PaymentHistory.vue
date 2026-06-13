@@ -9,6 +9,7 @@ import {
 const router = useRouter();
 const history = ref<UserSubscription[]>([]);
 const loading = ref(false);
+const errorMessage = ref("");
 
 const formatDate = (date: string) =>
   new Date(date).toLocaleDateString("en-US", {
@@ -28,8 +29,8 @@ onMounted(async () => {
   loading.value = true;
   try {
     history.value = await getPaymentHistory();
-  } catch (e) {
-    console.error(e);
+  } catch (e: any) {
+    errorMessage.value = e?.response?.data?.message || "Failed to load payment history.";
   } finally {
     loading.value = false;
   }
@@ -56,6 +57,10 @@ onMounted(async () => {
 
     <div v-if="loading" class="text-center py-20 text-gray-400">
       Loading...
+    </div>
+
+    <div v-else-if="errorMessage" class="text-center text-red-500 py-20">
+      {{ errorMessage }}
     </div>
 
     <div
@@ -113,12 +118,12 @@ onMounted(async () => {
               <span
                 class="px-2 py-1 rounded-full text-xs font-semibold"
                 :class="
-                  item.autoRenew
+                  item.autoRenew && item.status === 'ACTIVE'
                     ? 'bg-green-100 text-green-700'
                     : 'bg-gray-100 text-gray-500'
                 "
               >
-                {{ item.autoRenew ? "On" : "Off" }}
+                {{ item.autoRenew && item.status === 'ACTIVE' ? "On" : "Off" }}
               </span>
             </td>
           </tr>

@@ -82,6 +82,8 @@ export interface Book {
     createdAt: string;
   }>;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED" | "DISCONTINUED";
+  readCount?: number;
+  rating?: number;
   isFree?: boolean;
   price?: number;
   isPurchasable?: boolean;
@@ -106,6 +108,11 @@ export const getMyBooks = async (): Promise<Book[]> => {
 
 export const getMyBookStats = async (): Promise<AuthorStats> => {
   const response = await api.get("/books/me/stats");
+  return response.data;
+};
+
+export const getMyReaderTrend = async (): Promise<{ labels: string[]; readers: number[] }> => {
+  const response = await api.get("/books/me/reader-trend");
   return response.data;
 };
 
