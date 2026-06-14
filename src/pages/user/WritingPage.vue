@@ -144,6 +144,43 @@ async function handleRemoveCover() {
   await updateBook(writing.book.value.id, { coverImageUrl: null as any } as any);
 }
 
+// Classification: create new items on-the-fly
+async function handleCreateGenre(name: string) {
+  try {
+    const { createGenre } = await import("../../services/bookApi");
+    const slug = name.toLowerCase().replace(/\s+/g, "-");
+    const created = await createGenre({ name, slug });
+    settingsGenres.value = [...settingsGenres.value, created];
+    toast.success(`Genre "${name}" created`);
+  } catch {
+    toast.error("Failed to create genre");
+  }
+}
+
+async function handleCreateCategory(name: string) {
+  try {
+    const { createCategory } = await import("../../services/bookApi");
+    const slug = name.toLowerCase().replace(/\s+/g, "-");
+    const created = await createCategory({ name, slug });
+    settingsCategories.value = [...settingsCategories.value, created];
+    toast.success(`Category "${name}" created`);
+  } catch {
+    toast.error("Failed to create category");
+  }
+}
+
+async function handleCreateTag(name: string) {
+  try {
+    const { createTag } = await import("../../services/bookApi");
+    const slug = name.toLowerCase().replace(/\s+/g, "-");
+    const created = await createTag({ name, slug });
+    settingsTags.value = [...settingsTags.value, created];
+    toast.success(`Tag "${name}" created`);
+  } catch {
+    toast.error("Failed to create tag");
+  }
+}
+
 async function handleSaveChapter(data: any) {
   settingsSaving.value = true;
   try {
@@ -336,6 +373,9 @@ function goBack() {
       @deleteChapter="handleDeleteChapter($event)"
       @removeCover="handleRemoveCover()"
       @coverFileSelected="handleCoverFileSelected($event)"
+      @createGenre="handleCreateGenre($event)"
+      @createCategory="handleCreateCategory($event)"
+      @createTag="handleCreateTag($event)"
     />
 
     <!-- Publish Dialog -->
