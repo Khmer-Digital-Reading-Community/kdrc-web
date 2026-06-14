@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="reader-shell min-h-screen w-full"
-    :style="themeVariables"
-  >
+  <div class="reader-shell min-h-screen w-full" :style="themeVariables">
     <!-- Loading State (initial load) -->
     <div
       v-if="isLoading && !currentChapter"
@@ -28,12 +25,24 @@
         <div
           class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4"
         >
-          <Lock v-if="accessError.requiresPurchase" class="text-amber-600 w-8 h-8" />
-          <Crown v-else-if="accessError.requiresSubscription" class="text-amber-600 w-8 h-8" />
+          <Lock
+            v-if="accessError.requiresPurchase"
+            class="text-amber-600 w-8 h-8"
+          />
+          <Crown
+            v-else-if="accessError.requiresSubscription"
+            class="text-amber-600 w-8 h-8"
+          />
           <LogIn v-else class="text-amber-600 w-8 h-8" />
         </div>
         <h3 class="text-lg font-bold text-amber-900 mb-2">
-          {{ accessError.requiresSubscription ? 'Premium Content' : accessError.requiresPurchase ? 'Paid Chapter' : 'Login Required' }}
+          {{
+            accessError.requiresSubscription
+              ? "Premium Content"
+              : accessError.requiresPurchase
+                ? "Paid Chapter"
+                : "Login Required"
+          }}
         </h3>
         <p class="text-amber-700 font-medium mb-6">{{ accessError.reason }}</p>
         <div class="flex flex-col gap-3">
@@ -114,9 +123,7 @@
       />
 
       <!-- Content area (right of sidebar) -->
-      <div
-        class="flex-1 flex flex-col h-full min-h-0 relative"
-      >
+      <div class="flex-1 flex flex-col h-full min-h-0 relative">
         <!-- Floating Top Header (sticky) -->
         <header
           class="sticky top-0 z-40 px-4 py-3 flex items-center justify-between backdrop-blur-md border-b"
@@ -132,7 +139,7 @@
               <PanelLeft :size="20" />
             </button>
             <button
-              @click="router.push('/home')"
+              @click="router.push('/book-detail/' + route.params.id)"
               class="p-2 rounded-full hover:bg-black/10 transition-colors"
               title="Back to Home"
             >
@@ -145,7 +152,8 @@
                 {{ bookTitle }}
               </p>
               <h2 class="text-sm font-bold truncate max-w-[200px]">
-                Ch {{ currentChapter.chapterNumber }}: {{ currentChapter.title }}
+                Ch {{ currentChapter.chapterNumber }}:
+                {{ currentChapter.title }}
               </h2>
             </div>
           </div>
@@ -187,7 +195,15 @@
           <div
             v-if="showSettings"
             class="fixed top-16 right-4 z-50 w-72 rounded-2xl shadow-2xl border p-6"
-            style="background-color: var(--reader-bg); color: var(--reader-text); border-color: color-mix(in srgb, var(--reader-text) 15%, transparent)"
+            style="
+              background-color: var(--reader-bg);
+              color: var(--reader-text);
+              border-color: color-mix(
+                in srgb,
+                var(--reader-text) 15%,
+                transparent
+              );
+            "
           >
             <div class="flex items-center justify-between mb-6">
               <h3 class="font-bold text-lg">Appearance</h3>
@@ -350,10 +366,7 @@
               :class="[currentFont === 'serif' ? 'font-serif' : 'font-sans']"
               :style="contentStyle"
             >
-              <div
-                v-html="displayContent"
-                class="article-body"
-              ></div>
+              <div v-html="displayContent" class="article-body"></div>
               <!-- Sentinel for progressive loading -->
               <div ref="contentSentinel" class="h-4"></div>
             </article>
@@ -371,7 +384,9 @@
                   class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-amber-600/30 bg-amber-500/5 hover:bg-amber-500/10 text-amber-800 font-bold text-xs transition-all duration-200"
                 >
                   <MessageSquare :size="16" />
-                  Discussion for Page {{ currentPageNumber }} ({{ comments.length }})
+                  Discussion for Page {{ currentPageNumber }} ({{
+                    comments.length
+                  }})
                 </button>
               </div>
 
@@ -408,8 +423,6 @@
             </div>
           </div>
         </main>
-
-
       </div>
     </div>
 
@@ -420,10 +433,16 @@
         class="fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-white/95 backdrop-blur-lg shadow-2xl border-l border-gray-200/50 flex flex-col transition-all duration-300 text-gray-800"
       >
         <!-- Drawer Header -->
-        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+        <div
+          class="p-6 border-b border-gray-100 flex items-center justify-between"
+        >
           <div>
-            <h3 class="font-bold text-lg font-serif">Page {{ currentPageNumber }} Comments</h3>
-            <p class="text-xs opacity-60">Discuss this section with other readers</p>
+            <h3 class="font-bold text-lg font-serif">
+              Page {{ currentPageNumber }} Comments
+            </h3>
+            <p class="text-xs opacity-60">
+              Discuss this section with other readers
+            </p>
           </div>
           <button
             @click="showCommentsDrawer = false"
@@ -435,13 +454,24 @@
 
         <!-- Comments List -->
         <div class="flex-1 overflow-y-auto p-6 space-y-4">
-          <div v-if="isCommentsLoading" class="flex flex-col items-center justify-center py-12 gap-3">
-            <div class="w-8 h-8 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+          <div
+            v-if="isCommentsLoading"
+            class="flex flex-col items-center justify-center py-12 gap-3"
+          >
+            <div
+              class="w-8 h-8 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"
+            ></div>
             <span class="text-xs opacity-60">Loading comments...</span>
           </div>
           <template v-else>
-            <div v-if="comments.length === 0" class="text-center py-12 opacity-50">
-              <MessageSquare class="mx-auto mb-2 opacity-40 text-amber-600" :size="32" />
+            <div
+              v-if="comments.length === 0"
+              class="text-center py-12 opacity-50"
+            >
+              <MessageSquare
+                class="mx-auto mb-2 opacity-40 text-amber-600"
+                :size="32"
+              />
               <p class="text-sm font-semibold">No comments on this page yet</p>
               <p class="text-xs">Be the first to share your thoughts!</p>
             </div>
@@ -450,13 +480,19 @@
               :key="comment.id"
               class="flex gap-3 items-start"
             >
-              <div class="w-8 h-8 rounded-full bg-amber-600/10 text-amber-700 font-bold flex items-center justify-center flex-none text-xs">
-                {{ comment.user?.name?.charAt(0).toUpperCase() || 'U' }}
+              <div
+                class="w-8 h-8 rounded-full bg-amber-600/10 text-amber-700 font-bold flex items-center justify-center flex-none text-xs"
+              >
+                {{ comment.user?.name?.charAt(0).toUpperCase() || "U" }}
               </div>
-              <div class="flex-1 min-w-0 bg-gray-50 rounded-2xl rounded-tl-sm px-4 py-3 border border-gray-100/50">
+              <div
+                class="flex-1 min-w-0 bg-gray-50 rounded-2xl rounded-tl-sm px-4 py-3 border border-gray-100/50"
+              >
                 <div class="flex justify-between items-baseline mb-1">
                   <div class="flex items-center gap-1.5 min-w-0">
-                    <span class="text-xs font-bold truncate max-w-[120px]">{{ comment.user?.name || 'Reader' }}</span>
+                    <span class="text-xs font-bold truncate max-w-[120px]">{{
+                      comment.user?.name || "Reader"
+                    }}</span>
                     <span
                       v-if="comment.status === 'pending'"
                       class="text-[9px] font-bold bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded-sm flex-none uppercase tracking-wider"
@@ -464,9 +500,15 @@
                       Pending
                     </span>
                   </div>
-                  <span class="text-[10px] opacity-40">{{ formatDate(comment.createdAt) }}</span>
+                  <span class="text-[10px] opacity-40">{{
+                    formatDate(comment.createdAt)
+                  }}</span>
                 </div>
-                <p class="text-xs leading-relaxed break-words whitespace-pre-wrap">{{ comment.content }}</p>
+                <p
+                  class="text-xs leading-relaxed break-words whitespace-pre-wrap"
+                >
+                  {{ comment.content }}
+                </p>
               </div>
             </div>
           </template>
@@ -474,7 +516,10 @@
 
         <!-- Submit Toast -->
         <transition name="fade">
-          <div v-if="showSubmitMessage" class="mx-6 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-800 font-medium flex items-start gap-2">
+          <div
+            v-if="showSubmitMessage"
+            class="mx-6 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-800 font-medium flex items-start gap-2"
+          >
             <MessageSquare :size="16" class="shrink-0 mt-0.5 opacity-60" />
             <span>{{ submitMessage }}</span>
           </div>
@@ -496,9 +541,23 @@
             :disabled="isSubmittingComment || !newCommentContent.trim()"
             class="w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-amber-600/20 flex-none"
           >
-            <span v-if="isSubmittingComment" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-            <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" d="M12 19l9-2-9-18-9 18 9-2zm0 0v-8"/>
+            <span
+              v-if="isSubmittingComment"
+              class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+            ></span>
+            <svg
+              v-else
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <path
+                stroke-linecap="round"
+                d="M12 19l9-2-9-18-9 18 9-2zm0 0v-8"
+              />
             </svg>
           </button>
         </div>
@@ -515,7 +574,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, ref, computed, shallowRef, nextTick } from "vue";
+import {
+  onMounted,
+  onUnmounted,
+  watch,
+  ref,
+  computed,
+  shallowRef,
+  nextTick,
+} from "vue";
 import { useRoute, useRouter, onBeforeRouteLeave } from "vue-router";
 import {
   ArrowLeft,
@@ -543,8 +610,16 @@ import { useReadingProgress } from "../../composables/useReadingProgress";
 import ReadingProgress from "../../components/reader/ReadingProgress.vue";
 import ChapterSidebar from "../../components/reader/ChapterSidebar.vue";
 import { getBookBasic } from "../../services/bookApi";
-import { upsertReadingProgress, upsertChapterProgress, fetchSingleChapterProgress } from "../../services/community";
-import { getCommentsForPage, submitComment, type Comment } from "../../services/commentApi";
+import {
+  upsertReadingProgress,
+  upsertChapterProgress,
+  fetchSingleChapterProgress,
+} from "../../services/community";
+import {
+  getCommentsForPage,
+  submitComment,
+  type Comment,
+} from "../../services/commentApi";
 import debounce from "lodash/debounce";
 
 const route = useRoute();
@@ -568,7 +643,8 @@ const {
   goToChapter,
 } = useChapterNavigation();
 
-const { saveChapterProgress, getChapterProgress, markBookCompleted } = useReadingProgress();
+const { saveChapterProgress, getChapterProgress, markBookCompleted } =
+  useReadingProgress();
 const mainContentRef = ref<HTMLElement | null>(null);
 const chapterScrollMap = ref<Map<string, number>>(new Map());
 const contentSentinel = ref<HTMLElement | null>(null);
@@ -607,7 +683,10 @@ const fetchComments = async () => {
   if (!currentChapter.value) return;
   try {
     isCommentsLoading.value = true;
-    comments.value = await getCommentsForPage(currentChapter.value.id, currentPageNumber.value);
+    comments.value = await getCommentsForPage(
+      currentChapter.value.id,
+      currentPageNumber.value,
+    );
   } catch (err) {
     console.error("Failed to load comments:", err);
   } finally {
@@ -631,7 +710,7 @@ const handleAddComment = async () => {
     await submitComment(
       currentChapter.value.id,
       currentPageNumber.value,
-      newCommentContent.value.trim()
+      newCommentContent.value.trim(),
     );
 
     newCommentContent.value = "";
@@ -746,7 +825,9 @@ const changeFontSize = (delta: number) => {
 // Update display content when visible chunks change (progressive loading)
 watch(visibleChunks, () => {
   if (contentChunks.value.length > 0) {
-    displayContent.value = contentChunks.value.slice(0, visibleChunks.value).join("");
+    displayContent.value = contentChunks.value
+      .slice(0, visibleChunks.value)
+      .join("");
   }
 });
 
@@ -829,7 +910,10 @@ const syncProgressToBackend = debounce(async (scroll: number) => {
   try {
     const chapterWeight = 100 / totalChapters.value;
     const bookPercentage = Math.min(
-      Math.round(currentChapterIndex.value * chapterWeight + (scroll / 100) * chapterWeight),
+      Math.round(
+        currentChapterIndex.value * chapterWeight +
+          (scroll / 100) * chapterWeight,
+      ),
       100,
     );
     await upsertReadingProgress(
@@ -890,7 +974,10 @@ const handleProgressSaved = (progress: {
     );
     const chapterWeight = 100 / totalChapters.value;
     const bookPercentage = Math.min(
-      Math.round(currentChapterIndex.value * chapterWeight + (progress.scroll / 100) * chapterWeight),
+      Math.round(
+        currentChapterIndex.value * chapterWeight +
+          (progress.scroll / 100) * chapterWeight,
+      ),
       100,
     );
     // Sync to backend immediately
@@ -983,13 +1070,18 @@ const saveCurrentProgress = async (scrollPercent = 100) => {
   const chapterId = currentChapter.value.id;
   const bookId = currentChapter.value.bookId;
   const timeSpent = 0;
-  const wordsRead = Math.round((scrollPercent / 100) * (currentChapter.value.wordCount || 2500));
+  const wordsRead = Math.round(
+    (scrollPercent / 100) * (currentChapter.value.wordCount || 2500),
+  );
 
   saveChapterProgress(chapterId, scrollPercent, timeSpent, wordsRead);
 
   const chapterWeight = 100 / totalChapters.value;
   const bookPercentage = Math.min(
-    Math.round(currentChapterIndex.value * chapterWeight + (scrollPercent / 100) * chapterWeight),
+    Math.round(
+      currentChapterIndex.value * chapterWeight +
+        (scrollPercent / 100) * chapterWeight,
+    ),
     100,
   );
   try {
@@ -1018,7 +1110,7 @@ const navigateFinishReading = async () => {
   if (currentChapter.value) {
     markBookCompleted(currentChapter.value.bookId);
   }
-  router.push('/home');
+  router.push("/home");
 };
 
 const handleSelectChapter = async (chapterId: string) => {
@@ -1040,8 +1132,8 @@ watch(contentCacheKey, async () => {
   isTransitioning.value = true;
 
   await nextTick();
-  await new Promise(r => setTimeout(r, 0));
-  await new Promise(r => setTimeout(r, 0));
+  await new Promise((r) => setTimeout(r, 0));
+  await new Promise((r) => setTimeout(r, 0));
 
   processContent();
   isTransitioning.value = false;
@@ -1118,7 +1210,9 @@ watch(
   scroll-behavior: smooth;
   background-color: var(--reader-bg, #ffffff);
   color: var(--reader-text, #1f2937);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .no-select {
@@ -1162,7 +1256,8 @@ watch(
   overflow-x: auto;
   margin: 2em 0;
   border-radius: 1rem;
-  border: 1px solid color-mix(in srgb, var(--reader-text, #1f2937) 12%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--reader-text, #1f2937) 12%, transparent);
 }
 
 .reader-content :deep(table) {
@@ -1172,13 +1267,18 @@ watch(
 
 .reader-content :deep(th),
 .reader-content :deep(td) {
-  border: 1px solid color-mix(in srgb, var(--reader-text, #1f2937) 8%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--reader-text, #1f2937) 8%, transparent);
   padding: 1rem;
   text-align: left;
 }
 
 .reader-content :deep(th) {
-  background-color: color-mix(in srgb, var(--reader-text, #1f2937) 4%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--reader-text, #1f2937) 4%,
+    transparent
+  );
   font-weight: 700;
 }
 
@@ -1199,7 +1299,11 @@ watch(
 
 /* Skeleton shimmer uses current text color at low opacity */
 :deep(.animate-pulse .bg-current\/10) {
-  background-color: color-mix(in srgb, var(--reader-text, #1f2937) 10%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--reader-text, #1f2937) 10%,
+    transparent
+  );
   border-radius: 0.5rem;
 }
 

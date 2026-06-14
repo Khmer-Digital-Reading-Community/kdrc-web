@@ -4,7 +4,11 @@ import { Users, Eye, BookOpen, Star } from "lucide-vue-next";
 import AnalyticsOverview from "@/components/analytics/AnalyticsOverview.vue";
 import ReadingTrendChart from "@/components/analytics/ReadingTrendChart.vue";
 import PublishedBooksPanel from "@/components/analytics/PublishedBooksPanel.vue";
-import { getMyBooks, getMyBookStats, getMyReaderTrend } from "@/services/bookApi";
+import {
+  getMyBooks,
+  getMyBookStats,
+  getMyReaderTrend,
+} from "@/services/bookApi";
 import { getFollowerCounts } from "@/services/followApi";
 import { user } from "@/services/auth";
 import type { Book } from "@/services/bookApi";
@@ -13,20 +17,25 @@ const books = ref<Book[]>([]);
 const statsData = ref({ totalPublished: 0, totalBooks: 0 });
 const followerCount = ref(0);
 const booksLoading = ref(false);
-const trendData = ref<{ labels: string[]; readers: number[] }>({ labels: [], readers: [] });
+const trendData = ref<{ labels: string[]; readers: number[] }>({
+  labels: [],
+  readers: [],
+});
 
 const publishedBooks = computed(() =>
-  books.value.filter((b) => b.status === "PUBLISHED")
+  books.value.filter((b) => b.status === "PUBLISHED"),
 );
 
 const totalReads = computed(() =>
-  publishedBooks.value.reduce((sum, b) => sum + (b.readCount ?? 0), 0)
+  publishedBooks.value.reduce((sum, b) => sum + (b.readCount ?? 0), 0),
 );
 
 const avgRating = computed(() => {
   const rated = publishedBooks.value.filter((b) => b.rating && b.rating > 0);
   if (!rated.length) return "—";
-  return (rated.reduce((sum, b) => sum + (b.rating ?? 0), 0) / rated.length).toFixed(1);
+  return (
+    rated.reduce((sum, b) => sum + (b.rating ?? 0), 0) / rated.length
+  ).toFixed(1);
 });
 
 const overviewStats = computed(() => [
@@ -56,8 +65,6 @@ const overviewStats = computed(() => [
   },
 ]);
 
-
-
 onMounted(async () => {
   booksLoading.value = true;
   try {
@@ -84,22 +91,13 @@ onMounted(async () => {
 
 <template>
   <div class="p-3 sm:p-4 lg:p-6">
-    <!-- Breadcrumb -->
-    <div class="text-[11px] sm:text-sm uppercase tracking-[0.15em] text-gray-500 mb-6">
-      Atelier >
-      <span class="font-bold text-black"> Analytics </span>
-    </div>
-
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-      <div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-black mb-2">
-          Analytics Dashboard
-        </h1>
-        <p class="text-gray-600 text-sm">
-          Track your book performance and audience insights
-        </p>
-      </div>
+    <div class="mb-8">
+      <p class="text-3xl sm:text-4xl font-bold mt-2">Analytics Dashboard</p>
+
+      <p class="text-gray-500 text-lg mt-2 text-[17px] pt-2">
+        Track your book performance and audience insights
+      </p>
     </div>
 
     <!-- Overview Stats (real data) -->
@@ -123,6 +121,5 @@ onMounted(async () => {
         <PublishedBooksPanel :books="publishedBooks" :loading="booksLoading" />
       </div>
     </div>
-
   </div>
 </template>
