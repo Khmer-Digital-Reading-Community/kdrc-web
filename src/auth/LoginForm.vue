@@ -194,6 +194,53 @@
             </div>
           </transition>
 
+          <!-- Rate-limit warning (3+ attempts, not yet in cooldown) -->
+          <transition name="fade">
+            <div
+              v-if="showRateLimitWarning"
+              class="mb-5 flex items-center gap-2.5 rounded-xl px-4 py-3 bg-amber-900/20 border border-amber-700/30 text-amber-500 text-sm"
+            >
+              <svg
+                class="w-4 h-4 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 15v2m0 0v2m0-2h2m-2 0H10m9.364-7.364A9 9 0 1112 3a9 9 0 017.364 4.636z"
+                />
+              </svg>
+              Too many failed attempts. Please wait before trying again.
+            </div>
+          </transition>
+
+          <!-- Cooldown banner -->
+          <transition name="fade">
+            <div
+              v-if="isInCooldown"
+              class="mb-5 flex items-center gap-2.5 rounded-xl px-4 py-3 bg-red-900/20 border border-red-700/30 text-red-400 text-sm"
+            >
+              <svg
+                class="w-4 h-4 shrink-0 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Too many login attempts. Please wait
+              {{ cooldownRemaining }}s before trying again.
+            </div>
+          </transition>
+
           <form @submit.prevent="handleLogin" novalidate class="space-y-5">
             <!-- Email -->
             <div>
@@ -209,10 +256,11 @@
                 v-model.trim="email"
                 autocomplete="email"
                 placeholder="you@example.com"
+                :disabled="isFormDisabled"
                 :aria-invalid="errors.email ? 'true' : 'false'"
                 @blur="validateEmail"
                 required
-                class="w-full rounded-xl px-4 py-3 text-sm bg-white border text-[#333333] placeholder-[#999999] transition-all duration-200 outline-none focus:ring-2 focus:ring-[#c8862a]/40 focus:border-[#c8862a]/50"
+                class="w-full rounded-xl px-4 py-3 text-sm bg-white border text-[#333333] placeholder-[#999999] transition-all duration-200 outline-none focus:ring-2 focus:ring-[#c8862a]/40 focus:border-[#c8862a]/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 :class="
                   errors.email
                     ? 'border-red-700/60'
@@ -249,10 +297,11 @@
                   v-model="password"
                   autocomplete="current-password"
                   placeholder="••••••••"
+                  :disabled="isFormDisabled"
                   :aria-invalid="errors.password ? 'true' : 'false'"
                   @blur="validatePassword"
                   required
-                  class="w-full rounded-xl px-4 py-3 pr-12 text-sm bg-white border text-[#333333] placeholder-[#999999] transition-all duration-200 outline-none focus:ring-2 focus:ring-[#c8862a]/40 focus:border-[#c8862a]/50"
+                  class="w-full rounded-xl px-4 py-3 pr-12 text-sm bg-white border text-[#333333] placeholder-[#999999] transition-all duration-200 outline-none focus:ring-2 focus:ring-[#c8862a]/40 focus:border-[#c8862a]/50 disabled:opacity-50 disabled:cursor-not-allowed"
                   :class="
                     errors.password
                       ? 'border-red-700/60'
@@ -356,7 +405,7 @@
             <!-- Submit -->
             <button
               type="submit"
-              :disabled="isSubmitting"
+              :disabled="isFormDisabled"
               class="w-full py-3 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
               style="
                 background: linear-gradient(
@@ -392,7 +441,27 @@
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                   ></path>
                 </svg>
-                {{ isSubmitting ? "Signing in…" : "Sign In" }}
+                <svg
+                  v-else-if="isInCooldown"
+                  class="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 15v2m0 0v2m0-2h2m-2 0H10m9.364-7.364A9 9 0 1112 3a9 9 0 017.364 4.636z"
+                  />
+                </svg>
+                {{
+                  isSubmitting
+                    ? "Signing in…"
+                    : isInCooldown
+                      ? `Wait ${cooldownRemaining}s`
+                      : "Sign In"
+                }}
               </span>
               <!-- Shine effect -->
               <div
@@ -415,7 +484,7 @@
               <button
                 type="button"
                 @click="startGoogleLogin"
-                :disabled="isSubmitting"
+                :disabled="isFormDisabled"
                 class="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-[#dddddd] bg-white text-[#333333] text-sm font-medium hover:border-[#c8862a] hover:bg-[#f9f9f9] transition-all duration-150 disabled:opacity-50"
               >
                 <!-- Google SVG icon inline -->
@@ -446,7 +515,7 @@
               <button
                 type="button"
                 @click="startFacebookLogin"
-                :disabled="isSubmitting"
+                :disabled="isFormDisabled"
                 class="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-[#dddddd] bg-white text-[#333333] text-sm font-medium hover:border-[#c8862a] hover:bg-[#f9f9f9] transition-all duration-150 disabled:opacity-50"
               >
                 <!-- Facebook icon -->
@@ -482,7 +551,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, reactive, ref } from "vue";
+import { computed, defineComponent, onBeforeUnmount, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "../stores/useAuth";
 import { login as loginService, parseApiError } from "../services/auth";
@@ -491,6 +560,11 @@ import {
   validatePasswordValue,
 } from "../utils/auth-validation";
 import { mapApiErrorToForm } from "../utils/form-error-mapper";
+
+/** Max consecutive failures before the UI enters cooldown. */
+const MAX_FAILED_ATTEMPTS = 5;
+/** Cooldown duration in seconds after hitting the limit. */
+const COOLDOWN_SECONDS = 60;
 
 export default defineComponent({
   name: "LoginForm",
@@ -504,6 +578,47 @@ export default defineComponent({
       password: "",
       form: "",
     });
+
+    // ── Brute-force / rate-limit UI state ──────────────────────────────────
+    const failedAttempts = ref(0);
+    const cooldownRemaining = ref(0);
+    let cooldownTimer: ReturnType<typeof setInterval> | null = null;
+
+    const isInCooldown = computed(() => cooldownRemaining.value > 0);
+    const showRateLimitWarning = computed(
+      () => failedAttempts.value >= 3 && !isInCooldown.value,
+    );
+    const isFormDisabled = computed(
+      () => isSubmitting.value || isInCooldown.value,
+    );
+
+    const startCooldown = () => {
+      cooldownRemaining.value = COOLDOWN_SECONDS;
+      if (cooldownTimer) clearInterval(cooldownTimer);
+      cooldownTimer = setInterval(() => {
+        cooldownRemaining.value -= 1;
+        if (cooldownRemaining.value <= 0) {
+          cooldownRemaining.value = 0;
+          if (cooldownTimer) {
+            clearInterval(cooldownTimer);
+            cooldownTimer = null;
+          }
+        }
+      }, 1000);
+    };
+
+    const clearCooldown = () => {
+      cooldownRemaining.value = 0;
+      if (cooldownTimer) {
+        clearInterval(cooldownTimer);
+        cooldownTimer = null;
+      }
+    };
+
+    onBeforeUnmount(() => {
+      if (cooldownTimer) clearInterval(cooldownTimer);
+    });
+    // ────────────────────────────────────────────────────────────────────────
 
     const route = useRoute();
     const router = useRouter();
@@ -528,6 +643,8 @@ export default defineComponent({
       const passwordOk = validatePassword();
       if (!emailOk || !passwordOk) return;
 
+      if (isInCooldown.value) return; // extra guard
+
       isSubmitting.value = true;
       try {
         const redirectTarget =
@@ -540,6 +657,10 @@ export default defineComponent({
           password: password.value,
         });
 
+        // Success — reset all brute-force state
+        failedAttempts.value = 0;
+        clearCooldown();
+
         // Store selected role in localStorage and reactive state
         const userRole = result.user?.role === "ADMIN" ? "admin" : "user"; // Determine user role
         localStorage.setItem("loginRole", userRole);
@@ -550,6 +671,13 @@ export default defineComponent({
           await router.push(redirectTarget === "/" ? "/home" : redirectTarget);
         }
       } catch (error) {
+        failedAttempts.value += 1;
+
+        // Enter cooldown after exceeding the threshold
+        if (failedAttempts.value > MAX_FAILED_ATTEMPTS) {
+          startCooldown();
+        }
+
         mapApiErrorToForm(
           error,
           errors,
@@ -569,6 +697,13 @@ export default defineComponent({
       isSubmitting,
       errors,
       registered,
+
+      // Brute-force state
+      failedAttempts,
+      cooldownRemaining,
+      isInCooldown,
+      showRateLimitWarning,
+      isFormDisabled,
 
       handleLogin,
       startGoogleLogin,
