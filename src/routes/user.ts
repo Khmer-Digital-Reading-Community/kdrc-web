@@ -74,6 +74,7 @@ export default [
   {
     path: "/settings",
     component: DashboardLayout,
+    meta: { requiresAuth: true },
     children: [
       {
         path: "",
@@ -97,15 +98,18 @@ export default [
     path: "/:id/write",
     name: "writingpage",
     component: WritingPage,
+    meta: { requiresAuth: true },
   },
   {
     path: "/reading/:id",
     name: "readingpage",
     component: Reader,
+    meta: { requiresAuth: true },
   },
   {
     path: "/dashboard",
     component: DashboardLayout,
+    meta: { requiresAuth: true },
     children: [
       {
         path: "",

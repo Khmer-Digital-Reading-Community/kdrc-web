@@ -4,6 +4,7 @@ export default [
     {
         path: '/admin',
         component: AdminLayout,
+        meta: { requiresAuth: true, roles: ['ADMIN'] },
         children: [
             { path: '', redirect: { name: 'admin-dashboard' } },
             { path: 'dashboard', name: 'admin-dashboard', component: () => import('../pages/admin/page.vue') },

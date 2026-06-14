@@ -12,15 +12,25 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import '../assets/admin.css';
 import AdminSidebar from '../components/admin/AdminSidebar.vue';
 import AdminHeader from '../components/admin/AdminHeader.vue';
 import { useAdminTheme } from '../composables/useAdminTheme';
+import { user } from '../services/auth';
 
+const router = useRouter();
 const { isDark, initTheme } = useAdminTheme();
 const sidebarCollapsed = ref(false);
 
-onMounted(() => initTheme());
+onMounted(() => {
+  initTheme();
+
+  if (user.value?.role !== 'ADMIN') {
+    const fallback = user.value ? '/home' : '/login';
+    router.replace(fallback);
+  }
+});
 </script>
 
 <style scoped>
