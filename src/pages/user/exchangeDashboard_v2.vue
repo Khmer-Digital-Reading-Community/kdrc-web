@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#F9FAFB] py-12 px-4 sm:px-6 lg:px-8 font-sans text-gray-900">
+  <div class="min-h-screen bg-[#F7F1E6] py-12 px-4 sm:px-6 lg:px-8 font-sans text-gray-900">
     <div v-if="loading" class="max-w-7xl mx-auto py-20 text-center text-gray-500">
       Loading trade center...
     </div>

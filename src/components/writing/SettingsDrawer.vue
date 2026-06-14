@@ -210,7 +210,7 @@
           <button
             @click="$emit('savePricing', {
               isFree: localIsFree,
-              price: localPrice,
+              price: Number(localPrice) || 0,
               isPurchasable: localIsPurchasable,
               isPremium: localIsPremium,
             })"

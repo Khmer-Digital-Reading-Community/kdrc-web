@@ -89,7 +89,7 @@ const clearSession = () => {
 };
 
 const fetchProfile = async () => {
-  const response = await api.get<AuthUser>('/auth/me');
+  const response = await api.get<AuthUser>('/users/me');
   const profile = unwrapResponseData<AuthUser>(response.data);
   user.value = profile;
   return profile;
@@ -145,13 +145,13 @@ export const signup = async (userData: SignupData) => {
       accessToken?: string;
       user?: AuthUser;
     }>(response.data) || {};
-    
+
     // If backend returns access token on signup, optionally auto-login
     // Otherwise, user will need to login on the next page
     if (accessToken) {
       setSession(accessToken, user ?? null);
     }
-    
+
     return response.data;
   } catch (error) {
     throw new Error(parseApiError(error, 'Signup failed. Please try again.'));

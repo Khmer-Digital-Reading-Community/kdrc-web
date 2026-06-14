@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { BookOpen, X } from "lucide-vue-next";
 import type { Chapter } from "../../composables/useChapterNavigation";
 
@@ -183,15 +183,24 @@ const activeChapterStyle = computed(() => ({
 const isActiveChapter = (chapterId: string) =>
   chapterId === props.activeChapterId;
 
-const getChapterProgress = (chapterId: string): number => {
-  try {
-    const saved = localStorage.getItem(`reading_progress_${chapterId}`);
-    if (!saved) return 0;
-    const data = JSON.parse(saved);
-    return data.scroll || 0;
-  } catch {
-    return 0;
+const chapterProgressCache = ref<Map<string, number>>(new Map());
+
+const buildProgressCache = () => {
+  const cache = new Map<string, number>();
+  for (const chapter of props.chapters) {
+    try {
+      const saved = localStorage.getItem(`reading_progress_${chapter.id}`);
+      if (saved) {
+        const data = JSON.parse(saved);
+        cache.set(chapter.id, data.scroll || 0);
+      }
+    } catch {}
   }
+  chapterProgressCache.value = cache;
+};
+
+const getChapterProgress = (chapterId: string): number => {
+  return chapterProgressCache.value.get(chapterId) ?? 0;
 };
 
 const selectChapter = (chapterId: string) => {
@@ -204,6 +213,10 @@ const selectChapter = (chapterId: string) => {
 const checkMobile = () => {
   isMobile.value = window.innerWidth < 1024;
 };
+
+watch(() => props.chapters, () => {
+  buildProgressCache();
+}, { immediate: true });
 
 onMounted(() => {
   checkMobile();

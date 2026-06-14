@@ -13,9 +13,10 @@ export default [
             { path: 'users', name: 'admin-users', component: () => import('../pages/admin/Users.vue') },
             { path: 'notifications', name: 'admin-notifications', component: () => import('../pages/admin/Notifications.vue') },
             { path: 'comments', name: 'admin-comments', component: () => import('../pages/admin/Comments.vue') },
+            { path: 'chat-messages', name: 'admin-chat-messages', component: () => import('../pages/admin/ChatMessages.vue') },
             { path: 'reports', name: 'admin-reports', component: () => import('../pages/admin/Reports.vue') },
-            { path: 'profile', name: 'admin-profile', component: () => import('../pages/admin/Profile.vue') },
             { path: 'settings', name: 'admin-settings', component: () => import('../pages/admin/Settings.vue') },
+            { path: 'profile', name: 'admin-profile', component: () => import('../pages/admin/Profile.vue') },
             { path: 'analytics', name: 'admin-analytics', component: () => import('../pages/admin/Analytics.vue') },
         ]
     }

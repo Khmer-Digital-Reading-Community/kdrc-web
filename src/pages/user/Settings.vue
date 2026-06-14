@@ -3,7 +3,6 @@ import { ref, computed } from "vue";
 import { useToast } from "vue-toastification";
 import {
   Lock,
-  Globe,
   Loader2,
   ShieldCheck,
   LogOut,
@@ -25,7 +24,7 @@ const { currentLang, setLanguage } = useLanguage();
 const { logout, loginRole } = useAuth();
 
 // Active tab
-const activeTab = ref<"appearance" | "security" | "account">("appearance");
+const activeTab = ref<"security" | "account">("security");
 
 // Password form
 const changingPassword = ref(false);
@@ -57,7 +56,15 @@ const strengthLabel = computed(() => {
   return "Strong";
 });
 
-const strengthColor = computed(() => {
+const strengthColorClass = computed(() => {
+  const s = passwordStrength.value;
+  if (s <= 1) return "text-red-500";
+  if (s === 2) return "text-amber-500";
+  if (s === 3) return "text-teal-500";
+  return "text-emerald-500";
+});
+
+const strengthBarColor = computed(() => {
   const s = passwordStrength.value;
   if (s <= 1) return "bg-red-500";
   if (s === 2) return "bg-amber-400";
@@ -70,12 +77,9 @@ const translations = {
     title: "Settings",
     subtitle: "Manage your preferences and account security",
     tabs: {
-      appearance: "Appearance",
       security: "Security",
       account: "Account",
     },
-    language: "Language",
-    languageDesc: "Choose your preferred language for the interface.",
     security: "Change Password",
     securityDesc: "Choose a strong password to protect your account.",
     oldPassword: "Current Password",
@@ -98,12 +102,9 @@ const translations = {
     title: "ការកំណត់",
     subtitle: "គ្រប់គ្រងចំណង់ចំណូលចិត្ត និងសុវត្ថិភាពគណនី",
     tabs: {
-      appearance: "រូបរាង",
       security: "សុវត្ថិភាព",
       account: "គណនី",
     },
-    language: "ភាសា",
-    languageDesc: "ជ្រើសរើសភាសាដែលអ្នកចូលចិត្ត។",
     security: "ប្តូរពាក្យសម្ងាត់",
     securityDesc: "ជ្រើសរើសពាក្យសម្ងាត់ខ្លាំងដើម្បីការពារគណនីរបស់អ្នក។",
     oldPassword: "ពាក្យសម្ងាត់បច្ចុប្បន្ន",
@@ -127,9 +128,8 @@ const translations = {
 const t = computed(() => translations[currentLang.value === "KH" ? "KH" : "EN"]);
 
 const tabs = computed(() => [
-  { id: "appearance", label: t.value.tabs.appearance, icon: Globe },
-  { id: "security",   label: t.value.tabs.security,   icon: ShieldCheck },
-  { id: "account",    label: t.value.tabs.account,    icon: UserCircle2 },
+  { id: "security", label: t.value.tabs.security, icon: ShieldCheck },
+  { id: "account", label: t.value.tabs.account, icon: UserCircle2 },
 ]);
 
 const savePassword = async () => {
@@ -139,7 +139,10 @@ const savePassword = async () => {
   }
   changingPassword.value = true;
   try {
-    await changeUserPassword({ oldPassword: oldPassword.value, newPassword: newPassword.value });
+    await changeUserPassword({
+      oldPassword: oldPassword.value,
+      newPassword: newPassword.value,
+    });
     toast.success(t.value.successPassword);
     oldPassword.value = "";
     newPassword.value = "";
@@ -153,939 +156,215 @@ const savePassword = async () => {
 </script>
 
 <template>
-  <div class="settings-content">
-        <!-- Page Header -->
-        <div class="settings-header">
-          <div class="settings-header-text">
-            <div class="settings-breadcrumb">Atelier › <span>{{ t.title }}</span></div>
-            <h1 class="settings-title">{{ t.title }}</h1>
-            <p class="settings-subtitle">{{ t.subtitle }}</p>
+  <div class="p-3 sm:p-4 lg:p-6">
+    
+    <!-- Page Header -->
+    <div class="max-w-5xl mx-auto mb-6">
+      <div class="bg-white/70 backdrop-blur-md p-6 rounded-2xl border border-gray-200/50 shadow-sm transition-colors duration-300">
+        <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight leading-none mb-1.5 font-['Playfair_Display',serif]">{{ t.title }}</h1>
+        <p class="text-xs text-[#7a5b3e]">{{ t.subtitle }}</p>
+      </div>
+    </div>
+
+    <!-- Layout: Tabs + Panel -->
+    <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6 items-start">
+      
+      <!-- Tab Rail (Navigation) -->
+      <nav class="bg-white p-3 rounded-2xl border border-gray-200/50 shadow-sm flex flex-row md:flex-col overflow-x-auto md:overflow-visible gap-1.5 sticky top-20 z-10 transition-colors duration-300">
+        <button
+          v-for="tab in tabs"
+          :key="tab.id"
+          type="button"
+          class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-none font-bold text-xs cursor-pointer transition-all duration-200 whitespace-nowrap flex-1 md:flex-none justify-center md:justify-start"
+          :class="
+            activeTab === tab.id
+              ? 'bg-[#0f6d5f] text-white shadow-md'
+              : 'bg-transparent text-gray-500 hover:bg-[#F6F1E8]'
+          "
+          @click="activeTab = (tab.id as any)"
+        >
+          <component :is="tab.icon" :size="15" class="shrink-0" />
+          <span>{{ tab.label }}</span>
+        </button>
+      </nav>
+
+      <!-- Panel Content -->
+      <div class="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200/50 shadow-sm min-h-[350px] transition-colors duration-300 text-left">
+        
+        <!-- SECURITY TAB -->
+        <Transition name="panel-fade" mode="out-in">
+          <div v-if="activeTab === 'security'" key="security" class="space-y-6">
+            <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
+              <KeyRound :size="15" class="text-[#0f6d5f]" />
+              {{ t.security }}
+            </h3>
+            <p class="text-xs text-gray-500">{{ t.securityDesc }}</p>
+
+            <form @submit.prevent="savePassword" class="space-y-5">
+              <!-- Current password -->
+              <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-[#7a5b3e]">{{ t.oldPassword }}</label>
+                <div class="relative">
+                  <Lock :size="14" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    :type="showOldPw ? 'text' : 'password'"
+                    v-model="oldPassword"
+                    class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition duration-150"
+                    :placeholder="t.passwordPlaceholder"
+                    required
+                  />
+                  <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" @click="showOldPw = !showOldPw">
+                    <EyeOff v-if="showOldPw" :size="14" />
+                    <Eye v-else :size="14" />
+                  </button>
+                </div>
+              </div>
+
+              <!-- New password -->
+              <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-[#7a5b3e]">{{ t.newPassword }}</label>
+                <div class="relative">
+                  <Lock :size="14" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    :type="showNewPw ? 'text' : 'password'"
+                    v-model="newPassword"
+                    class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition duration-150"
+                    :placeholder="t.passwordPlaceholder"
+                    required
+                    minlength="6"
+                  />
+                  <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" @click="showNewPw = !showNewPw">
+                    <EyeOff v-if="showNewPw" :size="14" />
+                    <Eye v-else :size="14" />
+                  </button>
+                </div>
+
+                <!-- Password Strength indicators -->
+                <div v-if="newPassword" class="flex items-center gap-3 mt-2">
+                  <div class="flex gap-1">
+                    <span
+                      v-for="i in 4"
+                      :key="i"
+                      class="w-7 h-1 rounded-full transition-all duration-300"
+                      :class="i <= passwordStrength ? strengthBarColor : 'bg-gray-100'"
+                    ></span>
+                  </div>
+                  <span class="text-[10px] font-extrabold uppercase tracking-wide" :class="strengthColorClass">
+                    {{ strengthLabel }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Confirm password -->
+              <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-[#7a5b3e]">{{ t.confirmPassword }}</label>
+                <div class="relative">
+                  <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                    <Check v-if="confirmPassword && confirmPassword === newPassword" :size="14" class="text-emerald-500" />
+                    <Lock v-else :size="14" />
+                  </span>
+                  <input
+                    :type="showConfirmPw ? 'text' : 'password'"
+                    v-model="confirmPassword"
+                    class="w-full pl-10 pr-10 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition duration-150 text-xs font-medium"
+                    :class="
+                      confirmPassword && confirmPassword !== newPassword
+                        ? 'border-red-500 bg-red-50/10 text-red-900 focus:ring-red-500/20 focus:border-red-500'
+                        : 'border-gray-200 bg-white text-gray-900'
+                    "
+                    :placeholder="t.passwordPlaceholder"
+                    required
+                  />
+                  <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" @click="showConfirmPw = !showConfirmPw">
+                    <EyeOff v-if="showConfirmPw" :size="14" />
+                    <Eye v-else :size="14" />
+                  </button>
+                </div>
+                <p v-if="confirmPassword && confirmPassword !== newPassword" class="text-[10px] text-red-500 font-bold mt-1.5">
+                  Passwords don't match
+                </p>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex justify-end pt-3 border-t border-gray-100 mt-6">
+                <button
+                  type="submit"
+                  class="flex items-center gap-2 px-6 py-2.5 bg-[#0f6d5f] hover:bg-[#0c574c] text-white font-bold text-xs rounded-xl transition duration-150 shadow-md shadow-emerald-500/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                  :disabled="changingPassword"
+                >
+                  <Loader2 v-if="changingPassword" :size="14" class="animate-spin" />
+                  <ShieldCheck v-else :size="14" />
+                  <span>
+                    {{ changingPassword ? t.updating : t.updatePassword }}
+                  </span>
+                </button>
+              </div>
+            </form>
           </div>
-        </div>
+        </Transition>
 
-        <!-- Layout: Tabs + Panel -->
-        <div class="settings-body">
+        <!-- ACCOUNT TAB -->
+        <Transition name="panel-fade" mode="out-in">
+          <div v-if="activeTab === 'account'" key="account" class="space-y-6">
+            <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
+              <UserCircle2 :size="15" class="text-[#0f6d5f]" />
+              {{ t.account }}
+            </h3>
 
-          <!-- Tab Rail (Left) -->
-          <nav class="settings-tab-rail">
-            <button
-              v-for="tab in tabs"
-              :key="tab.id"
-              type="button"
-              class="tab-btn"
-              :class="{ active: activeTab === tab.id }"
-              @click="activeTab = (tab.id as any)"
-            >
-              <component :is="tab.icon" class="tab-icon" :size="17" />
-              <span class="tab-label">{{ tab.label }}</span>
-              <ChevronRight class="tab-chevron" :size="14" />
-            </button>
-          </nav>
-
-          <!-- Panel (Right) -->
-          <div class="settings-panel">
-
-            <!-- ── APPEARANCE ── -->
-            <Transition name="panel-fade" mode="out-in">
-              <div v-if="activeTab === 'appearance'" key="appearance" class="panel-section">
-
-                <!-- Language -->
-                <div class="setting-group">
-                  <div class="setting-group-label">
-                    <Globe :size="15" class="label-icon" />
-                    {{ t.language }}
+            <div class="grid grid-cols-1 gap-4">
+              <!-- Edit Profile link -->
+              <div
+                class="flex items-center justify-between p-4 rounded-xl border border-gray-200/60 bg-white/40 cursor-pointer hover:bg-[#F6F1E8] transition duration-150 group"
+                @click="router.push(loginRole === 'admin' ? '/admin/profile' : '/settings/profile')"
+              >
+                <div class="flex items-center gap-4">
+                  <div class="p-2.5 bg-[#0f6d5f]/10 text-[#0f6d5f] rounded-xl">
+                    <UserCircle2 :size="18" />
                   </div>
-                  <p class="setting-group-desc">{{ t.languageDesc }}</p>
-                  <div class="lang-grid">
-                    <button
-                      type="button"
-                      class="lang-card"
-                      :class="{ active: currentLang === 'EN' }"
-                      @click="setLanguage('EN')"
-                    >
-                      <span class="lang-flag">🇬🇧</span>
-                      <span class="lang-name">English</span>
-                      <span v-if="currentLang === 'EN'" class="lang-check"><Check :size="12" /></span>
-                    </button>
-                    <button
-                      type="button"
-                      class="lang-card"
-                      :class="{ active: currentLang === 'KH' }"
-                      @click="setLanguage('KH')"
-                    >
-                      <span class="lang-flag">🇰🇭</span>
-                      <span class="lang-name">ខ្មែរ</span>
-                      <span v-if="currentLang === 'KH'" class="lang-check"><Check :size="12" /></span>
-                    </button>
+                  <div>
+                    <h4 class="text-xs font-bold text-gray-900">{{ t.goToProfile }}</h4>
+                    <p class="text-[10px] text-gray-500 mt-0.5">{{ t.profileDesc }}</p>
                   </div>
                 </div>
-
+                <ChevronRight :size="15" class="text-gray-400 group-hover:translate-x-0.5 transition" />
               </div>
-            </Transition>
 
-            <!-- ── SECURITY ── -->
-            <Transition name="panel-fade" mode="out-in">
-              <div v-if="activeTab === 'security'" key="security" class="panel-section">
-                <div class="setting-group">
-                  <div class="setting-group-label">
-                    <KeyRound :size="15" class="label-icon" />
-                    {{ t.security }}
+              <!-- Sign Out link -->
+              <div
+                class="flex items-center justify-between p-4 rounded-xl border border-red-200/40 bg-red-50/5 cursor-pointer hover:bg-red-500/5 transition duration-150 group"
+                @click="logout"
+              >
+                <div class="flex items-center gap-4">
+                  <div class="p-2.5 bg-red-100/60 text-red-500 rounded-xl">
+                    <LogOut :size="18" />
                   </div>
-                  <p class="setting-group-desc">{{ t.securityDesc }}</p>
-
-                  <form @submit.prevent="savePassword" class="pw-form">
-                    <!-- Current PW -->
-                    <div class="pw-field">
-                      <label class="pw-label">{{ t.oldPassword }}</label>
-                      <div class="pw-input-wrap">
-                        <Lock :size="15" class="pw-prefix-icon" />
-                        <input
-                          :type="showOldPw ? 'text' : 'password'"
-                          v-model="oldPassword"
-                          class="pw-input"
-                          :placeholder="t.passwordPlaceholder"
-                          required
-                        />
-                        <button type="button" class="pw-eye" @click="showOldPw = !showOldPw">
-                          <EyeOff v-if="showOldPw" :size="15" />
-                          <Eye v-else :size="15" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- New PW -->
-                    <div class="pw-field">
-                      <label class="pw-label">{{ t.newPassword }}</label>
-                      <div class="pw-input-wrap">
-                        <Lock :size="15" class="pw-prefix-icon" />
-                        <input
-                          :type="showNewPw ? 'text' : 'password'"
-                          v-model="newPassword"
-                          class="pw-input"
-                          :placeholder="t.passwordPlaceholder"
-                          required
-                          minlength="6"
-                        />
-                        <button type="button" class="pw-eye" @click="showNewPw = !showNewPw">
-                          <EyeOff v-if="showNewPw" :size="15" />
-                          <Eye v-else :size="15" />
-                        </button>
-                      </div>
-                      <!-- Strength bar -->
-                      <div v-if="newPassword" class="strength-wrap">
-                        <div class="strength-bars">
-                          <span
-                            v-for="i in 4"
-                            :key="i"
-                            class="strength-bar"
-                            :class="{ active: i <= passwordStrength, [strengthColor]: i <= passwordStrength }"
-                          ></span>
-                        </div>
-                        <span class="strength-label" :class="{
-                          'text-red-500': passwordStrength <= 1,
-                          'text-amber-500': passwordStrength === 2,
-                          'text-teal-500': passwordStrength === 3,
-                          'text-emerald-500': passwordStrength === 4,
-                        }">{{ strengthLabel }}</span>
-                      </div>
-                    </div>
-
-                    <!-- Confirm PW -->
-                    <div class="pw-field">
-                      <label class="pw-label">{{ t.confirmPassword }}</label>
-                      <div class="pw-input-wrap">
-                        <span class="pw-prefix-icon">
-                          <Check v-if="confirmPassword && confirmPassword === newPassword" :size="15" class="text-emerald-500" />
-                          <Lock v-else :size="15" />
-                        </span>
-                        <input
-                          :type="showConfirmPw ? 'text' : 'password'"
-                          v-model="confirmPassword"
-                          class="pw-input"
-                          :class="{ 'pw-input--error': confirmPassword && confirmPassword !== newPassword }"
-                          :placeholder="t.passwordPlaceholder"
-                          required
-                        />
-                        <button type="button" class="pw-eye" @click="showConfirmPw = !showConfirmPw">
-                          <EyeOff v-if="showConfirmPw" :size="15" />
-                          <Eye v-else :size="15" />
-                        </button>
-                      </div>
-                      <p v-if="confirmPassword && confirmPassword !== newPassword" class="pw-error-msg">
-                        Passwords don't match
-                      </p>
-                    </div>
-
-                    <button type="submit" class="btn-primary" :disabled="changingPassword">
-                      <Loader2 v-if="changingPassword" :size="15" class="spin" />
-                      <ShieldCheck v-else :size="15" />
-                      {{ changingPassword ? t.updating : t.updatePassword }}
-                    </button>
-                  </form>
+                  <div>
+                    <h4 class="text-xs font-bold text-red-500">{{ t.logoutLabel }}</h4>
+                    <p class="text-[10px] text-red-400/80 mt-0.5">{{ t.logoutDesc }}</p>
+                  </div>
                 </div>
+                <ChevronRight :size="15" class="text-red-400 group-hover:translate-x-0.5 transition" />
               </div>
-            </Transition>
-
-            <!-- ── ACCOUNT ── -->
-            <Transition name="panel-fade" mode="out-in">
-              <div v-if="activeTab === 'account'" key="account" class="panel-section">
-
-                <!-- Go to Profile -->
-                <div class="account-row" @click="router.push(loginRole === 'admin' ? '/admin/profile' : '/settings/profile')">
-                  <div class="account-row-icon profile-icon">
-                    <UserCircle2 :size="20" />
-                  </div>
-                  <div class="account-row-text">
-                    <p class="account-row-title">{{ t.goToProfile }}</p>
-                    <p class="account-row-desc">{{ t.profileDesc }}</p>
-                  </div>
-                  <ChevronRight :size="16" class="account-row-chevron" />
-                </div>
-
-                <div class="setting-divider"></div>
-
-                <!-- Sign Out -->
-                <div class="account-row danger-row" @click="logout">
-                  <div class="account-row-icon logout-icon">
-                    <LogOut :size="20" />
-                  </div>
-                  <div class="account-row-text">
-                    <p class="account-row-title danger-text">{{ t.logoutLabel }}</p>
-                    <p class="account-row-desc">{{ t.logoutDesc }}</p>
-                  </div>
-                  <ChevronRight :size="16" class="account-row-chevron danger-chevron" />
-                </div>
-              </div>
-            </Transition>
-
+            </div>
           </div>
-        </div>
+        </Transition>
+
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-/* ──────────────────────────────
-   Root Layout
-────────────────────────────── */
-.settings-root {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-  background: #ffffff;
-  color: var(--text);
-  transition: background 0.3s, color 0.3s;
-}
-
-:global(.dark) .settings-root { background: #171612; }
-
-.settings-main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.settings-content {
-  padding: 1.5rem 1.75rem 3rem;
-}
-
-/* ──────────────────────────────
-   Header
-────────────────────────────── */
-.settings-header {
-  margin-bottom: 2rem;
-}
-
-.settings-breadcrumb {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: #9ca3af;
-  margin-bottom: 0.6rem;
-}
-
-.settings-breadcrumb span {
-  color: #111;
-  font-weight: 700;
-}
-
-:global(.dark) .settings-breadcrumb span { color: #fff; }
-
-.settings-title {
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  margin: 0 0 0.3rem;
-  line-height: 1.1;
-  color: #111827;
-}
-
-:global(.dark) .settings-title { color: #f3f4f6; }
-
-.settings-subtitle {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-/* ──────────────────────────────
-   Body: tab rail + panel
-────────────────────────────── */
-.settings-body {
-  display: flex;
-  gap: 1.5rem;
-  align-items: flex-start;
-  max-width: 860px;
-}
-
-/* ──────────────────────────────
-   Tab Rail
-────────────────────────────── */
-.settings-tab-rail {
-  flex-shrink: 0;
-  width: 190px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  background: rgba(255,255,255,0.65);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(0,0,0,0.07);
-  border-radius: 18px;
-  padding: 0.5rem;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
-  position: sticky;
-  top: 1rem;
-}
-
-:global(.dark) .settings-tab-rail {
-  background: rgba(31,30,26,0.7);
-  border-color: rgba(255,255,255,0.07);
-}
-
-.tab-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  width: 100%;
-  padding: 0.7rem 0.85rem;
-  border-radius: 12px;
-  border: none;
-  background: transparent;
-  color: #6b7280;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.18s, color 0.18s, transform 0.15s;
-  position: relative;
-}
-
-:global(.dark) .tab-btn { color: #9ca3af; }
-
-.tab-btn:hover {
-  background: rgba(0,0,0,0.05);
-  color: #111;
-  transform: translateX(2px);
-}
-
-:global(.dark) .tab-btn:hover {
-  background: rgba(255,255,255,0.06);
-  color: #f3f4f6;
-}
-
-.tab-btn.active {
-  background: #0f6d5f;
-  color: #fff;
-  box-shadow: 0 4px 14px rgba(15, 109, 95, 0.35);
-  transform: none;
-}
-
-:global(.dark) .tab-btn.active {
-  background: #4cc2a5;
-  color: #093A3F;
-  box-shadow: 0 4px 14px rgba(76, 194, 165, 0.35);
-}
-
-.tab-icon { flex-shrink: 0; }
-
-.tab-label { flex: 1; }
-
-.tab-chevron {
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.tab-btn.active .tab-chevron,
-.tab-btn:hover .tab-chevron {
-  opacity: 0.5;
-}
-
-/* ──────────────────────────────
-   Panel
-────────────────────────────── */
-.settings-panel {
-  flex: 1;
-  min-width: 0;
-  background: rgba(255,255,255,0.65);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(0,0,0,0.07);
-  border-radius: 20px;
-  padding: 1.75rem;
-  box-shadow: 0 2px 24px rgba(0,0,0,0.06);
-  min-height: 360px;
-}
-
-:global(.dark) .settings-panel {
-  background: rgba(31,30,26,0.7);
-  border-color: rgba(255,255,255,0.07);
-}
-
-.panel-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* ──────────────────────────────
-   Setting Groups
-────────────────────────────── */
-.setting-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.25rem 0;
-}
-
-.setting-group-label {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #111827;
-  letter-spacing: -0.01em;
-}
-
-:global(.dark) .setting-group-label { color: #f3f4f6; }
-
-.label-icon {
-  color: #0f6d5f;
-}
-
-:global(.dark) .label-icon { color: #4cc2a5; }
-
-.setting-group-desc {
-  font-size: 0.8rem;
-  color: #6b7280;
-  margin: 0 0 0.75rem;
-}
-
-.setting-divider {
-  height: 1px;
-  background: rgba(0,0,0,0.07);
-  margin: 1.5rem 0;
-}
-
-:global(.dark) .setting-divider { background: rgba(255,255,255,0.07); }
-
-/* ──────────────────────────────
-   Language Cards
-────────────────────────────── */
-.lang-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-
-.lang-card {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.8rem 1rem;
-  border-radius: 12px;
-  border: 1.5px solid rgba(0,0,0,0.09);
-  background: rgba(255,255,255,0.5);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  color: #374151;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-:global(.dark) .lang-card {
-  border-color: rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.04);
-  color: #d1d5db;
-}
-
-.lang-card:hover {
-  border-color: #0f6d5f;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(15, 109, 95, 0.12);
-}
-
-.lang-card.active {
-  border-color: #0f6d5f;
-  background: rgba(15, 109, 95, 0.06);
-  color: #0f6d5f;
-  box-shadow: 0 0 0 3px rgba(15, 109, 95, 0.1);
-}
-
-:global(.dark) .lang-card.active {
-  border-color: #4cc2a5;
-  background: rgba(76, 194, 165, 0.08);
-  color: #4cc2a5;
-  box-shadow: 0 0 0 3px rgba(76, 194, 165, 0.1);
-}
-
-.lang-flag { font-size: 1.3rem; }
-.lang-name { flex: 1; }
-
-.lang-check {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: #0f6d5f;
-  color: #fff;
-}
-
-:global(.dark) .lang-check { background: #4cc2a5; color: #093A3F; }
-
-/* ──────────────────────────────
-   Theme Cards
-────────────────────────────── */
-.theme-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-
-.theme-card {
-  border-radius: 14px;
-  border: 1.5px solid rgba(0,0,0,0.09);
-  background: rgba(255,255,255,0.5);
-  cursor: pointer;
-  overflow: hidden;
-  transition: all 0.2s ease;
-  padding: 0;
-  text-align: left;
-}
-
-:global(.dark) .theme-card {
-  border-color: rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.03);
-}
-
-.theme-card:hover {
-  border-color: #0f6d5f;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(15, 109, 95, 0.12);
-}
-
-.theme-card.active {
-  border-color: #0f6d5f;
-  box-shadow: 0 0 0 3px rgba(15, 109, 95, 0.12);
-}
-
-:global(.dark) .theme-card.active {
-  border-color: #4cc2a5;
-  box-shadow: 0 0 0 3px rgba(76, 194, 165, 0.12);
-}
-
-/* Preview area */
-.theme-preview {
-  height: 80px;
-  padding: 0.65rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.light-preview {
-  background: #f8fafc;
-}
-
-.dark-preview {
-  background: #1a1f2e;
-}
-
-.preview-bar {
-  height: 10px;
-  border-radius: 4px;
-  background: #e5e7eb;
-  width: 100%;
-}
-
-.dark-bar {
-  background: #374151;
-}
-
-.preview-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.3rem;
-}
-
-.preview-line {
-  height: 6px;
-  border-radius: 3px;
-  background: #e5e7eb;
-}
-
-.preview-line.long { width: 75%; }
-.preview-line.short { width: 50%; }
-.preview-line.dark-line { background: #374151; }
-
-.theme-card-footer {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 0.85rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #374151;
-  border-top: 1px solid rgba(0,0,0,0.06);
-  background: rgba(255,255,255,0.4);
-}
-
-:global(.dark) .theme-card-footer {
-  color: #d1d5db;
-  border-top-color: rgba(255,255,255,0.06);
-  background: rgba(0,0,0,0.2);
-}
-
-.theme-card-icon.sun { color: #f59e0b; }
-.theme-card-icon.moon { color: #818cf8; }
-
-.theme-active-dot {
-  margin-left: auto;
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: #0f6d5f;
-}
-
-:global(.dark) .theme-active-dot { background: #4cc2a5; }
-
-/* ──────────────────────────────
-   Password Form
-────────────────────────────── */
-.pw-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
-  margin-top: 0.25rem;
-}
-
-.pw-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.pw-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: #6b7280;
-}
-
-:global(.dark) .pw-label { color: #9ca3af; }
-
-.pw-input-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.pw-prefix-icon {
-  position: absolute;
-  left: 0.85rem;
-  color: #9ca3af;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-}
-
-.pw-input {
-  width: 100%;
-  padding: 0.7rem 2.6rem 0.7rem 2.4rem;
-  border-radius: 12px;
-  border: 1.5px solid rgba(0,0,0,0.1);
-  background: rgba(255,255,255,0.7);
-  font-size: 0.9rem;
-  font-weight: 500;
-  outline: none;
-  color: #111827;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  font-family: inherit;
-}
-
-:global(.dark) .pw-input {
-  background: rgba(23,22,18,0.8);
-  border-color: rgba(255,255,255,0.1);
-  color: #f3f4f6;
-}
-
-.pw-input:focus {
-  border-color: #0f6d5f;
-  box-shadow: 0 0 0 3px rgba(15,109,95,0.12);
-}
-
-:global(.dark) .pw-input:focus {
-  border-color: #4cc2a5;
-  box-shadow: 0 0 0 3px rgba(76,194,165,0.12);
-}
-
-.pw-input--error {
-  border-color: #ef4444 !important;
-  box-shadow: 0 0 0 3px rgba(239,68,68,0.1) !important;
-}
-
-.pw-eye {
-  position: absolute;
-  right: 0.85rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #9ca3af;
-  display: flex;
-  align-items: center;
-  padding: 0;
-  transition: color 0.15s;
-}
-
-.pw-eye:hover { color: #374151; }
-:global(.dark) .pw-eye:hover { color: #e5e7eb; }
-
-.pw-error-msg {
-  font-size: 0.75rem;
-  color: #ef4444;
-  margin: 0;
-}
-
-/* Strength */
-.strength-wrap {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.15rem;
-}
-
-.strength-bars {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.strength-bar {
-  width: 28px;
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(0,0,0,0.1);
-  transition: background 0.25s;
-}
-
-:global(.dark) .strength-bar { background: rgba(255,255,255,0.1); }
-
-.strength-bar.active.bg-red-500 { background: #ef4444; }
-.strength-bar.active.bg-amber-400 { background: #fbbf24; }
-.strength-bar.active.bg-teal-400 { background: #2dd4bf; }
-.strength-bar.active.bg-emerald-500 { background: #10b981; }
-
-.strength-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
-/* Button */
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
-  border: none;
-  background: #0f6d5f;
-  color: #fff;
-  font-size: 0.875rem;
-  font-weight: 700;
-  cursor: pointer;
-  align-self: flex-end;
-  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
-  box-shadow: 0 4px 14px rgba(15,109,95,0.3);
-}
-
-:global(.dark) .btn-primary {
-  background: #4cc2a5;
-  color: #093A3F;
-  box-shadow: 0 4px 14px rgba(76,194,165,0.3);
-}
-
-.btn-primary:hover {
-  opacity: 0.92;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(15,109,95,0.38);
-}
-
-.btn-primary:active { transform: translateY(0); }
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ──────────────────────────────
-   Account Rows
-────────────────────────────── */
-.account-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border-radius: 14px;
-  border: 1.5px solid rgba(0,0,0,0.06);
-  cursor: pointer;
-  transition: background 0.18s, border-color 0.18s, transform 0.15s;
-}
-
-:global(.dark) .account-row { border-color: rgba(255,255,255,0.06); }
-
-.account-row:hover {
-  background: rgba(0,0,0,0.04);
-  border-color: rgba(0,0,0,0.12);
-  transform: translateX(3px);
-}
-
-:global(.dark) .account-row:hover {
-  background: rgba(255,255,255,0.04);
-  border-color: rgba(255,255,255,0.1);
-}
-
-.danger-row:hover {
-  background: rgba(239,68,68,0.05);
-  border-color: rgba(239,68,68,0.2);
-}
-
-.account-row-icon {
-  width: 44px; height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.profile-icon {
-  background: rgba(15,109,95,0.1);
-  color: #0f6d5f;
-}
-
-:global(.dark) .profile-icon {
-  background: rgba(76,194,165,0.12);
-  color: #4cc2a5;
-}
-
-.logout-icon {
-  background: rgba(239,68,68,0.08);
-  color: #ef4444;
-}
-
-.account-row-text { flex: 1; }
-
-.account-row-title {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #111827;
-  margin: 0;
-}
-
-:global(.dark) .account-row-title { color: #f3f4f6; }
-
-.danger-text { color: #ef4444 !important; }
-
-.account-row-desc {
-  font-size: 0.78rem;
-  color: #6b7280;
-  margin: 0.15rem 0 0;
-}
-
-.account-row-chevron {
-  color: #9ca3af;
-  flex-shrink: 0;
-  transition: transform 0.15s;
-}
-
-.account-row:hover .account-row-chevron {
-  transform: translateX(2px);
-}
-
-.danger-chevron { color: #ef4444; }
-
-/* ──────────────────────────────
-   Panel Transition
-────────────────────────────── */
 .panel-fade-enter-active,
 .panel-fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 .panel-fade-enter-from {
   opacity: 0;
-  transform: translateX(8px);
+  transform: translateX(6px);
 }
 .panel-fade-leave-to {
   opacity: 0;
-  transform: translateX(-8px);
-}
-
-/* ──────────────────────────────
-   Responsive
-────────────────────────────── */
-@media (max-width: 640px) {
-  .settings-body {
-    flex-direction: column;
-  }
-
-  .settings-tab-rail {
-    width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    position: static;
-    padding: 0.4rem;
-    gap: 0.25rem;
-  }
-
-  .tab-btn {
-    flex: 1;
-    min-width: 0;
-    justify-content: center;
-    padding: 0.6rem 0.5rem;
-  }
-
-  .tab-label { display: none; }
-  .tab-chevron { display: none; }
-
-  .settings-content {
-    padding: 1rem;
-  }
-
-  .lang-grid,
-  .theme-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+  transform: translateX(-6px);
 }
 </style>

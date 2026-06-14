@@ -1,5 +1,6 @@
 import { ref, computed } from "vue";
 import { updateBook } from "../services/bookApi";
+import { updateChapter } from "../services/chapterApi";
 import type { Book } from "../services/bookApi";
 import type { Chapter } from "../services/chapterApi";
 import { useToast } from "vue-toastification";
@@ -35,11 +36,22 @@ export function usePublishFlow() {
     showPublishDialog.value = false;
   }
 
-  async function confirmPublish(book: Book): Promise<boolean> {
+  async function confirmPublish(book: Book, chapters?: Chapter[]): Promise<boolean> {
     isPublishing.value = true;
     try {
       await updateBook(book.id, { status: "PUBLISHED" });
       book.status = "PUBLISHED";
+
+      if (chapters?.length) {
+        const firstChapter = chapters.reduce((earliest, ch) =>
+          earliest.order < ch.order ? earliest : ch
+        );
+        if (firstChapter && firstChapter.status !== "PUBLISHED") {
+          await updateChapter(firstChapter.id, { status: "PUBLISHED" });
+          firstChapter.status = "PUBLISHED";
+        }
+      }
+
       toast.success("Book published successfully!");
       showPublishDialog.value = false;
       return true;

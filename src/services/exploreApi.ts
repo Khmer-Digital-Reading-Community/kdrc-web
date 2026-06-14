@@ -43,7 +43,7 @@ export function mapToExploreBook(book: any): ExploreBook {
     id: book.id,
     title: book.title,
     author: book.author?.name ?? "Unknown Author",
-    rating: book.rating ?? 0,
+    rating: Number(book.rating ?? 0),
     lang: book.metadata?.language ?? book.language ?? "English",
     category: book.categories?.[0]?.name ?? "General",
     genre: book.genre?.name ?? book.genre ?? (book.tags?.[0]?.name || "General"),
@@ -51,7 +51,12 @@ export function mapToExploreBook(book: any): ExploreBook {
     tags: book.tags?.map((tag: any) => tag.name) || [],
     coverImage: resolveCoverUrl(book.coverImageUrl),
     createdAt: book.createdAt ?? "",
-    isFree: book.isFree ?? false,
+    isFree: Boolean(book.isFree ?? false),
+    isPurchasable: Boolean(book.isPurchasable ?? false),
+    isPremium: Boolean(book.isPremium ?? false),
+    price: Number(book.price ?? 0),
+    readCount: Number(book.readCount ?? 0),
+    likeCount: Number(book.likeCount ?? 0),
   };
 }
 

@@ -14,7 +14,7 @@ const displayedExchanges = computed(() => results.value);
 
 <template>
     <div class="bg-[#FAFAFA] min-h-screen pb-20">
-        <div class="max-w-7xl mx-auto px-6 pt-12">
+        <div class="max-w-7xl mx-auto px-6 pt-5 sm:pt-5">
 
             <div class="mb-12">
                 <div class="flex items-center justify-between mb-4">
