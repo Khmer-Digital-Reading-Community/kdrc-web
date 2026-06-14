@@ -143,6 +143,16 @@ export default [
         component: () => import("../pages/user/BookmarkPage.vue"),
       },
       {
+        path: "billing",
+        name: "billing",
+        component: () => import("../pages/user/PlanAndBilling.vue"),
+      },
+      {
+        path: "billing/history",
+        name: "billing-history",
+        component: () => import("../pages/user/PaymentHistory.vue"),
+      },
+      {
         path: "manage-trade/:tradeId",
         name: "manage-trade",
         component: () => import("../pages/user/ManageTrade.vue"),

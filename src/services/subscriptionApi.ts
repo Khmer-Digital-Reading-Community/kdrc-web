@@ -45,3 +45,13 @@ export const checkSubscription = async () => {
   const res = await api.get("/subscriptions/check");
   return res.data as { subscribed: boolean; subscription?: UserSubscription };
 };
+
+export const toggleAutoRenew = async () => {
+  const res = await api.patch("/subscriptions/renew/toggle");
+  return res.data as { autoRenew: boolean };
+};
+
+export const getPaymentHistory = async () => {
+  const res = await api.get("/subscriptions/history");
+  return res.data as UserSubscription[];
+};

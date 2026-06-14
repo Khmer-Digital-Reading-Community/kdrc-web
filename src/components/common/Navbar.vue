@@ -74,7 +74,7 @@ console.log("Initial token value:", !!token.value, "isAuthed:", isAuthed.value);
 
 const publicNavLinks = [
   { label: "Browse", path: "/explore" },
-  { label: "Community", path: "/community" },
+  { label: "About", path: "/about" },
 ];
 
 const authenticatedNavLinks = [
@@ -83,6 +83,7 @@ const authenticatedNavLinks = [
   { label: "Exchange", path: "/exchange-v2" },
   // { label: "Trade Center", path: "/dashboard/exchange-dashboard-v2" },
   { label: "Community", path: "/community" },
+  { label: "About", path: "/about" },
 ];
 
 const profileMenuItems = computed(() => {
