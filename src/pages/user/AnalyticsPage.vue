@@ -142,23 +142,16 @@ const engagementMetrics = ref([
 
 <template>
   <div class="p-3 sm:p-4 lg:p-6">
-    <!-- Breadcrumb -->
-          <div
-            class="text-[11px] sm:text-sm uppercase tracking-[0.15em] text-gray-500 mb-6"
-          >
-            Atelier >
-            <span class="font-bold text-black"> Analytics </span>
-          </div>
 
           <!-- Header with Period Selector -->
           <div
             class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8"
           >
             <div>
-              <h1 class="text-2xl sm:text-3xl font-bold text-black mb-2">
+              <p class="text-3xl sm:text-4xl font-bold mb-2">
                 Analytics Dashboard
-              </h1>
-              <p class="text-gray-600 text-sm">
+              </p>
+              <p class="text-gray-600 text-sm pt-2">
                 Track your book performance and audience insights
               </p>
             </div>

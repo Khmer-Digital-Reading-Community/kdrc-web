@@ -1,11 +1,11 @@
 <template>
   <div class="p-3 sm:p-4 lg:p-6">
           <div class="mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold mt-2">
+            <p class="text-3xl sm:text-4xl font-bold mt-2">
               Your Books Saved
-            </h1>
+            </p>
 
-            <p class="text-gray-500 mt-2">
+            <p class="text-gray-500 text-lg mt-2 text-[17px] pt-2">
               Access all your saved books and inspirations.
             </p>
 
