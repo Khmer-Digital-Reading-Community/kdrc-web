@@ -92,12 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute } from "vue-router";
 import Icon from "../../assets/images/Icon.png";
-import { computed } from "vue";
-
-const route = useRoute();
-const isExchangePage = computed(() => route.path.startsWith("/exchange-v2"));
 
 const currentYear = new Date().getFullYear();
 

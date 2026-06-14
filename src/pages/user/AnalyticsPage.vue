@@ -90,40 +90,6 @@ onMounted(async () => {
       <span class="font-bold text-black"> Analytics </span>
     </div>
 
-          <!-- Header with Period Selector -->
-          <div
-            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8"
-          >
-            <div>
-              <p class="text-3xl sm:text-4xl font-bold mb-2">
-                Analytics Dashboard
-              </p>
-              <p class="text-gray-600 text-sm pt-2">
-                Track your book performance and audience insights
-              </p>
-            </div>
-
-            <!-- Period Selector -->
-            <div class="flex gap-2 flex-wrap">
-              <button
-                v-for="period in periods"
-                :key="period.value"
-                @click="selectedPeriod = period.value"
-                :class="[
-                  'px-4 py-2 rounded-lg text-sm font-medium transition-all',
-                  selectedPeriod === period.value
-                    ? 'bg-[#9C6700] text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50',
-                ]"
-              >
-                {{ period.label }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Overview Stats -->
-          <AnalyticsOverview :stats="overviewStats" />
-
     <!-- Header -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
       <div>

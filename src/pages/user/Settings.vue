@@ -20,7 +20,7 @@ import { useAuth } from "../../stores/useAuth";
 
 const toast = useToast();
 const router = useRouter();
-const { currentLang, setLanguage } = useLanguage();
+const { currentLang } = useLanguage();
 const { logout, loginRole } = useAuth();
 
 // Active tab

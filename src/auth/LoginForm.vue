@@ -507,7 +507,7 @@ export default defineComponent({
 
     const route = useRoute();
     const router = useRouter();
-    const { startGoogleLogin, startFacebookLogin, logout, loginRole } =
+    const { startGoogleLogin, startFacebookLogin, loginRole } =
       useAuth();
 
     const registered = computed(() => route.query.registered === "1");

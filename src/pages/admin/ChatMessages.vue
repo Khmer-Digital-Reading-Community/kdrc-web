@@ -224,18 +224,6 @@ const fetchMessages = async () => {
   }
 };
 
-const fetchStats = async () => {
-  try {
-    const res = await getAdminChatMessages({ limit: 1 });
-    totalMessages.value = res.total;
-    // count today by fetching a large page and counting
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    // We'll use the total as a fallback; backend could add a stats endpoint later
-    todayCount.value = 0;
-  } catch { /* ignore */ }
-};
-
 const truncate = (text: string, len: number) =>
   text.length > len ? text.slice(0, len) + '…' : text;
 

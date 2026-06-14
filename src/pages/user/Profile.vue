@@ -8,7 +8,6 @@ import {
   Camera,
   Loader2,
   Save,
-  Check,
   CalendarDays,
   Settings,
 } from "lucide-vue-next";
