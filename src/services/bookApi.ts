@@ -169,9 +169,19 @@ export const getGenres = async (): Promise<Genre[]> => {
   return response.data;
 };
 
+export const createGenre = async (data: { name: string; slug: string; description?: string }): Promise<Genre> => {
+  const response = await api.post("/genres", data);
+  return response.data;
+};
+
 // Categories API
 export const getCategories = async (): Promise<Category[]> => {
   const response = await api.get("/categories");
+  return response.data;
+};
+
+export const createCategory = async (data: { name: string; slug: string }): Promise<Category> => {
+  const response = await api.post("/categories", data);
   return response.data;
 };
 
@@ -182,4 +192,9 @@ export const getTags = async (): Promise<Tag[]> => {
   if (Array.isArray(payload)) return payload;
   if (payload && typeof payload === "object" && Array.isArray(payload.data)) return payload.data;
   return [];
+};
+
+export const createTag = async (data: { name: string; slug: string; description?: string }): Promise<Tag> => {
+  const response = await api.post("/tags", data);
+  return response.data;
 };
