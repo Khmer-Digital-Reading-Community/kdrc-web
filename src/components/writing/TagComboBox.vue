@@ -70,6 +70,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   "update:modelValue": [value: string[]];
+  "create:tag": [name: string];
 }>();
 
 const search = ref("");
@@ -85,7 +86,12 @@ const filteredOptions = computed(() => {
 
 function addTag(tag: string) {
   if (!tag.trim() || props.modelValue.includes(tag.trim())) return;
-  emit("update:modelValue", [...props.modelValue, tag.trim()]);
+  const trimmed = tag.trim();
+  emit("update:modelValue", [...props.modelValue, trimmed]);
+  // If this is a brand-new tag (not in availableTags), emit creation event
+  if (!props.availableTags.includes(trimmed)) {
+    emit("create:tag", trimmed);
+  }
   search.value = "";
   showDropdown.value = false;
 }

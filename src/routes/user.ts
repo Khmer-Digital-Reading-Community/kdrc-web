@@ -23,6 +23,9 @@ export default [
         path: "search",
         name: "search",
         component: () => import("../pages/user/SearchResults.vue"),
+        meta: {
+          hideNavbarSearch: true
+        }
       },
       { path: "exchange", redirect: "/exchange-v2" },
       {
@@ -62,50 +65,51 @@ export default [
       },
       { path: "book-detail/:id", name: "book-detail", component: BookDetail },
       {
-        path: "author/:id",
-        name: "author-profile",
-        component: () => import("../pages/user/AuthorProfile.vue"),
-      },
-      {
-        path: "library",
-        name: "library",
-        component: () => import("../pages/user/Library.vue"),
-      },
-      {
-        path: "subscriptions",
-        name: "subscriptions",
-        component: () => import("../pages/user/SubscriptionPlans.vue"),
-      },
-      {
-        path: "reading-lists",
-        name: "reading-lists",
-        component: () => import("../pages/user/ReadingLists.vue"),
+        path: "notifications",
+        name: "notifications",
+        component: () => import("../pages/user/NotificationsPage.vue"),
       },
     ],
   },
   {
     path: "/settings",
-    name: "settings",
-    component: () => import("../pages/user/Settings.vue"),
+    component: DashboardLayout,
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: "",
+        name: "settings",
+        component: () => import("../pages/user/Settings.vue"),
+      }
+    ]
   },
   {
     path: "/settings/profile",
-    name: "user-profile",
-    component: () => import("../pages/user/Profile.vue"),
+    component: DashboardLayout,
+    children: [
+      {
+        path: "",
+        name: "user-profile",
+        component: () => import("../pages/user/Profile.vue"),
+      }
+    ]
   },
   {
     path: "/:id/write",
     name: "writingpage",
     component: WritingPage,
+    meta: { requiresAuth: true },
   },
   {
     path: "/reading/:id",
     name: "readingpage",
     component: Reader,
+    meta: { requiresAuth: true },
   },
   {
     path: "/dashboard",
     component: DashboardLayout,
+    meta: { requiresAuth: true },
     children: [
       {
         path: "",
@@ -141,6 +145,16 @@ export default [
         path: "bookmarks",
         name: "bookmarks",
         component: () => import("../pages/user/BookmarkPage.vue"),
+      },
+      {
+        path: "billing",
+        name: "billing",
+        component: () => import("../pages/user/PlanAndBilling.vue"),
+      },
+      {
+        path: "billing/history",
+        name: "billing-history",
+        component: () => import("../pages/user/PaymentHistory.vue"),
       },
       {
         path: "manage-trade/:tradeId",

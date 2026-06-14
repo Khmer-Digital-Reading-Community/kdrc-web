@@ -1,143 +1,116 @@
 <template>
-    <div
-        @click="navigateToBook"
-        class="group block rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full cursor-pointer"
-    >
-        <!-- Cover area -->
-        <div
-            class="relative h-[220px] shrink-0 overflow-hidden"
-            :style="{ background: headerGradient }"
+  <div
+    @click="navigateToBook"
+    class="group relative flex flex-col h-full bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-1"
+  >
+    <!-- Cover -->
+    <div class="relative aspect-[3/4] overflow-hidden bg-gray-100">
+      <img
+        v-if="book.coverImage && !imgError"
+        :src="book.coverImage"
+        :alt="book.title"
+        @error="imgError = true"
+        class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+      />
+
+      <!-- Fallback -->
+      <div
+        v-else
+        class="w-full h-full flex flex-col items-center justify-center gap-3 p-6"
+        :style="{ background: coverGradient }"
+      >
+        <BookOpen :size="32" class="text-white/30" stroke-width="1.5" />
+        <span class="text-white/60 text-xs font-semibold text-center line-clamp-3 leading-snug">
+          {{ book.title }}
+        </span>
+      </div>
+
+      <!-- Hover overlay -->
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+      />
+
+      <!-- Tags (top-left) -->
+      <div class="absolute top-3 left-3 flex flex-col gap-1.5">
+        <span
+          v-if="tags.new"
+          class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500 text-white shadow-sm"
         >
-            <!-- Cover image -->
-            <img
-                v-if="book.coverImage"
-                :src="book.coverImage"
-                :alt="book.title"
-                @error="imgError = true"
-                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                :class="imgError ? 'hidden' : ''"
-            />
+          New
+        </span>
+        <span
+          v-if="tags.popular"
+          class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-amber-900 shadow-sm"
+        >
+          Popular
+        </span>
+        <span
+          v-if="tags.isPremium"
+          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-violet-500 text-white shadow-sm"
+        >
+          <Crown :size="10" />
+          Exclusive
+        </span>
+        <span
+          v-else-if="tags.isPurchasable"
+          class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200 shadow-sm"
+        >
+          {{ formatPrice(book.price) }}
+        </span>
+      </div>
 
-            <!-- Fallback when no cover or broken image -->
-            <div
-                v-if="!book.coverImage || imgError"
-                class="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4"
-            >
-                <svg
-                    class="w-14 h-14 text-white/60"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.5"
-                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477
-                   3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5
-                   1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477
-                   4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746
-                   0-3.332.477-4.5 1.253"
-                    />
-                </svg>
-                <span
-                    class="text-white/80 text-xs font-semibold text-center line-clamp-2 max-w-[140px]"
-                >
-                    {{ book.title }}
-                </span>
-            </div>
-
-            <!-- Bottom gradient overlay -->
-            <div
-                class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/50 to-transparent"
-            />
-
-            <!-- Category badge pinned to top-left -->
-            <span
-                class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-sm text-white border border-white/30"
-            >
-                {{ book.category }}
-            </span>
-
-            <!-- Rating pinned to top-right -->
-            <div
-                class="absolute top-3 right-3 flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/30"
-            >
-                <span class="text-yellow-300 text-xs leading-none">★</span>
-                <span class="text-white text-[11px] font-bold leading-none">
-                    {{ book.rating > 0 ? book.rating.toFixed(1) : "New" }}
-                </span>
-            </div>
-        </div>
-
-        <!-- Card body -->
-        <div class="flex flex-col flex-grow p-5">
-            <!-- Title -->
-            <h3
-                class="text-[16px] font-bold text-[#093A3F] leading-snug line-clamp-2 group-hover:text-[#B4690E] transition-colors mb-1"
-            >
-                {{ book.title }}
-            </h3>
-
-            <!-- Author -->
-            <p
-                class="text-[11px] font-semibold uppercase tracking-widest text-gray-400 mb-3"
-            >
-                By {{ book.author }}
-            </p>
-
-            <!-- Description (clean plain text) -->
-            <p
-                class="text-[13px] text-gray-500 leading-relaxed line-clamp-3 flex-grow mb-4"
-            >
-                {{ book.description || "No description available." }}
-            </p>
-
-            <!-- Footer: lang badge + read button -->
-            <div
-                class="flex items-center justify-between mt-auto pt-3 border-t border-gray-100"
-            >
-                <div class="flex gap-2">
-                    <span
-                        class="px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 text-[10px] font-bold uppercase tracking-wider"
-                    >
-                        {{ book.lang }}
-                    </span>
-                    <span
-                        class="px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 text-[10px] font-bold uppercase tracking-wider"
-                    >
-                        E-Book
-                    </span>
-                </div>
-
-                <router-link
-                    :to="`/reading/${book.id}`"
-                    @click.stop
-                    class="flex items-center gap-1 text-[12px] font-bold text-[#B4690E] hover:text-[#8a510b] transition-all bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100"
-                >
-                    Read
-                    <svg
-                        class="w-3.5 h-3.5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2.5"
-                            d="M9 5l7 7-7 7"
-                        />
-                    </svg>
-                </router-link>
-            </div>
-        </div>
+      <!-- Category badge (top-right) -->
+      <span
+        class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-white/90 backdrop-blur-sm text-gray-700 shadow-sm"
+      >
+        {{ book.category }}
+      </span>
     </div>
+
+    <!-- Body -->
+    <div class="flex flex-col flex-1 p-4">
+      <h3
+        class="text-[15px] font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-[#B4690E] transition-colors duration-200 mb-1"
+      >
+        {{ book.title }}
+      </h3>
+
+      <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-wider mb-2">
+        {{ book.author }}
+      </p>
+
+      <p class="text-[13px] text-gray-500 leading-relaxed line-clamp-2 flex-1 mb-3">
+        {{ book.description || 'No description available.' }}
+      </p>
+
+      <!-- Footer -->
+      <div class="flex items-center justify-between pt-3 border-t border-gray-50">
+        <div class="flex items-center gap-0.5">
+          <template v-for="i in 5" :key="i">
+            <Star
+              :size="12"
+              :class="i <= starFill ? 'fill-amber-400 stroke-amber-400' : 'fill-none stroke-gray-300'"
+            />
+          </template>
+          <span class="text-[11px] font-semibold text-gray-500 ml-1">
+            {{ book.rating > 0 ? book.rating.toFixed(1) : '' }}
+          </span>
+        </div>
+
+        <span
+          class="text-[11px] font-semibold text-[#B4690E] group-hover:translate-x-0.5 transition-transform duration-200"
+        >
+          Details
+        </span>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
+import { BookOpen, Star, Crown } from "lucide-vue-next";
 import type { ExploreBook } from "../../types/exploreBook";
 
 const props = defineProps<{ book: ExploreBook }>();
@@ -146,22 +119,50 @@ const router = useRouter();
 const imgError = ref(false);
 
 const navigateToBook = () => {
-    router.push(`/book-detail/${props.book.id}`);
+  router.push(`/book-detail/${props.book.id}`);
 };
 
-const CATEGORY_GRADIENTS: Record<string, string> = {
-    "Khmer Literature": "linear-gradient(135deg, #4A7274 0%, #2d5456 100%)",
-    Novels: "linear-gradient(135deg, #1A1A2E 0%, #16213E 100%)",
-    Education: "linear-gradient(135deg, #1C4E5C 0%, #0a2e38 100%)",
-    "Sci-Fi": "linear-gradient(135deg, #1a1a5e 0%, #0d0d3b 100%)",
-    Romance: "linear-gradient(135deg, #7c3a5c 0%, #4a1a35 100%)",
-    Mystery: "linear-gradient(135deg, #2d3561 0%, #1a1f40 100%)",
-    Fantasy: "linear-gradient(135deg, #3d1a5c 0%, #1f0a30 100%)",
+const starFill = computed(() => Math.round(props.book.rating));
+
+const formatPrice = (price: number): string => {
+  if (price >= 1) return `$${price.toFixed(2)}`;
+  return `$${price.toFixed(2)}`;
 };
 
-const headerGradient = computed(
-    () =>
-        CATEGORY_GRADIENTS[props.book.category] ??
-        "linear-gradient(135deg, #093A3F 0%, #042326 100%)",
-);
+const isNew = computed(() => {
+  if (!props.book.createdAt) return false;
+  const days = (Date.now() - new Date(props.book.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+  return days <= 14;
+});
+
+const isPopular = computed(() => {
+  return props.book.readCount >= 100 || props.book.likeCount >= 20 || props.book.rating >= 4.0;
+});
+
+const tags = computed(() => ({
+  new: isNew.value,
+  popular: isPopular.value,
+  isPremium: props.book.isPremium,
+  isPurchasable: props.book.isPurchasable && !props.book.isPremium && props.book.price > 0,
+}));
+
+const GRADIENTS = [
+  "linear-gradient(135deg, #1a3a4a 0%, #0d2535 100%)",
+  "linear-gradient(135deg, #2d4a3a 0%, #1a3028 100%)",
+  "linear-gradient(135deg, #3d2a4a 0%, #251830 100%)",
+  "linear-gradient(135deg, #4a2a2a 0%, #301a1a 100%)",
+  "linear-gradient(135deg, #2a3a4a 0%, #1a2835 100%)",
+  "linear-gradient(135deg, #3a3a2a 0%, #28281a 100%)",
+  "linear-gradient(135deg, #4a3a2a 0%, #30281a 100%)",
+  "linear-gradient(135deg, #1a4a4a 0%, #0d3535 100%)",
+];
+
+const coverGradient = computed(() => {
+  let hash = 0;
+  const key = props.book.category + props.book.id;
+  for (let i = 0; i < key.length; i++) {
+    hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  }
+  return GRADIENTS[hash % GRADIENTS.length];
+});
 </script>

@@ -26,10 +26,26 @@ const handleCreate = () => {
 const handleEdit = (id: string) => {
   router.push(`/${id}/write`);
 };
+
+const formatWordCount = (book: Book): string => {
+  const total = (book.chapters || []).reduce(
+    (acc, ch) => acc + (ch.wordCount || 0),
+    0,
+  );
+  if (total >= 1000) {
+    return `${(total / 1000).toFixed(1)}k words`;
+  }
+  return `${total.toLocaleString()} words`;
+};
+
+const formatLastEdit = (book: Book): string => {
+  if (!book.updatedAt) return "Just now";
+  return dayjs(book.updatedAt).fromNow();
+};
 </script>
 
 <template>
-  <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
     <CreateStoryCard @click="handleCreate" />
 
     <ManuscriptCard
@@ -37,13 +53,13 @@ const handleEdit = (id: string) => {
       :key="book.id"
       :title="book.title"
       :description="book.description"
-      :words="`${(book.chapters || []).reduce((acc: number, ch) => acc + (ch.wordCount || 0), 0)} words`"
-      :edit="dayjs(book.updatedAt).fromNow()"
+      :words="formatWordCount(book)"
+      :edit="formatLastEdit(book)"
       :status="book.status"
-      :coverImageUrl="book.coverImageUrl"
+      :cover-image-url="book.coverImageUrl"
       @edit="handleEdit(book.id)"
       @delete="emit('delete', book.id)"
       @setStatus="emit('setStatus', book.id, $event)"
     />
-  </section>
+  </div>
 </template>

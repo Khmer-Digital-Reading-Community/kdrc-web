@@ -98,3 +98,17 @@ export async function fetchRecommendations(limit = 12) {
   const res = await api.get('/community/recommendations', { params: { limit } });
   return unwrap<any[]>(res);
 }
+
+export async function fetchChallengeParticipants(challengeId: string) {
+  const res = await api.get(`/challenges/${challengeId}/participants`);
+  return unwrap<any[]>(res);
+}
+
+export interface ActivityData {
+  weeks: { date: string; count: number }[][];
+}
+
+export async function fetchMyActivity() {
+  const res = await api.get('/reading-progress/activity');
+  return unwrap<ActivityData>(res);
+}

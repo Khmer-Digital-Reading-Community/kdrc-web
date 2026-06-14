@@ -1,6 +1,6 @@
 <template>
   <div class="bg-[#F8F9F8] min-h-screen pb-20">
-    <div class="max-w-[1320px] mx-auto px-4 sm:px-8 md:px-12 pt-4 sm:pt-16">
+    <div class="max-w-[1320px] mx-auto px-4 sm:px-8 md:px-12 pt-4 sm:pt-1">
       <ExploreHeader />
 
       <div v-if="isMobileFilterOpen" class="fixed inset-0 z-50 md:hidden">

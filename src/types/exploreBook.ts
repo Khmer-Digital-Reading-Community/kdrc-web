@@ -10,5 +10,10 @@ export interface ExploreBook {
     coverImage: string;
     tags?: string[];
     createdAt: string;
-    isFree?: boolean;
+    isFree: boolean;
+    isPurchasable: boolean;
+    isPremium: boolean;
+    price: number;
+    readCount: number;
+    likeCount: number;
 }

@@ -82,6 +82,8 @@ export interface Book {
     createdAt: string;
   }>;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED" | "DISCONTINUED";
+  readCount?: number;
+  rating?: number;
   isFree?: boolean;
   price?: number;
   isPurchasable?: boolean;
@@ -106,6 +108,11 @@ export const getMyBooks = async (): Promise<Book[]> => {
 
 export const getMyBookStats = async (): Promise<AuthorStats> => {
   const response = await api.get("/books/me/stats");
+  return response.data;
+};
+
+export const getMyReaderTrend = async (): Promise<{ labels: string[]; readers: number[] }> => {
+  const response = await api.get("/books/me/reader-trend");
   return response.data;
 };
 
@@ -162,9 +169,19 @@ export const getGenres = async (): Promise<Genre[]> => {
   return response.data;
 };
 
+export const createGenre = async (data: { name: string; slug: string; description?: string }): Promise<Genre> => {
+  const response = await api.post("/genres", data);
+  return response.data;
+};
+
 // Categories API
 export const getCategories = async (): Promise<Category[]> => {
   const response = await api.get("/categories");
+  return response.data;
+};
+
+export const createCategory = async (data: { name: string; slug: string }): Promise<Category> => {
+  const response = await api.post("/categories", data);
   return response.data;
 };
 
@@ -175,4 +192,9 @@ export const getTags = async (): Promise<Tag[]> => {
   if (Array.isArray(payload)) return payload;
   if (payload && typeof payload === "object" && Array.isArray(payload.data)) return payload.data;
   return [];
+};
+
+export const createTag = async (data: { name: string; slug: string; description?: string }): Promise<Tag> => {
+  const response = await api.post("/tags", data);
+  return response.data;
 };

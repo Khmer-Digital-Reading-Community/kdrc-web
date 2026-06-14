@@ -13,7 +13,7 @@ export const apiBaseUrl = (rawBaseUrl || fallbackBaseUrl).replace(/\/+$/, "");
 
 const api = axios.create({
   baseURL: apiBaseUrl,
-  timeout: 15000,
+  timeout: 60000,
 });
 
 // Unwrap the global { status, data } envelope added by the NestJS ResponseInterceptor.

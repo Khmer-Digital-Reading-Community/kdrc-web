@@ -224,9 +224,26 @@ const trades = ref<AdminExchangeRequest[]>([]);
 const loading = ref(true);
 const search = ref('');
 const statusFilter = ref('ALL');
+const getPageSizePreference = (): number => {
+  const PREFS_KEY = 'kdrc-admin-prefs';
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.itemsPerPage) {
+        const val = parseInt(parsed.itemsPerPage, 10);
+        if (!isNaN(val)) return val;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to parse admin prefs:', e);
+  }
+  return 10;
+};
+
 const page = ref(1);
 const totalPages = ref(1);
-const limit = 10;
+const limit = getPageSizePreference();
 const toast = ref('');
 const toastError = ref(false);
 

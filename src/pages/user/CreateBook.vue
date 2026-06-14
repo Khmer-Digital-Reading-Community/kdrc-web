@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import ContentTypeStep from "../../components/writing/ContentTypeStep.vue";
-import MetadataStep from "../../components/writing/MetadataStep.vue";
 import BookDetailsStep from "../../components/writing/BookDetailsStep.vue";
 import { useBookWizard } from "../../composables/useBookWizard";
 
 const wizard = useBookWizard();
 
 const steps = [
-  { num: 1, label: "Content Type" },
-  { num: 2, label: "Genre & Categories" },
-  { num: 3, label: "Book Details" },
+  { num: 1, label: "Content & Classification" },
+  { num: 2, label: "Book Details" },
 ];
 </script>
 
@@ -52,36 +50,32 @@ const steps = [
         </template>
       </div>
 
-      <!-- Step 1: Content Type -->
+      <!-- Step 1: Content Type, Genre, Categories, Tags, Description -->
       <ContentTypeStep
         v-if="wizard.currentStep.value === 1"
         :modelValue="wizard.contentType.value"
         :description="wizard.contentDescription.value"
-        @update:modelValue="wizard.contentType.value = $event"
-        @update:description="wizard.contentDescription.value = $event"
-      />
-
-      <!-- Step 2: Genre & Categories -->
-      <MetadataStep
-        v-else-if="wizard.currentStep.value === 2"
         :genreSlug="wizard.selectedGenre.value"
         :categorySlugs="wizard.selectedCategories.value"
         :tagSlugs="wizard.selectedTags.value"
         :genres="wizard.genres.value"
         :categories="wizard.categories.value"
         :tags="wizard.tags.value"
-        :loadingGenres="wizard.isLoadingDropdowns.value"
-        :loadingCategories="wizard.isLoadingDropdowns.value"
-        :loadingTags="wizard.isLoadingDropdowns.value"
+        :isLoading="wizard.isLoadingDropdowns.value"
         :error="wizard.dropdownsError.value"
+        @update:modelValue="wizard.contentType.value = $event"
+        @update:description="wizard.contentDescription.value = $event"
         @update:genreSlug="wizard.selectedGenre.value = $event"
         @update:categorySlugs="wizard.selectedCategories.value = $event"
         @update:tagSlugs="wizard.selectedTags.value = $event"
+        @createGenre="wizard.createGenreAction($event)"
+        @createCategory="wizard.createCategoryAction($event)"
+        @createTag="wizard.createTagAction($event)"
       />
 
-      <!-- Step 3: Book Details -->
+      <!-- Step 2: Book Details -->
       <BookDetailsStep
-        v-else-if="wizard.currentStep.value === 3"
+        v-else-if="wizard.currentStep.value === 2"
         :title="wizard.title.value"
         :subtitle="wizard.subtitle.value"
         :coverPreviewUrl="wizard.coverPreviewUrl.value"
@@ -114,7 +108,7 @@ const steps = [
           </button>
 
           <button
-            v-if="wizard.currentStep.value < 3"
+            v-if="wizard.currentStep.value < 2"
             @click="wizard.goNext()"
             :disabled="!wizard.canGoNext.value"
             class="px-6 py-2.5 rounded-xl bg-[#093A3F] text-white text-sm font-semibold hover:bg-[#0d4a50] transition disabled:opacity-40 disabled:cursor-not-allowed"
@@ -123,7 +117,7 @@ const steps = [
           </button>
 
           <button
-            v-if="wizard.currentStep.value === 3"
+            v-if="wizard.currentStep.value === 2"
             @click="wizard.uploadCoverAndCreateBook()"
             :disabled="wizard.isSubmitting.value || !wizard.title.value.trim()"
             class="px-6 py-2.5 rounded-xl bg-[#c5a050] text-white text-sm font-semibold hover:bg-[#b09040] transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"

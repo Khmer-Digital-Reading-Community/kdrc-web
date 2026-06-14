@@ -6,11 +6,11 @@ import icon from "../../assets/images/Icon.png";
 import Profile from "../../assets/images/Profile.png";
 import NotificationIcon from "../../assets/images/NotificationIcon.png";
 import ChatIcon from "../../assets/images/ChatIcon.png";
-// Search icon removed (not used in navbar when ExchangeFilter is active)
 import { useAuth, token } from "../../stores/useAuth";
 import { authState } from "../../services/auth";
 import NotificationPopup from "./NotificationPopup.vue";
 import SearchBar from "../search/SearchBar.vue";
+import { useNotifications } from "../../composables/useNotifications";
 
 import { useLanguage } from "../../composables/useLanguage";
 
@@ -18,21 +18,51 @@ const router = useRouter();
 const route = useRoute();
 const { logout, user, loginRole } = useAuth();
 
+const showNavbarSearch = computed(() => {
+  return !route.meta.hideNavbarSearch
+})
+
 const mobileOpen = ref(false);
 const langOpen = ref(false);
 const profileOpen = ref(false);
-const { currentLang, setLanguage } = useLanguage();
-const showNotifications = ref(false);
+const currentLang = ref("EN");
+const showNotifications = ref(false)
+const notifHoverMode = ref(false)
+let notifHoverTimeout: ReturnType<typeof setTimeout> | null = null
+
+function onNotifEnter() {
+  if (notifHoverTimeout) clearTimeout(notifHoverTimeout)
+  notifHoverMode.value = true
+  showNotifications.value = true
+}
+
+function onNotifLeave() {
+  notifHoverTimeout = setTimeout(() => {
+    showNotifications.value = false
+    notifHoverMode.value = false
+  }, 200)
+}
+
+function onNotifPopupEnter() {
+  if (notifHoverTimeout) clearTimeout(notifHoverTimeout)
+}
+
+function onNotifPopupLeave() {
+  notifHoverTimeout = setTimeout(() => {
+    showNotifications.value = false
+    notifHoverMode.value = false
+  }, 200)
+};
 
 // Derive auth state only from the session token.
 const isAuthed = computed(() => Boolean(token.value));
 const isAdmin = computed(() => authState.user.value?.role === "ADMIN");
-const showSearch = computed(() => {
-  // hide navbar exchange search when on the Exchange_v2 page
-  return route.name !== 'exchange-v2';
-});
+// const showSearch = computed(() => {
+//   return route.name !== 'exchange-v2';
+// });
 
-// Debug logging
+const { unreadCount } = useNotifications();
+
 watch(
   () => token.value,
   (newVal) => {
@@ -44,16 +74,16 @@ console.log("Initial token value:", !!token.value, "isAuthed:", isAuthed.value);
 
 const publicNavLinks = [
   { label: "Browse", path: "/explore" },
-  { label: "Community", path: "/community" },
+  { label: "About", path: "/about" },
 ];
 
 const authenticatedNavLinks = [
   { label: "Home", path: "/home" },
   { label: "Explore", path: "/explore" },
   { label: "Exchange", path: "/exchange-v2" },
-  { label: "Trade Center", path: "/dashboard/exchange-dashboard-v2" },
-  // { label: 'Stories', path: '/reading/1' },
+  // { label: "Trade Center", path: "/dashboard/exchange-dashboard-v2" },
   { label: "Community", path: "/community" },
+  { label: "About", path: "/about" },
 ];
 
 const profileMenuItems = computed(() => {
@@ -74,6 +104,7 @@ const languages = [
 ];
 
 function selectLang(code: string) {
+  const { setLanguage } = useLanguage();
   setLanguage(code);
   langOpen.value = false;
 }
@@ -90,7 +121,6 @@ async function handleLogout() {
     mobileOpen.value = false;
   } catch (error) {
     console.error("Logout error:", error);
-    // Still redirect even if logout fails
     profileOpen.value = false;
     mobileOpen.value = false;
     await router.push("/user");
@@ -131,28 +161,7 @@ async function handleLogout() {
         </div>
       </div>
 
-      <!-- <div
-        class="w-full max-w-md h-10 relative order-3 lg:order-none lg:flex-1 lg:max-w-lg"
-      >
-        <div
-          class="w-full h-10 bg-white rounded-md overflow-hidden flex items-center pl-12 pr-4"
-        >
-          <input
-            type="search"
-            placeholder="Search with title or author"
-            class="w-full border-0 bg-transparent text-black text-base font-normal font-['Inter'] outline-none placeholder:text-black/70"
-          />
-          <span class="absolute left-4 top-2.5 flex items-center justify-start">
-            <img
-              :src="SearchIcon"
-              alt="Search"
-              class="w-4 h-4 object-contain"
-            />
-          </span>
-        </div>
-      </div> -->
-      <!-- Book search (hidden on exchange-v2 page) -->
-      <div v-if="showSearch" class="w-full max-w-md relative order-3 lg:order-none lg:flex-1 lg:max-w-lg flex items-center">
+      <div v-if="showNavbarSearch" class="w-full max-w-md relative order-3 lg:order-none lg:flex-1 lg:max-w-lg flex items-center">
         <SearchBar />
       </div>
 
@@ -192,17 +201,38 @@ async function handleLogout() {
         </div>
 
         <div class="flex items-center gap-4">
-          <button
-            type="button"
-            @click="showNotifications = !showNotifications"
-            class="inline-flex flex-col justify-start items-start"
+          <div
+            class="relative"
+            @mouseenter="onNotifEnter"
+            @mouseleave="onNotifLeave"
           >
-            <img
-              :src="NotificationIcon"
-              alt="Notifications"
-              class="w-4 h-5 object-contain"
+            <button
+              type="button"
+              @click="showNotifications = !showNotifications"
+              class="notif-bell-btn relative inline-flex flex-col justify-start items-start"
+            >
+              <img
+                :src="NotificationIcon"
+                alt="Notifications"
+                class="w-4 h-5 object-contain"
+              />
+              <span
+                v-if="unreadCount > 0"
+                class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-[#F9AE5B] text-[#093A3F] text-[10px] font-bold rounded-full px-1"
+              >
+                {{ unreadCount > 99 ? '99+' : unreadCount }}
+              </span>
+            </button>
+
+            <!-- Notification Popup — inside bell wrapper -->
+            <NotificationPopup
+              :isOpen="showNotifications"
+              :hoverMode="notifHoverMode"
+              @close="showNotifications = false"
+              @popupEnter="onNotifPopupEnter"
+              @popupLeave="onNotifPopupLeave"
             />
-          </button>
+          </div>
           <router-link
             to="/chatbox"
             class="inline-flex flex-col justify-start items-start"
@@ -446,13 +476,25 @@ async function handleLogout() {
         </div>
 
         <div class="flex items-center justify-between">
-          <button
-            type="button"
-            @click="showNotifications = !showNotifications"
-            class="text-[#FDE9D0]/70 hover:text-[#FDE9D0] transition-colors"
+          <div
+            class="relative"
+            @mouseenter="onNotifEnter"
+            @mouseleave="onNotifLeave"
           >
-            <Bell :size="20" />
-          </button>
+            <button
+              type="button"
+              @click="showNotifications = !showNotifications"
+              class="notif-bell-btn relative text-[#FDE9D0]/70 hover:text-[#FDE9D0] transition-colors"
+            >
+              <Bell :size="20" />
+              <span
+                v-if="unreadCount > 0"
+                class="absolute -top-1 -right-1 min-w-[16px] h-[16px] flex items-center justify-center bg-[#F9AE5B] text-[#093A3F] text-[9px] font-bold rounded-full px-0.5"
+              >
+                {{ unreadCount > 99 ? '99+' : unreadCount }}
+              </span>
+            </button>
+          </div>
 
           <button
             type="button"
@@ -499,11 +541,44 @@ async function handleLogout() {
       </div>
     </div>
 
-    <!-- Notification Popup -->
-    <NotificationPopup
-      :isOpen="showNotifications"
-      @close="showNotifications = false"
-      @markAsRead="(id) => console.log('Marked as read:', id)"
-    />
   </nav>
 </template>
+
+<style scoped>
+.notif-bell-btn {
+  position: relative;
+}
+
+.notif-bell-btn::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.notif-bell-btn:hover::before {
+  border-color: rgba(249, 174, 91, 0.5);
+  opacity: 1;
+  transform: scale(1);
+  animation: bellRing 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes bellRing {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+</style>
