@@ -17,66 +17,89 @@
     <!-- Access Denied State (login / purchase / subscription required) -->
     <div
       v-else-if="accessError && !currentChapter"
-      class="fixed inset-0 flex items-center justify-center p-4 z-50 bg-inherit"
+      class="fixed inset-0 flex items-center justify-center p-4 sm:p-6 z-50"
+      style="background-color: var(--reader-bg)"
     >
-      <div
-        class="bg-amber-50 border border-amber-200 rounded-2xl p-8 max-w-md text-center shadow-xl"
-      >
-        <div
-          class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4"
-        >
-          <Lock
-            v-if="accessError.requiresPurchase"
-            class="text-amber-600 w-8 h-8"
-          />
-          <Crown
-            v-else-if="accessError.requiresSubscription"
-            class="text-amber-600 w-8 h-8"
-          />
-          <LogIn v-else class="text-amber-600 w-8 h-8" />
-        </div>
-        <h3 class="text-lg font-bold text-amber-900 mb-2">
-          {{
-            accessError.requiresSubscription
-              ? "Premium Content"
-              : accessError.requiresPurchase
-                ? "Paid Chapter"
-                : "Login Required"
-          }}
-        </h3>
-        <p class="text-amber-700 font-medium mb-6">{{ accessError.reason }}</p>
-        <div class="flex flex-col gap-3">
-          <button
-            v-if="accessError.requiresLogin"
-            @click="router.push('/login')"
-            class="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition-colors shadow-md"
-          >
-            <LogIn :size="18" />
-            Log In to Continue
-          </button>
-          <button
-            v-if="accessError.requiresSubscription"
-            @click="router.push('/subscriptions')"
-            class="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition-colors shadow-md"
-          >
-            <Crown :size="18" />
-            View Subscription Plans
-          </button>
-          <button
-            v-if="accessError.requiresPurchase"
-            @click="router.push(`/book-detail/${route.params.id}`)"
-            class="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-semibold transition-colors shadow-md"
-          >
-            <ShoppingCart :size="18" />
-            Purchase This Chapter
-          </button>
-          <button
-            @click="router.push('/home')"
-            class="inline-flex items-center justify-center gap-2 px-6 py-2 bg-white border border-amber-300 text-amber-700 rounded-lg hover:bg-amber-100 font-semibold transition-colors"
-          >
-            <ArrowLeft :size="18" />
-            Back to Home
-          </button>
+      <div class="w-full max-w-md animate-fade-in-up">
+        <div class="bg-[#093A3F] rounded-2xl shadow-2xl overflow-hidden">
+          <!-- Thin gold accent -->
+          <div
+            class="h-1 bg-gradient-to-r from-amber-500/70 via-amber-400 to-amber-500/70"
+          ></div>
+
+          <div class="px-6 py-10 sm:px-10 sm:py-12 text-center">
+            <!-- Icon -->
+            <div
+              class="w-16 h-16 mx-auto mb-6 rounded-full bg-white/10 flex items-center justify-center"
+            >
+              <Lock
+                v-if="accessError.requiresPurchase"
+                class="text-amber-400 w-7 h-7"
+              />
+              <Crown
+                v-else-if="accessError.requiresSubscription"
+                class="text-amber-400 w-7 h-7"
+              />
+              <LogIn v-else class="text-amber-400 w-7 h-7" />
+            </div>
+
+            <!-- Title -->
+            <h2
+              class="text-2xl sm:text-3xl font-bold text-white mb-3 tracking-tight"
+              style="font-family: var(--heading)"
+            >
+              {{
+                accessError.requiresSubscription
+                  ? "Premium Content"
+                  : accessError.requiresPurchase
+                    ? "Paid Chapter"
+                    : "Welcome Back"
+              }}
+            </h2>
+
+            <!-- Reason -->
+            <p
+              class="text-white/60 text-sm leading-relaxed mb-8 max-w-xs mx-auto"
+            >
+              {{ accessError.reason }}
+            </p>
+
+            <!-- Actions -->
+            <div class="flex flex-col items-center gap-3">
+              <button
+                v-if="accessError.requiresLogin"
+                @click="router.push('/login')"
+                class="inline-flex items-center justify-center gap-2 w-full max-w-[260px] px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#093A3F] font-bold text-sm transition-colors"
+              >
+                <LogIn :size="18" />
+                Log In to Continue
+              </button>
+              <button
+                v-if="accessError.requiresSubscription"
+                @click="router.push('/subscriptions')"
+                class="inline-flex items-center justify-center gap-2 w-full max-w-[260px] px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#093A3F] font-bold text-sm transition-colors"
+              >
+                <Crown :size="18" />
+                View Subscription Plans
+              </button>
+              <button
+                v-if="accessError.requiresPurchase"
+                @click="router.push(`/book-detail/${route.params.id}`)"
+                class="inline-flex items-center justify-center gap-2 w-full max-w-[260px] px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#093A3F] font-bold text-sm transition-colors"
+              >
+                <ShoppingCart :size="18" />
+                Purchase This Chapter
+              </button>
+
+              <button
+                @click="router.push(`/book-detail/${route.params.id}`)"
+                class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-white/45 hover:text-white/80 hover:bg-white/6 font-medium text-sm transition-all mt-2"
+              >
+                <ArrowLeft :size="16" />
+                Back to Book Details
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -100,11 +123,11 @@
         </h3>
         <p class="text-red-700 font-medium mb-6">{{ error }}</p>
         <button
-          @click="router.push('/home')"
+          @click="router.push(`/book-detail/${route.params.id}`)"
           class="inline-flex items-center gap-2 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold transition-colors shadow-md"
         >
           <ArrowLeft :size="18" />
-          Back to Home
+          Back to Book Details
         </button>
       </div>
     </div>
@@ -1206,6 +1229,21 @@ watch(
 </script>
 
 <style scoped>
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .reader-shell {
   scroll-behavior: smooth;
   background-color: var(--reader-bg, #ffffff);
