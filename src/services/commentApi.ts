@@ -5,6 +5,7 @@ export interface User {
   email: string;
   name?: string;
   avatarUrl?: string;
+  role?: string;
 }
 
 export interface Comment {
@@ -44,6 +45,18 @@ export async function submitComment(chapterId: string, pageNumber: number, conte
   const res = await api.post('/comments', {
     chapterId,
     pageNumber,
+    content,
+  });
+  return unwrap<Comment>(res);
+}
+
+export async function getGlobalComments(): Promise<Comment[]> {
+  const res = await api.get('/comments/global');
+  return unwrap<Comment[]>(res);
+}
+
+export async function submitGlobalComment(content: string): Promise<Comment> {
+  const res = await api.post('/comments', {
     content,
   });
   return unwrap<Comment>(res);
