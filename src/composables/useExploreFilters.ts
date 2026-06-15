@@ -226,7 +226,7 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
         const bookGenres = Array.isArray(book.genre)
           ? book.genre
           : [book.genre];
-        return bookGenres.some((g) => lowerGenres.includes(g.toLowerCase()));
+        return bookGenres.some((g) => g && lowerGenres.includes(g.toLowerCase()));
       });
     }
 
