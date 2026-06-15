@@ -2,10 +2,10 @@
   <section class="admin-page">
     <!-- Page Header -->
     <div class="admin-page-header">
-      <div>
+      <!-- <div>
         <h2>Chat Messages</h2>
         <p>Monitor and moderate live book-exchange chat messages</p>
-      </div>
+      </div> -->
       <div class="header-stats">
         <div class="stat-pill">
           <span class="stat-value">{{ totalMessages }}</span>
@@ -70,10 +70,16 @@
               </td>
               <td>
                 <div class="user-info">
-                  <div class="user-avatar">{{ msg.user?.name?.charAt(0).toUpperCase() ?? 'U' }}</div>
+                  <div class="user-avatar">
+                    {{ msg.user?.name?.charAt(0).toUpperCase() ?? "U" }}
+                  </div>
                   <div class="user-meta">
-                    <span class="user-name">{{ msg.user?.name ?? 'Deleted user' }}</span>
-                    <span class="user-email">{{ msg.user?.email ?? 'N/A' }}</span>
+                    <span class="user-name">{{
+                      msg.user?.name ?? "Deleted user"
+                    }}</span>
+                    <span class="user-email">{{
+                      msg.user?.email ?? "N/A"
+                    }}</span>
                   </div>
                 </div>
               </td>
@@ -114,15 +120,25 @@
         type="button"
         class="admin-btn admin-btn-secondary"
         :disabled="currentPage === 1"
-        @click="currentPage--; fetchMessages()"
-      >← Previous</button>
+        @click="
+          currentPage--;
+          fetchMessages();
+        "
+      >
+        ← Previous
+      </button>
       <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
       <button
         type="button"
         class="admin-btn admin-btn-secondary"
         :disabled="currentPage >= totalPages"
-        @click="currentPage++; fetchMessages()"
-      >Next →</button>
+        @click="
+          currentPage++;
+          fetchMessages();
+        "
+      >
+        Next →
+      </button>
       <span class="total-info">Total: {{ totalMessages }} messages</span>
     </div>
 
@@ -151,49 +167,80 @@
         <div class="admin-modal-body">
           <div class="admin-form-group">
             <label>Content</label>
-            <textarea readonly class="modal-textarea" rows="5">{{ viewMsg.content }}</textarea>
+            <textarea readonly class="modal-textarea" rows="5">{{
+              viewMsg.content
+            }}</textarea>
           </div>
           <div class="admin-form-row">
             <div class="admin-form-group">
               <label>Sender</label>
-              <input readonly type="text" :value="viewMsg.user ? `${viewMsg.user.name ?? 'Unknown'} (${viewMsg.user.email ?? 'N/A'})` : 'Deleted user'" />
+              <input
+                readonly
+                type="text"
+                :value="
+                  viewMsg.user
+                    ? `${viewMsg.user.name ?? 'Unknown'} (${viewMsg.user.email ?? 'N/A'})`
+                    : 'Deleted user'
+                "
+              />
             </div>
             <div class="admin-form-group">
               <label>Sent At</label>
-              <input readonly type="text" :value="formatDate(viewMsg.createdAt)" />
+              <input
+                readonly
+                type="text"
+                :value="formatDate(viewMsg.createdAt)"
+              />
             </div>
           </div>
         </div>
         <div class="admin-modal-footer">
-          <button class="admin-btn admin-btn-danger" @click="deleteOne(viewMsg!); viewMsg = null">
+          <button
+            class="admin-btn admin-btn-danger"
+            @click="
+              deleteOne(viewMsg!);
+              viewMsg = null;
+            "
+          >
             Delete This Message
           </button>
-          <button class="admin-btn admin-btn-secondary" @click="viewMsg = null">Close</button>
+          <button class="admin-btn admin-btn-secondary" @click="viewMsg = null">
+            Close
+          </button>
         </div>
       </div>
     </div>
 
-    <p v-if="toast" class="admin-toast" :class="{ error: toastError }">{{ toast }}</p>
+    <p v-if="toast" class="admin-toast" :class="{ error: toastError }">
+      {{ toast }}
+    </p>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { Search, Eye, Trash2, MessageSquare, X, RefreshCw } from 'lucide-vue-next';
+import { ref, computed, onMounted } from "vue";
+import {
+  Search,
+  Eye,
+  Trash2,
+  MessageSquare,
+  X,
+  RefreshCw,
+} from "lucide-vue-next";
 import {
   getAdminChatMessages,
   deleteAdminChatMessage,
   bulkDeleteAdminChatMessages,
   getAdminChatStats,
   type ChatMessage,
-} from '../../services/chatApi';
+} from "../../services/chatApi";
 
 const messages = ref<ChatMessage[]>([]);
 const selected = ref<string[]>([]);
 const viewMsg = ref<ChatMessage | null>(null);
-const searchQuery = ref('');
+const searchQuery = ref("");
 const getPageSizePreference = (): number => {
-  const PREFS_KEY = 'kdrc-admin-prefs';
+  const PREFS_KEY = "kdrc-admin-prefs";
   try {
     const raw = localStorage.getItem(PREFS_KEY);
     if (raw) {
@@ -204,7 +251,7 @@ const getPageSizePreference = (): number => {
       }
     }
   } catch (e) {
-    console.warn('Failed to parse admin prefs:', e);
+    console.warn("Failed to parse admin prefs:", e);
   }
   return 10;
 };
@@ -214,15 +261,19 @@ const pageSize = ref(getPageSizePreference());
 const totalMessages = ref(0);
 const todayCount = ref(0);
 const loading = ref(false);
-const toast = ref('');
+const toast = ref("");
 const toastError = ref(false);
 
-const totalPages = computed(() => Math.max(1, Math.ceil(totalMessages.value / pageSize.value)));
+const totalPages = computed(() =>
+  Math.max(1, Math.ceil(totalMessages.value / pageSize.value)),
+);
 
 const showToast = (msg: string, err = false) => {
   toast.value = msg;
   toastError.value = err;
-  setTimeout(() => { toast.value = ''; }, 3000);
+  setTimeout(() => {
+    toast.value = "";
+  }, 3000);
 };
 
 const fetchMessages = async () => {
@@ -236,7 +287,7 @@ const fetchMessages = async () => {
     messages.value = res.data;
     totalMessages.value = res.total;
   } catch {
-    showToast('Failed to load messages', true);
+    showToast("Failed to load messages", true);
   } finally {
     loading.value = false;
   }
@@ -248,34 +299,37 @@ const fetchStats = async () => {
     totalMessages.value = res.total;
     todayCount.value = res.todayCount;
   } catch (err) {
-    console.error('Failed to load chat stats:', err);
+    console.error("Failed to load chat stats:", err);
   }
 };
 
 const truncate = (text: string, len: number) =>
-  text.length > len ? text.slice(0, len) + '…' : text;
+  text.length > len ? text.slice(0, len) + "…" : text;
 
 const formatDate = (d: string) =>
-  new Date(d).toLocaleString('en-US', {
-    year: 'numeric', month: 'short', day: 'numeric',
-    hour: '2-digit', minute: '2-digit',
+  new Date(d).toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 
 const selectAll = (e: Event) => {
   selected.value = (e.target as HTMLInputElement).checked
-    ? messages.value.map(m => m.id)
+    ? messages.value.map((m) => m.id)
     : [];
 };
 
 const deleteOne = async (msg: ChatMessage) => {
-  if (!confirm('Delete this message?')) return;
+  if (!confirm("Delete this message?")) return;
   try {
     await deleteAdminChatMessage(msg.id);
-    showToast('Message deleted');
+    showToast("Message deleted");
     await fetchMessages();
     await fetchStats();
   } catch {
-    showToast('Failed to delete', true);
+    showToast("Failed to delete", true);
   }
 };
 
@@ -288,7 +342,7 @@ const bulkDelete = async () => {
     await fetchMessages();
     await fetchStats();
   } catch {
-    showToast('Bulk delete failed', true);
+    showToast("Bulk delete failed", true);
   }
 };
 
@@ -400,7 +454,9 @@ onMounted(() => {
   background: var(--admin-badge-info-bg);
 }
 
-.view-btn:hover { filter: brightness(0.95); }
+.view-btn:hover {
+  filter: brightness(0.95);
+}
 
 .page-info {
   font-size: 0.9rem;
@@ -454,7 +510,13 @@ onMounted(() => {
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

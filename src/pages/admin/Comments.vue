@@ -1,28 +1,28 @@
 <template>
   <section class="admin-page">
     <!-- Page Header -->
-    <div class="admin-page-header">
+    <!-- <div class="admin-page-header">
       <div>
         <h2>Comments Management</h2>
         <p>Review, moderate, and manage all user comments</p>
       </div>
-    </div>
+    </div> -->
 
     <!-- Filters and Search -->
     <div class="admin-toolbar">
       <div class="admin-search">
         <Search :size="18" />
-        <input 
-          v-model="searchQuery" 
-          type="search" 
+        <input
+          v-model="searchQuery"
+          type="search"
           placeholder="Search comments..."
           @keyup.enter="fetchComments"
         />
       </div>
 
       <div class="admin-filter-pills">
-        <button 
-          v-for="status in ['All', 'Pending', 'Approved', 'Rejected']" 
+        <button
+          v-for="status in ['All', 'Pending', 'Approved', 'Rejected']"
           :key="status"
           type="button"
           class="admin-pill"
@@ -35,7 +35,16 @@
     </div>
 
     <div v-if="loading" class="admin-loading">
-      <div style="display: inline-block; width: 2rem; height: 2rem; border: 3px border-t-transparent border-emerald-600 rounded-full animate-spin; margin-bottom: 0.5rem;"></div>
+      <div
+        style="
+          display: inline-block;
+          width: 2rem;
+          height: 2rem;
+          border: 3px border-t-transparent border-emerald-600 rounded-full
+            animate-spin;
+          margin-bottom: 0.5rem;
+        "
+      ></div>
       <p>Loading comments...</p>
     </div>
 
@@ -46,7 +55,11 @@
           <thead>
             <tr>
               <th style="width: 40px">
-                <input type="checkbox" class="checkbox" @change="selectAllComments" />
+                <input
+                  type="checkbox"
+                  class="checkbox"
+                  @change="selectAllComments"
+                />
               </th>
               <th>Comment</th>
               <th>User</th>
@@ -58,8 +71,8 @@
           <tbody>
             <tr v-for="comment in filteredComments" :key="comment.id">
               <td>
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   class="checkbox"
                   v-model="selectedComments"
                   :value="comment.id"
@@ -67,27 +80,40 @@
               </td>
               <td>
                 <div class="comment-preview">
-                  <p class="comment-text">{{ truncateText(comment.content, 100) }}</p>
+                  <p class="comment-text">
+                    {{ truncateText(comment.content, 100) }}
+                  </p>
                   <small class="book-info">
                     <span v-if="comment.chapter">
-                      Chapter {{ comment.chapter.chapterNumber }}: <strong>{{ comment.chapter.title }}</strong>
+                      Chapter {{ comment.chapter.chapterNumber }}:
+                      <strong>{{ comment.chapter.title }}</strong>
                     </span>
                     <span v-else-if="comment.chapterId">
-                      Chapter ID: <code class="code-id">{{ comment.chapterId }}</code>
+                      Chapter ID:
+                      <code class="code-id">{{ comment.chapterId }}</code>
                     </span>
                     <span v-else>
-                      Chapter ID: <code class="code-id">{{ comment.bookId }}</code>
+                      Chapter ID:
+                      <code class="code-id">{{ comment.bookId }}</code>
                     </span>
-                    <span v-if="comment.pageNumber"> (Page {{ comment.pageNumber }})</span>
+                    <span v-if="comment.pageNumber">
+                      (Page {{ comment.pageNumber }})</span
+                    >
                   </small>
                 </div>
               </td>
               <td>
                 <div class="user-info">
-                  <div class="user-avatar">{{ comment.user?.name?.charAt(0).toUpperCase() ?? 'U' }}</div>
+                  <div class="user-avatar">
+                    {{ comment.user?.name?.charAt(0).toUpperCase() ?? "U" }}
+                  </div>
                   <div class="user-meta">
-                    <span class="user-name">{{ comment.user?.name ?? 'Unknown' }}</span>
-                    <span class="user-email">{{ comment.user?.email ?? 'N/A' }}</span>
+                    <span class="user-name">{{
+                      comment.user?.name ?? "Unknown"
+                    }}</span>
+                    <span class="user-email">{{
+                      comment.user?.email ?? "N/A"
+                    }}</span>
                   </div>
                 </div>
               </td>
@@ -99,7 +125,7 @@
               </td>
               <td>
                 <div class="actions">
-                  <button 
+                  <button
                     v-if="comment.status !== 'approved'"
                     class="admin-icon-btn approve-btn"
                     title="Approve Comment"
@@ -107,7 +133,7 @@
                   >
                     <Check :size="16" />
                   </button>
-                  <button 
+                  <button
                     v-if="comment.status !== 'rejected'"
                     class="admin-icon-btn reject-btn"
                     title="Reject Comment"
@@ -115,14 +141,14 @@
                   >
                     <X :size="16" />
                   </button>
-                  <button 
+                  <button
                     class="admin-icon-btn view-btn"
                     title="View Details"
                     @click="openCommentDetail(comment)"
                   >
                     <Eye :size="16" />
                   </button>
-                  <button 
+                  <button
                     class="admin-icon-btn danger"
                     title="Delete Comment"
                     @click="deleteComment(comment)"
@@ -146,11 +172,14 @@
 
     <!-- Pagination -->
     <div v-if="totalComments > 0" class="admin-pagination">
-      <button 
+      <button
         type="button"
         class="admin-btn admin-btn-secondary"
         :disabled="currentPage === 1"
-        @click="currentPage--; fetchComments()"
+        @click="
+          currentPage--;
+          fetchComments();
+        "
       >
         ← Previous
       </button>
@@ -159,11 +188,14 @@
         Page {{ currentPage }} of {{ totalPages }}
       </span>
 
-      <button 
+      <button
         type="button"
         class="admin-btn admin-btn-secondary"
         :disabled="currentPage === totalPages"
-        @click="currentPage++; fetchComments()"
+        @click="
+          currentPage++;
+          fetchComments();
+        "
       >
         Next →
       </button>
@@ -172,17 +204,33 @@
     </div>
 
     <!-- Bulk Actions Card -->
-    <div v-if="selectedComments.length > 0" class="bulk-actions-card animate-slide-up">
+    <div
+      v-if="selectedComments.length > 0"
+      class="bulk-actions-card animate-slide-up"
+    >
       <p>{{ selectedComments.length }} comment(s) selected</p>
       <div class="action-buttons">
-        <button class="admin-btn admin-btn-primary" @click="bulkApprove">Approve Selected</button>
-        <button class="admin-btn admin-btn-secondary" @click="openBulkRejectModal">Reject Selected</button>
-        <button class="admin-btn admin-btn-danger" @click="bulkDelete">Delete Selected</button>
+        <button class="admin-btn admin-btn-primary" @click="bulkApprove">
+          Approve Selected
+        </button>
+        <button
+          class="admin-btn admin-btn-secondary"
+          @click="openBulkRejectModal"
+        >
+          Reject Selected
+        </button>
+        <button class="admin-btn admin-btn-danger" @click="bulkDelete">
+          Delete Selected
+        </button>
       </div>
     </div>
 
     <!-- Comment Detail Modal -->
-    <div v-if="showDetailModal" class="admin-modal-backdrop" @click="closeDetailModal">
+    <div
+      v-if="showDetailModal"
+      class="admin-modal-backdrop"
+      @click="closeDetailModal"
+    >
       <div class="admin-modal" @click.stop>
         <div class="admin-modal-header">
           <h3>Comment Details</h3>
@@ -194,18 +242,27 @@
           <div v-if="selectedComment" class="comment-detail">
             <div class="admin-form-group">
               <label>Content</label>
-              <textarea readonly class="modal-textarea" rows="4">{{ selectedComment.content }}</textarea>
+              <textarea readonly class="modal-textarea" rows="4">{{
+                selectedComment.content
+              }}</textarea>
             </div>
-            
+
             <div class="admin-form-row">
               <div class="admin-form-group">
                 <label>User</label>
-                <input readonly type="text" :value="`${selectedComment.user?.name ?? 'Unknown'} (${selectedComment.user?.email ?? 'N/A'})`" />
+                <input
+                  readonly
+                  type="text"
+                  :value="`${selectedComment.user?.name ?? 'Unknown'} (${selectedComment.user?.email ?? 'N/A'})`"
+                />
               </div>
               <div class="admin-form-group">
                 <label>Status</label>
-                <div style="margin-top: 6px;">
-                  <span class="admin-badge" :class="statusClass(selectedComment.status)">
+                <div style="margin-top: 6px">
+                  <span
+                    class="admin-badge"
+                    :class="statusClass(selectedComment.status)"
+                  >
                     {{ selectedComment.status }}
                   </span>
                 </div>
@@ -215,28 +272,53 @@
             <div class="admin-form-row">
               <div class="admin-form-group">
                 <label>Created At</label>
-                <input readonly type="text" :value="formatDate(selectedComment.createdAt)" />
+                <input
+                  readonly
+                  type="text"
+                  :value="formatDate(selectedComment.createdAt)"
+                />
               </div>
               <div class="admin-form-group">
                 <label>Chapter</label>
-                <input readonly type="text" :value="selectedComment.chapter ? `Chapter ${selectedComment.chapter.chapterNumber}: ${selectedComment.chapter.title}` : (selectedComment.chapterId || selectedComment.bookId || 'N/A')" />
+                <input
+                  readonly
+                  type="text"
+                  :value="
+                    selectedComment.chapter
+                      ? `Chapter ${selectedComment.chapter.chapterNumber}: ${selectedComment.chapter.title}`
+                      : selectedComment.chapterId ||
+                        selectedComment.bookId ||
+                        'N/A'
+                  "
+                />
               </div>
             </div>
 
             <div v-if="selectedComment.moderatorNotes" class="admin-form-group">
               <label>Moderator Notes</label>
-              <textarea readonly class="modal-textarea" rows="2">{{ selectedComment.moderatorNotes }}</textarea>
+              <textarea readonly class="modal-textarea" rows="2">{{
+                selectedComment.moderatorNotes
+              }}</textarea>
             </div>
           </div>
         </div>
         <div class="admin-modal-footer">
-          <button class="admin-btn admin-btn-secondary" @click="closeDetailModal">Close</button>
+          <button
+            class="admin-btn admin-btn-secondary"
+            @click="closeDetailModal"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Reject Modal -->
-    <div v-if="showRejectModal" class="admin-modal-backdrop" @click="closeRejectModal">
+    <div
+      v-if="showRejectModal"
+      class="admin-modal-backdrop"
+      @click="closeRejectModal"
+    >
       <div class="admin-modal" @click.stop>
         <div class="admin-modal-header">
           <h3>Reject Comment</h3>
@@ -247,7 +329,7 @@
         <div class="admin-modal-body">
           <div class="admin-form-group">
             <label>Explain why this comment is rejected (optional)</label>
-            <textarea 
+            <textarea
               v-model="rejectNotes"
               placeholder="Provide context for the rejection..."
               rows="4"
@@ -255,14 +337,25 @@
           </div>
         </div>
         <div class="admin-modal-footer">
-          <button class="admin-btn admin-btn-secondary" @click="closeRejectModal">Cancel</button>
-          <button class="admin-btn admin-btn-danger" @click="confirmReject">Reject</button>
+          <button
+            class="admin-btn admin-btn-secondary"
+            @click="closeRejectModal"
+          >
+            Cancel
+          </button>
+          <button class="admin-btn admin-btn-danger" @click="confirmReject">
+            Reject
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Bulk Reject Modal -->
-    <div v-if="showBulkRejectModal" class="admin-modal-backdrop" @click="closeBulkRejectModal">
+    <div
+      v-if="showBulkRejectModal"
+      class="admin-modal-backdrop"
+      @click="closeBulkRejectModal"
+    >
       <div class="admin-modal" @click.stop>
         <div class="admin-modal-header">
           <h3>Reject {{ selectedComments.length }} Comment(s)</h3>
@@ -273,7 +366,7 @@
         <div class="admin-modal-body">
           <div class="admin-form-group">
             <label>Explain why these comments are rejected (optional)</label>
-            <textarea 
+            <textarea
               v-model="rejectNotes"
               placeholder="Provide context for the rejection..."
               rows="4"
@@ -281,20 +374,29 @@
           </div>
         </div>
         <div class="admin-modal-footer">
-          <button class="admin-btn admin-btn-secondary" @click="closeBulkRejectModal">Cancel</button>
-          <button class="admin-btn admin-btn-danger" @click="confirmBulkReject">Reject All</button>
+          <button
+            class="admin-btn admin-btn-secondary"
+            @click="closeBulkRejectModal"
+          >
+            Cancel
+          </button>
+          <button class="admin-btn admin-btn-danger" @click="confirmBulkReject">
+            Reject All
+          </button>
         </div>
       </div>
     </div>
 
-    <p v-if="toast" class="admin-toast" :class="{ error: toastError }">{{ toast }}</p>
+    <p v-if="toast" class="admin-toast" :class="{ error: toastError }">
+      {{ toast }}
+    </p>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { Search, MessageSquare, Eye, Check, X, Trash2 } from 'lucide-vue-next';
-import api from '../../services/api';
+import { ref, computed, onMounted } from "vue";
+import { Search, MessageSquare, Eye, Check, X, Trash2 } from "lucide-vue-next";
+import api from "../../services/api";
 
 interface User {
   id: string;
@@ -316,7 +418,7 @@ interface Comment {
   userId: string;
   user?: User;
   likes: number;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   moderatorNotes?: string;
   createdAt: string;
   updatedAt: string;
@@ -326,10 +428,10 @@ interface Comment {
 const comments = ref<Comment[]>([]);
 const selectedComments = ref<string[]>([]);
 const selectedComment = ref<Comment | null>(null);
-const searchQuery = ref('');
-const selectedStatus = ref('All');
+const searchQuery = ref("");
+const selectedStatus = ref("All");
 const getPageSizePreference = (): number => {
-  const PREFS_KEY = 'kdrc-admin-prefs';
+  const PREFS_KEY = "kdrc-admin-prefs";
   try {
     const raw = localStorage.getItem(PREFS_KEY);
     if (raw) {
@@ -340,7 +442,7 @@ const getPageSizePreference = (): number => {
       }
     }
   } catch (e) {
-    console.warn('Failed to parse admin prefs:', e);
+    console.warn("Failed to parse admin prefs:", e);
   }
   return 10;
 };
@@ -350,14 +452,14 @@ const pageSize = ref(getPageSizePreference());
 const totalComments = ref(0);
 const loading = ref(false);
 
-const toast = ref('');
+const toast = ref("");
 const toastError = ref(false);
 
 // Modals
 const showDetailModal = ref(false);
 const showRejectModal = ref(false);
 const showBulkRejectModal = ref(false);
-const rejectNotes = ref('');
+const rejectNotes = ref("");
 const commentToReject = ref<Comment | null>(null);
 
 // Computed
@@ -373,7 +475,9 @@ const totalPages = computed(() => {
 const showToast = (msg: string, err = false) => {
   toast.value = msg;
   toastError.value = err;
-  setTimeout(() => { toast.value = ''; }, 3000);
+  setTimeout(() => {
+    toast.value = "";
+  }, 3000);
 };
 
 // Methods
@@ -385,7 +489,7 @@ const fetchComments = async () => {
       limit: pageSize.value,
     };
 
-    if (selectedStatus.value !== 'All') {
+    if (selectedStatus.value !== "All") {
       params.status = selectedStatus.value.toLowerCase();
     }
 
@@ -393,13 +497,13 @@ const fetchComments = async () => {
       params.search = searchQuery.value;
     }
 
-    const response = await api.get('/comments', { params });
+    const response = await api.get("/comments", { params });
     const payload = response.data as { data?: Comment[]; total?: number };
     comments.value = payload.data ?? [];
     totalComments.value = payload.total ?? 0;
   } catch (error) {
-    console.error('Error fetching comments:', error);
-    showToast('Failed to fetch comments', true);
+    console.error("Error fetching comments:", error);
+    showToast("Failed to fetch comments", true);
   } finally {
     loading.value = false;
   }
@@ -412,29 +516,29 @@ const filterByStatus = (status: string) => {
 };
 
 const statusClass = (status: string) => {
-  if (status === 'approved') return 'success';
-  if (status === 'pending') return 'warning';
-  return 'danger';
+  if (status === "approved") return "success";
+  if (status === "pending") return "warning";
+  return "danger";
 };
 
 const truncateText = (text: string, length: number = 80) => {
-  return text.length > length ? text.substring(0, length) + '...' : text;
+  return text.length > length ? text.substring(0, length) + "..." : text;
 };
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
 const selectAllComments = (event: any) => {
   if (event.target.checked) {
-    selectedComments.value = comments.value.map(c => c.id);
+    selectedComments.value = comments.value.map((c) => c.id);
   } else {
     selectedComments.value = [];
   }
@@ -452,34 +556,34 @@ const closeDetailModal = () => {
 
 const openRejectModal = (comment: Comment) => {
   commentToReject.value = comment;
-  rejectNotes.value = '';
+  rejectNotes.value = "";
   showRejectModal.value = true;
 };
 
 const closeRejectModal = () => {
   showRejectModal.value = false;
   commentToReject.value = null;
-  rejectNotes.value = '';
+  rejectNotes.value = "";
 };
 
 const openBulkRejectModal = () => {
-  rejectNotes.value = '';
+  rejectNotes.value = "";
   showBulkRejectModal.value = true;
 };
 
 const closeBulkRejectModal = () => {
   showBulkRejectModal.value = false;
-  rejectNotes.value = '';
+  rejectNotes.value = "";
 };
 
 const approveComment = async (comment: Comment) => {
   try {
     await api.patch(`/comments/${comment.id}/approve`);
-    showToast('Comment approved successfully');
+    showToast("Comment approved successfully");
     await fetchComments();
   } catch (error) {
-    console.error('Error approving comment:', error);
-    showToast('Failed to approve comment', true);
+    console.error("Error approving comment:", error);
+    showToast("Failed to approve comment", true);
   }
 };
 
@@ -490,12 +594,12 @@ const confirmReject = async () => {
     await api.patch(`/comments/${commentToReject.value.id}/reject`, {
       moderatorNotes: rejectNotes.value,
     });
-    showToast('Comment rejected');
+    showToast("Comment rejected");
     await fetchComments();
     closeRejectModal();
   } catch (error) {
-    console.error('Error rejecting comment:', error);
-    showToast('Failed to reject comment', true);
+    console.error("Error rejecting comment:", error);
+    showToast("Failed to reject comment", true);
   }
 };
 
@@ -504,12 +608,12 @@ const bulkApprove = async () => {
     for (const commentId of selectedComments.value) {
       await api.patch(`/comments/${commentId}/approve`);
     }
-    showToast('Selected comments approved');
+    showToast("Selected comments approved");
     selectedComments.value = [];
     await fetchComments();
   } catch (error) {
-    console.error('Error approving comments:', error);
-    showToast('Bulk approval failed', true);
+    console.error("Error approving comments:", error);
+    showToast("Bulk approval failed", true);
   }
 };
 
@@ -520,41 +624,45 @@ const confirmBulkReject = async () => {
         moderatorNotes: rejectNotes.value,
       });
     }
-    showToast('Selected comments rejected');
+    showToast("Selected comments rejected");
     selectedComments.value = [];
     closeBulkRejectModal();
     await fetchComments();
   } catch (error) {
-    console.error('Error rejecting comments:', error);
-    showToast('Bulk rejection failed', true);
+    console.error("Error rejecting comments:", error);
+    showToast("Bulk rejection failed", true);
   }
 };
 
 const deleteComment = async (comment: Comment) => {
-  if (confirm('Are you sure you want to delete this comment?')) {
+  if (confirm("Are you sure you want to delete this comment?")) {
     try {
       await api.delete(`/comments/${comment.id}/admin`);
-      showToast('Comment deleted');
+      showToast("Comment deleted");
       await fetchComments();
     } catch (error) {
-      console.error('Error deleting comment:', error);
-      showToast('Failed to delete comment', true);
+      console.error("Error deleting comment:", error);
+      showToast("Failed to delete comment", true);
     }
   }
 };
 
 const bulkDelete = async () => {
-  if (confirm(`Are you sure you want to delete ${selectedComments.value.length} comment(s)?`)) {
+  if (
+    confirm(
+      `Are you sure you want to delete ${selectedComments.value.length} comment(s)?`,
+    )
+  ) {
     try {
-      await api.delete('/comments', {
+      await api.delete("/comments", {
         data: { ids: selectedComments.value },
       });
-      showToast('Selected comments deleted');
+      showToast("Selected comments deleted");
       selectedComments.value = [];
       await fetchComments();
     } catch (error) {
-      console.error('Error deleting comments:', error);
-      showToast('Bulk deletion failed', true);
+      console.error("Error deleting comments:", error);
+      showToast("Bulk deletion failed", true);
     }
   }
 };

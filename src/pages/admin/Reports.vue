@@ -1,11 +1,11 @@
 <template>
   <section class="admin-page">
-    <div class="admin-page-header">
+    <!-- <div class="admin-page-header">
       <div>
         <h2>Reports</h2>
         <p>User-submitted content reports</p>
       </div>
-    </div>
+    </div> -->
 
     <div class="admin-stats-grid compact">
       <div class="admin-stat-card mini">
@@ -59,16 +59,24 @@
           </thead>
           <tbody>
             <tr v-for="r in filtered" :key="r.id">
-              <td><span class="admin-badge neutral">{{ formatType(r.type) }}</span></td>
+              <td>
+                <span class="admin-badge neutral">{{
+                  formatType(r.type)
+                }}</span>
+              </td>
               <td class="desc">{{ r.description }}</td>
-              <td>{{ r.reportedUser?.name || r.reportedUser?.email || '—' }}</td>
-              <td>{{ r.reporter?.name || r.reporter?.email || '—' }}</td>
+              <td>
+                {{ r.reportedUser?.name || r.reportedUser?.email || "—" }}
+              </td>
+              <td>{{ r.reporter?.name || r.reporter?.email || "—" }}</td>
               <td>{{ formatDate(r.createdAt) }}</td>
               <td>
                 <select
                   class="status-select"
                   :value="r.status"
-                  @change="updateStatus(r, ($event.target as HTMLSelectElement).value)"
+                  @change="
+                    updateStatus(r, ($event.target as HTMLSelectElement).value)
+                  "
                 >
                   <option value="pending">Pending</option>
                   <option value="under review">Under review</option>
@@ -76,7 +84,11 @@
                 </select>
               </td>
               <td>
-                <button type="button" class="admin-icon-btn danger" @click="remove(r)">
+                <button
+                  type="button"
+                  class="admin-icon-btn danger"
+                  @click="remove(r)"
+                >
                   <Trash2 :size="16" />
                 </button>
               </td>
@@ -91,36 +103,44 @@
       </div>
     </div>
 
-    <p v-if="toast" class="admin-toast" :class="{ error: toastError }">{{ toast }}</p>
+    <p v-if="toast" class="admin-toast" :class="{ error: toastError }">
+      {{ toast }}
+    </p>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { Search, Trash2, Flag } from 'lucide-vue-next';
+import { ref, computed, onMounted } from "vue";
+import { Search, Trash2, Flag } from "lucide-vue-next";
 import {
   fetchAdminReports,
   updateReportStatus,
   deleteAdminReport,
   type AdminReport,
-} from '../../services/adminApi';
+} from "../../services/adminApi";
 
 const reports = ref<AdminReport[]>([]);
 const loading = ref(true);
-const search = ref('');
-const statusFilter = ref('All');
-const toast = ref('');
+const search = ref("");
+const statusFilter = ref("All");
+const toast = ref("");
 const toastError = ref(false);
 
-const statusFilters = ['All', 'pending', 'under review', 'resolved'];
+const statusFilters = ["All", "pending", "under review", "resolved"];
 
-const pendingCount = computed(() => reports.value.filter((r) => r.status === 'pending').length);
-const reviewCount = computed(() => reports.value.filter((r) => r.status === 'under review').length);
-const resolvedCount = computed(() => reports.value.filter((r) => r.status === 'resolved').length);
+const pendingCount = computed(
+  () => reports.value.filter((r) => r.status === "pending").length,
+);
+const reviewCount = computed(
+  () => reports.value.filter((r) => r.status === "under review").length,
+);
+const resolvedCount = computed(
+  () => reports.value.filter((r) => r.status === "resolved").length,
+);
 
 const filtered = computed(() => {
   let list = reports.value;
-  if (statusFilter.value !== 'All') {
+  if (statusFilter.value !== "All") {
     list = list.filter((r) => r.status === statusFilter.value);
   }
   const q = search.value.trim().toLowerCase();
@@ -135,15 +155,21 @@ const filtered = computed(() => {
 });
 
 const formatType = (t: string) =>
-  t.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 const formatDate = (d: string) =>
-  new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  new Date(d).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
 const showToast = (msg: string, err = false) => {
   toast.value = msg;
   toastError.value = err;
-  setTimeout(() => { toast.value = ''; }, 3000);
+  setTimeout(() => {
+    toast.value = "";
+  }, 3000);
 };
 
 const load = async () => {
@@ -151,7 +177,7 @@ const load = async () => {
   try {
     reports.value = await fetchAdminReports();
   } catch {
-    showToast('Failed to load reports', true);
+    showToast("Failed to load reports", true);
   } finally {
     loading.value = false;
   }
@@ -161,21 +187,21 @@ const updateStatus = async (r: AdminReport, status: string) => {
   try {
     await updateReportStatus(r.id, status);
     r.status = status;
-    showToast('Status updated');
+    showToast("Status updated");
   } catch {
-    showToast('Update failed', true);
+    showToast("Update failed", true);
     load();
   }
 };
 
 const remove = async (r: AdminReport) => {
-  if (!confirm('Delete this report?')) return;
+  if (!confirm("Delete this report?")) return;
   try {
     await deleteAdminReport(r.id);
     reports.value = reports.value.filter((x) => x.id !== r.id);
-    showToast('Report deleted');
+    showToast("Report deleted");
   } catch {
-    showToast('Delete failed', true);
+    showToast("Delete failed", true);
   }
 };
 

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import api from '../../services/api';
-import { updateMyProfile } from '../../services/adminApi';
-import { uploadAvatarFile } from '../../services/userApi';
+import { ref, onMounted, computed } from "vue";
+import api from "../../services/api";
+import { updateMyProfile } from "../../services/adminApi";
+import { uploadAvatarFile } from "../../services/userApi";
 import {
   Camera,
   Loader2,
@@ -13,63 +13,68 @@ import {
   CalendarDays,
   Check,
   Settings,
-} from 'lucide-vue-next';
-import { useRouter } from 'vue-router';
-import { authState } from '../../services/auth';
+} from "lucide-vue-next";
+import { useRouter } from "vue-router";
+import { authState } from "../../services/auth";
 
 const router = useRouter();
 const loading = ref(true);
 const saving = ref(false);
 const uploadingAvatar = ref(false);
-const toastMsg = ref('');
+const toastMsg = ref("");
 const toastError = ref(false);
 
 const form = ref({
-  name: '',
-  email: '',
-  bio: '',
-  phoneNumber: '',
-  avatarUrl: '',
-  role: 'admin',
-  createdAt: '',
+  name: "",
+  email: "",
+  bio: "",
+  phoneNumber: "",
+  avatarUrl: "",
+  role: "admin",
+  createdAt: "",
 });
 
 const showToast = (msg: string, err = false) => {
   toastMsg.value = msg;
   toastError.value = err;
-  setTimeout(() => { toastMsg.value = ''; }, 3500);
+  setTimeout(() => {
+    toastMsg.value = "";
+  }, 3500);
 };
 
 const initials = computed(() => {
   if (form.value.name) return form.value.name.charAt(0).toUpperCase();
   if (form.value.email) return form.value.email.charAt(0).toUpperCase();
-  return 'A';
+  return "A";
 });
 
 const joinedFormatted = computed(() => {
-  if (!form.value.createdAt) return '—';
-  return new Date(form.value.createdAt).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
+  if (!form.value.createdAt) return "—";
+  return new Date(form.value.createdAt).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
   });
 });
 
 onMounted(async () => {
   try {
-    const user = await api.get('/users/me').then((r) => r.data);
-    console.log('Loaded admin profile user:', user);
+    const user = await api.get("/users/me").then((r) => r.data);
+    console.log("Loaded admin profile user:", user);
     form.value = {
-      name: user.name || '',
-      email: user.email || '',
-      bio: user.bio || '',
-      phoneNumber: user.phoneNumber || '',
-      avatarUrl: user.avatarUrl || '',
-      role: user.role || 'admin',
-      createdAt: user.createdAt || '',
+      name: user.name || "",
+      email: user.email || "",
+      bio: user.bio || "",
+      phoneNumber: user.phoneNumber || "",
+      avatarUrl: user.avatarUrl || "",
+      role: user.role || "admin",
+      createdAt: user.createdAt || "",
     };
   } catch (err: any) {
-    console.error('Failed to load profile:', err);
-    showToast('Could not load profile: ' + (err.response?.data?.message || err.message), true);
+    console.error("Failed to load profile:", err);
+    showToast(
+      "Could not load profile: " + (err.response?.data?.message || err.message),
+      true,
+    );
   } finally {
     loading.value = false;
   }
@@ -78,23 +83,32 @@ onMounted(async () => {
 const saveProfile = async () => {
   saving.value = true;
   try {
-    console.log('Saving admin profile data:', { name: form.value.name, bio: form.value.bio });
+    console.log("Saving admin profile data:", {
+      name: form.value.name,
+      bio: form.value.bio,
+    });
     await updateMyProfile({ name: form.value.name, bio: form.value.bio });
     if (authState.user.value) {
       authState.user.value.name = form.value.name;
     }
-    showToast('Profile saved successfully!');
+    showToast("Profile saved successfully!");
   } catch (err: any) {
-    console.error('Failed to save admin profile:', err);
+    console.error("Failed to save admin profile:", err);
     const apiData = err.response?.data;
-    const nestedData = apiData && typeof apiData === 'object' ? (apiData as any).data : null;
-    let errMsg = (nestedData && nestedData.message) || apiData?.message || apiData?.error || err.message || 'Please try again.';
+    const nestedData =
+      apiData && typeof apiData === "object" ? (apiData as any).data : null;
+    let errMsg =
+      (nestedData && nestedData.message) ||
+      apiData?.message ||
+      apiData?.error ||
+      err.message ||
+      "Please try again.";
     if (nestedData && Array.isArray(nestedData.errors)) {
-      errMsg = nestedData.errors.join('; ');
+      errMsg = nestedData.errors.join("; ");
     } else if (nestedData && nestedData.errors) {
       errMsg = String(nestedData.errors);
     }
-    showToast('Save failed: ' + errMsg, true);
+    showToast("Save failed: " + errMsg, true);
   } finally {
     saving.value = false;
   }
@@ -113,10 +127,10 @@ const onFileSelected = async (event: Event) => {
       if (authState.user.value) {
         authState.user.value.avatarUrl = result.url;
       }
-      showToast('Avatar updated!');
+      showToast("Avatar updated!");
     }
   } catch {
-    showToast('Failed to upload avatar', true);
+    showToast("Failed to upload avatar", true);
   } finally {
     uploadingAvatar.value = false;
   }
@@ -126,12 +140,16 @@ const onFileSelected = async (event: Event) => {
 <template>
   <section class="admin-page">
     <!-- Header -->
-    <div class="admin-page-header">
-      <div>
+    <div class="flex flex-row items-center justify-end">
+      <!-- <div>
         <h2>My Profile</h2>
         <p>Manage your administrator identity and personal information.</p>
-      </div>
-      <button type="button" class="admin-btn admin-btn-secondary profile-settings-btn" @click="router.push('/admin/settings')">
+      </div> -->
+      <button
+        type="button"
+        class="admin-btn admin-btn-secondary profile-settings-btn"
+        @click="router.push('/admin/settings')"
+      >
         <Settings :size="15" />
         Settings
       </button>
@@ -157,15 +175,26 @@ const onFileSelected = async (event: Event) => {
           <div class="profile-avatar-wrap">
             <div class="profile-avatar-outer">
               <div class="profile-avatar group">
-                <img v-if="form.avatarUrl" :src="form.avatarUrl" alt="Avatar" class="avatar-img" />
+                <img
+                  v-if="form.avatarUrl"
+                  :src="form.avatarUrl"
+                  alt="Avatar"
+                  class="avatar-img"
+                />
                 <div v-else class="avatar-initials">{{ initials }}</div>
 
                 <!-- Upload overlay -->
                 <label class="avatar-overlay">
                   <Camera v-if="!uploadingAvatar" :size="20" color="white" />
                   <Loader2 v-else :size="20" color="white" class="spin-icon" />
-                  <span>{{ uploadingAvatar ? 'Uploading…' : 'Change' }}</span>
-                  <input type="file" accept="image/*" class="hidden" @change="onFileSelected" :disabled="uploadingAvatar" />
+                  <span>{{ uploadingAvatar ? "Uploading…" : "Change" }}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    @change="onFileSelected"
+                    :disabled="uploadingAvatar"
+                  />
                 </label>
               </div>
             </div>
@@ -173,7 +202,7 @@ const onFileSelected = async (event: Event) => {
 
           <div class="profile-meta">
             <div class="profile-meta-left">
-              <h3 class="profile-name">{{ form.name || 'Administrator' }}</h3>
+              <h3 class="profile-name">{{ form.name || "Administrator" }}</h3>
               <p class="profile-email">{{ form.email }}</p>
               <div class="profile-badges">
                 <span class="badge badge-admin">
@@ -227,31 +256,56 @@ const onFileSelected = async (event: Event) => {
                 <label for="admin-name">Display Name</label>
                 <div class="input-icon-wrap">
                   <User :size="15" class="input-icon" />
-                  <input id="admin-name" v-model="form.name" type="text" required placeholder="e.g. Admin User" />
+                  <input
+                    id="admin-name"
+                    v-model="form.name"
+                    type="text"
+                    required
+                    placeholder="e.g. Admin User"
+                  />
                 </div>
               </div>
 
               <!-- Email (readonly) -->
               <div class="admin-form-group">
-                <label for="admin-email">Email Address <span class="label-badge">Read-only</span></label>
+                <label for="admin-email"
+                  >Email Address
+                  <span class="label-badge">Read-only</span></label
+                >
                 <div class="input-icon-wrap">
                   <Mail :size="15" class="input-icon" />
-                  <input id="admin-email" v-model="form.email" type="email" disabled class="input-disabled" />
+                  <input
+                    id="admin-email"
+                    v-model="form.email"
+                    type="email"
+                    disabled
+                    class="input-disabled"
+                  />
                 </div>
               </div>
 
               <!-- Bio -->
               <div class="admin-form-group full-width">
                 <label for="admin-bio">Short Bio</label>
-                <textarea id="admin-bio" v-model="form.bio" rows="3" placeholder="A short bio about yourself…" class="profile-textarea"></textarea>
+                <textarea
+                  id="admin-bio"
+                  v-model="form.bio"
+                  rows="3"
+                  placeholder="A short bio about yourself…"
+                  class="profile-textarea"
+                ></textarea>
               </div>
             </div>
 
             <div class="form-actions">
-              <button type="submit" class="admin-btn admin-btn-primary" :disabled="saving">
+              <button
+                type="submit"
+                class="admin-btn admin-btn-primary"
+                :disabled="saving"
+              >
                 <Loader2 v-if="saving" :size="14" class="spin-icon" />
                 <Save v-else :size="14" />
-                {{ saving ? 'Saving…' : 'Save Profile' }}
+                {{ saving ? "Saving…" : "Save Profile" }}
               </button>
             </div>
           </form>
@@ -261,7 +315,9 @@ const onFileSelected = async (event: Event) => {
 
     <!-- Toast -->
     <Transition name="toast">
-      <p v-if="toastMsg" class="admin-toast" :class="{ error: toastError }">{{ toastMsg }}</p>
+      <p v-if="toastMsg" class="admin-toast" :class="{ error: toastError }">
+        {{ toastMsg }}
+      </p>
     </Transition>
   </section>
 </template>
@@ -286,15 +342,19 @@ const onFileSelected = async (event: Event) => {
 .banner-orb {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255,255,255,0.07);
+  background: rgba(255, 255, 255, 0.07);
 }
 .banner-orb-1 {
-  width: 200px; height: 200px;
-  top: -80px; right: -40px;
+  width: 200px;
+  height: 200px;
+  top: -80px;
+  right: -40px;
 }
 .banner-orb-2 {
-  width: 120px; height: 120px;
-  bottom: -60px; left: 15%;
+  width: 120px;
+  height: 120px;
+  bottom: -60px;
+  left: 15%;
 }
 
 .profile-hero-body {
@@ -312,7 +372,7 @@ const onFileSelected = async (event: Event) => {
 .profile-avatar-outer {
   border-radius: 18px;
   border: 4px solid var(--admin-surface);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
   overflow: hidden;
   width: 96px;
   height: 96px;
@@ -326,7 +386,8 @@ const onFileSelected = async (event: Event) => {
 }
 
 .avatar-img {
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
 }
@@ -336,19 +397,25 @@ const onFileSelected = async (event: Event) => {
 }
 
 .avatar-initials {
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   background: linear-gradient(135deg, #1a7a55, #3aa876);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #fff;
   font-size: 2.2rem;
   font-weight: 800;
 }
 
 .avatar-overlay {
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 3px;
   opacity: 0;
   cursor: pointer;
@@ -362,7 +429,9 @@ const onFileSelected = async (event: Event) => {
   opacity: 1;
 }
 
-input.hidden { display: none; }
+input.hidden {
+  display: none;
+}
 
 .profile-meta {
   flex: 1;
@@ -432,23 +501,34 @@ input.hidden { display: none; }
   align-items: center;
   gap: 1rem;
   box-shadow: var(--admin-shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .profile-stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
 }
 
 .stat-icon {
-  width: 44px; height: 44px;
+  width: 44px;
+  height: 44px;
   border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.stat-icon-green { background: var(--admin-accent-soft); color: var(--admin-accent); }
-.stat-icon-blue { background: var(--admin-stat-blue-bg); color: var(--admin-info); }
+.stat-icon-green {
+  background: var(--admin-accent-soft);
+  color: var(--admin-accent);
+}
+.stat-icon-blue {
+  background: var(--admin-stat-blue-bg);
+  color: var(--admin-info);
+}
 
 .stat-label {
   font-size: 0.72rem;
@@ -548,21 +628,33 @@ input.hidden { display: none; }
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ——— Toast transition ——— */
-.toast-enter-active, .toast-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+.toast-enter-active,
+.toast-leave-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
-.toast-enter-from, .toast-leave-to {
+.toast-enter-from,
+.toast-leave-to {
   opacity: 0;
   transform: translateY(8px);
 }
 
 @media (max-width: 640px) {
-  .profile-form-grid { grid-template-columns: 1fr; }
-  .profile-hero-body { gap: 1rem; }
+  .profile-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-hero-body {
+    gap: 1rem;
+  }
 }
 </style>

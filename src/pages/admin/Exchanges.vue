@@ -1,11 +1,11 @@
 <template>
   <section class="admin-page">
-    <div class="admin-page-header">
+    <!-- <div class="admin-page-header">
       <div>
         <h2>Exchanges</h2>
         <p>Manage physical book listings and trade proposals</p>
       </div>
-    </div>
+    </div> -->
 
     <div class="admin-stats-grid compact">
       <div class="admin-stat-card mini">
@@ -51,7 +51,9 @@
         <input
           v-model="search"
           type="search"
-          :placeholder="activeTab === 'listings' ? 'Search listings…' : 'Search trades…'"
+          :placeholder="
+            activeTab === 'listings' ? 'Search listings…' : 'Search trades…'
+          "
           @keyup.enter="load(1)"
         />
       </div>
@@ -62,15 +64,18 @@
           type="button"
           class="admin-pill"
           :class="{ active: statusFilter === s }"
-          @click="statusFilter = s; load(1)"
+          @click="
+            statusFilter = s;
+            load(1);
+          "
         >
-          {{ s === 'ALL' ? 'All' : s.replace('_', ' ') }}
+          {{ s === "ALL" ? "All" : s.replace("_", " ") }}
         </button>
       </div>
     </div>
 
     <div v-if="loading" class="admin-loading">
-      {{ activeTab === 'listings' ? 'Loading listings…' : 'Loading trades…' }}
+      {{ activeTab === "listings" ? "Loading listings…" : "Loading trades…" }}
     </div>
 
     <div v-else-if="activeTab === 'listings'" class="admin-card">
@@ -91,21 +96,34 @@
             <tr v-for="listing in listings" :key="listing.id">
               <td>
                 <div class="book-cell">
-                  <img :src="listing.imageUrl" :alt="listing.title" class="thumb" />
+                  <img
+                    :src="listing.imageUrl"
+                    :alt="listing.title"
+                    class="thumb"
+                  />
                   <div>
                     <strong>{{ listing.title }}</strong>
                     <p class="sub">{{ listing.author }}</p>
                   </div>
                 </div>
               </td>
-              <td>{{ listing.owner?.name || listing.owner?.email || '—' }}</td>
-              <td><span class="admin-badge neutral">{{ listing.exchangeType }}</span></td>
+              <td>{{ listing.owner?.name || listing.owner?.email || "—" }}</td>
+              <td>
+                <span class="admin-badge neutral">{{
+                  listing.exchangeType
+                }}</span>
+              </td>
               <td>{{ listing.location }}</td>
               <td>
                 <select
                   class="status-select"
                   :value="listing.listingStatus"
-                  @change="onListingStatusChange(listing, ($event.target as HTMLSelectElement).value)"
+                  @change="
+                    onListingStatusChange(
+                      listing,
+                      ($event.target as HTMLSelectElement).value,
+                    )
+                  "
                 >
                   <option value="ACTIVE">ACTIVE</option>
                   <option value="CLOSED">CLOSED</option>
@@ -113,7 +131,12 @@
               </td>
               <td>{{ formatDate(listing.createdAt) }}</td>
               <td>
-                <button type="button" class="admin-icon-btn danger" title="Delete" @click="removeListing(listing)">
+                <button
+                  type="button"
+                  class="admin-icon-btn danger"
+                  title="Delete"
+                  @click="removeListing(listing)"
+                >
                   <Trash2 :size="16" />
                 </button>
               </td>
@@ -145,29 +168,50 @@
             <tr v-for="trade in trades" :key="trade.id">
               <td>
                 <div class="book-cell">
-                  <img :src="trade.exchange?.imageUrl" :alt="trade.exchange?.title" class="thumb" />
+                  <img
+                    :src="trade.exchange?.imageUrl"
+                    :alt="trade.exchange?.title"
+                    class="thumb"
+                  />
                   <div>
-                    <strong>{{ trade.exchange?.title || '—' }}</strong>
+                    <strong>{{ trade.exchange?.title || "—" }}</strong>
                     <p class="sub">{{ trade.exchange?.author }}</p>
                   </div>
                 </div>
               </td>
               <td>
                 <div class="book-cell">
-                  <img :src="trade.offeredExchange?.imageUrl" :alt="trade.offeredExchange?.title" class="thumb" />
+                  <img
+                    :src="trade.offeredExchange?.imageUrl"
+                    :alt="trade.offeredExchange?.title"
+                    class="thumb"
+                  />
                   <div>
-                    <strong>{{ trade.offeredExchange?.title || '—' }}</strong>
+                    <strong>{{ trade.offeredExchange?.title || "—" }}</strong>
                     <p class="sub">{{ trade.offeredExchange?.author }}</p>
                   </div>
                 </div>
               </td>
-              <td>{{ trade.requester?.name || trade.requester?.email || '—' }}</td>
-              <td>{{ trade.exchange?.owner?.name || trade.exchange?.owner?.email || '—' }}</td>
+              <td>
+                {{ trade.requester?.name || trade.requester?.email || "—" }}
+              </td>
+              <td>
+                {{
+                  trade.exchange?.owner?.name ||
+                  trade.exchange?.owner?.email ||
+                  "—"
+                }}
+              </td>
               <td>
                 <select
                   class="status-select"
                   :value="trade.status"
-                  @change="onTradeStatusChange(trade, ($event.target as HTMLSelectElement).value)"
+                  @change="
+                    onTradeStatusChange(
+                      trade,
+                      ($event.target as HTMLSelectElement).value,
+                    )
+                  "
                 >
                   <option value="PENDING">PENDING</option>
                   <option value="ACCEPTED">ACCEPTED</option>
@@ -179,7 +223,12 @@
               </td>
               <td>{{ formatDate(trade.createdAt) }}</td>
               <td>
-                <button type="button" class="admin-icon-btn danger" title="Delete" @click="removeTrade(trade)">
+                <button
+                  type="button"
+                  class="admin-icon-btn danger"
+                  title="Delete"
+                  @click="removeTrade(trade)"
+                >
                   <Trash2 :size="16" />
                 </button>
               </td>
@@ -194,18 +243,34 @@
     </div>
 
     <div v-if="totalPages > 1" class="admin-pagination">
-      <button type="button" class="admin-btn admin-btn-secondary" :disabled="page <= 1" @click="load(page - 1)">Previous</button>
+      <button
+        type="button"
+        class="admin-btn admin-btn-secondary"
+        :disabled="page <= 1"
+        @click="load(page - 1)"
+      >
+        Previous
+      </button>
       <span class="page-info">Page {{ page }} of {{ totalPages }}</span>
-      <button type="button" class="admin-btn admin-btn-secondary" :disabled="page >= totalPages" @click="load(page + 1)">Next</button>
+      <button
+        type="button"
+        class="admin-btn admin-btn-secondary"
+        :disabled="page >= totalPages"
+        @click="load(page + 1)"
+      >
+        Next
+      </button>
     </div>
 
-    <p v-if="toast" class="admin-toast" :class="{ error: toastError }">{{ toast }}</p>
+    <p v-if="toast" class="admin-toast" :class="{ error: toastError }">
+      {{ toast }}
+    </p>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-import { Search, Trash2, ArrowLeftRight } from 'lucide-vue-next';
+import { computed, onMounted, ref } from "vue";
+import { Search, Trash2, ArrowLeftRight } from "lucide-vue-next";
 import {
   deleteAdminExchange,
   deleteAdminExchangeRequest,
@@ -216,16 +281,16 @@ import {
   updateAdminExchangeRequest,
   type AdminExchangeListing,
   type AdminExchangeRequest,
-} from '../../services/adminApi';
+} from "../../services/adminApi";
 
-const activeTab = ref<'listings' | 'trades'>('listings');
+const activeTab = ref<"listings" | "trades">("listings");
 const listings = ref<AdminExchangeListing[]>([]);
 const trades = ref<AdminExchangeRequest[]>([]);
 const loading = ref(true);
-const search = ref('');
-const statusFilter = ref('ALL');
+const search = ref("");
+const statusFilter = ref("ALL");
 const getPageSizePreference = (): number => {
-  const PREFS_KEY = 'kdrc-admin-prefs';
+  const PREFS_KEY = "kdrc-admin-prefs";
   try {
     const raw = localStorage.getItem(PREFS_KEY);
     if (raw) {
@@ -236,7 +301,7 @@ const getPageSizePreference = (): number => {
       }
     }
   } catch (e) {
-    console.warn('Failed to parse admin prefs:', e);
+    console.warn("Failed to parse admin prefs:", e);
   }
   return 10;
 };
@@ -244,7 +309,7 @@ const getPageSizePreference = (): number => {
 const page = ref(1);
 const totalPages = ref(1);
 const limit = getPageSizePreference();
-const toast = ref('');
+const toast = ref("");
 const toastError = ref(false);
 
 const summary = ref({
@@ -254,29 +319,35 @@ const summary = ref({
   pendingTrades: 0,
 });
 
-const listingFilters = ['ALL', 'ACTIVE', 'CLOSED'];
+const listingFilters = ["ALL", "ACTIVE", "CLOSED"];
 const tradeFilters = [
-  'ALL',
-  'PENDING',
-  'ACCEPTED',
-  'MEETING_SCHEDULED',
-  'COMPLETED',
-  'CANCELLED',
-  'REJECTED',
+  "ALL",
+  "PENDING",
+  "ACCEPTED",
+  "MEETING_SCHEDULED",
+  "COMPLETED",
+  "CANCELLED",
+  "REJECTED",
 ];
 
 const currentFilters = computed(() =>
-  activeTab.value === 'listings' ? listingFilters : tradeFilters,
+  activeTab.value === "listings" ? listingFilters : tradeFilters,
 );
 
 const showToast = (msg: string, err = false) => {
   toast.value = msg;
   toastError.value = err;
-  setTimeout(() => { toast.value = ''; }, 3000);
+  setTimeout(() => {
+    toast.value = "";
+  }, 3000);
 };
 
 const formatDate = (d: string) =>
-  new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  new Date(d).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
 const loadSummary = async () => {
   try {
@@ -296,23 +367,24 @@ const load = async (p = page.value) => {
   loading.value = true;
   page.value = p;
   try {
-    if (activeTab.value === 'listings') {
+    if (activeTab.value === "listings") {
       const params: Record<string, string | number> = { page: p, limit };
       if (search.value.trim()) params.search = search.value.trim();
-      if (statusFilter.value !== 'ALL') params.listingStatus = statusFilter.value;
+      if (statusFilter.value !== "ALL")
+        params.listingStatus = statusFilter.value;
       const res = await fetchAdminExchanges(params);
       listings.value = res.data ?? [];
       totalPages.value = res.meta?.lastPage ?? 1;
     } else {
       const params: Record<string, string | number> = { page: p, limit };
       if (search.value.trim()) params.search = search.value.trim();
-      if (statusFilter.value !== 'ALL') params.status = statusFilter.value;
+      if (statusFilter.value !== "ALL") params.status = statusFilter.value;
       const res = await fetchAdminExchangeRequests(params);
       trades.value = res.data ?? [];
       totalPages.value = res.meta?.lastPage ?? 1;
     }
   } catch {
-    showToast('Failed to load exchange data', true);
+    showToast("Failed to load exchange data", true);
     listings.value = [];
     trades.value = [];
   } finally {
@@ -320,56 +392,63 @@ const load = async (p = page.value) => {
   }
 };
 
-const switchTab = (tab: 'listings' | 'trades') => {
+const switchTab = (tab: "listings" | "trades") => {
   activeTab.value = tab;
-  statusFilter.value = 'ALL';
-  search.value = '';
+  statusFilter.value = "ALL";
+  search.value = "";
   load(1);
 };
 
-const onListingStatusChange = async (listing: AdminExchangeListing, listingStatus: string) => {
+const onListingStatusChange = async (
+  listing: AdminExchangeListing,
+  listingStatus: string,
+) => {
   try {
     await updateAdminExchange(listing.id, { listingStatus });
     listing.listingStatus = listingStatus;
-    showToast('Listing status updated');
+    showToast("Listing status updated");
     loadSummary();
   } catch {
-    showToast('Could not update listing status', true);
+    showToast("Could not update listing status", true);
     load(page.value);
   }
 };
 
-const onTradeStatusChange = async (trade: AdminExchangeRequest, status: string) => {
+const onTradeStatusChange = async (
+  trade: AdminExchangeRequest,
+  status: string,
+) => {
   try {
     await updateAdminExchangeRequest(trade.id, status);
     trade.status = status;
-    showToast('Trade status updated');
+    showToast("Trade status updated");
     loadSummary();
   } catch {
-    showToast('Could not update trade status', true);
+    showToast("Could not update trade status", true);
     load(page.value);
   }
 };
 
 const removeListing = async (listing: AdminExchangeListing) => {
-  if (!confirm(`Delete listing "${listing.title}"? This cannot be undone.`)) return;
+  if (!confirm(`Delete listing "${listing.title}"? This cannot be undone.`))
+    return;
   try {
     await deleteAdminExchange(listing.id);
-    showToast('Listing deleted');
+    showToast("Listing deleted");
     await Promise.all([load(page.value), loadSummary()]);
   } catch {
-    showToast('Delete failed', true);
+    showToast("Delete failed", true);
   }
 };
 
 const removeTrade = async (trade: AdminExchangeRequest) => {
-  if (!confirm('Delete this trade proposal? This cannot be undone.')) return;
+  if (!confirm("Delete this trade proposal? This cannot be undone.")) return;
   try {
     await deleteAdminExchangeRequest(trade.id);
-    showToast('Trade deleted');
+    showToast("Trade deleted");
     await Promise.all([load(page.value), loadSummary()]);
   } catch {
-    showToast('Delete failed', true);
+    showToast("Delete failed", true);
   }
 };
 
