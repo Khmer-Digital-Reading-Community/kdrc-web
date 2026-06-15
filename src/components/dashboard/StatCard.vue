@@ -1,7 +1,7 @@
 <template>
   <div class="bg-[#FBF7F0] rounded-3xl p-6">
 
-    <p class="text-[11px] uppercase tracking-[2px] text-gray-400 mb-6">
+    <p class="text-[15px] pb-4 text-center uppercase tracking-[2px] text-gray-700 mb-6">
       {{ title }}
     </p>
 

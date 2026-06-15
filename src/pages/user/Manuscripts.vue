@@ -65,6 +65,16 @@ onMounted(fetchBooks);
 
 <template>
   <div class="p-6">
+    <div class="mb-8">
+      <p class="text-3xl sm:text-4xl font-bold mt-2">
+        Manuscript Management
+      </p>
+
+      <p class="text-gray-500 text-lg mt-2 text-[17px] pt-2">
+        Manage your manuscripts, track their status, and publish your stories.
+      </p>
+
+    </div>
     <ManuscriptFilters
           v-model:search="searchQuery"
           v-model:status="statusFilter"

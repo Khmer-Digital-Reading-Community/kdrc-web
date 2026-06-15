@@ -8,17 +8,11 @@ import ChatBox from '../components/chat/ChatBox.vue';
 import adminRoutes from './admin';
 import userRoutes from './user';
 import OAuthCallback from '../auth/OAuthCallback.vue';
-// import LandingPage from "../pages/user/landingPage.vue";
-// import { computed } from 'vue';
-// import { token } from '../stores/useAuth';
-// import OAuthCallback from '../views/OAuthCallback.vue';
+import { user, token, isRestoring } from '../services/auth';
 
 const router = createRouter({
 	history: createWebHistory(),
 	routes: [
-		// Redirect root to user home
-		// { path: '/', redirect: 'landingpage' },
-		// { path: '/', name: 'home', component: Home, meta: { requiresAuth: true } },
 		{ path: '/chatbox', name: 'chatbox', component: ChatBox },
 		{ path: '/auth/callback', name: 'oauth-callback', component: OAuthCallback },
 		{ path: '/login', name: 'login', component: LoginForm },
@@ -26,7 +20,6 @@ const router = createRouter({
 		{ path: '/forgot-password', name: 'forgot-password', component: ForgotPassword },
 		{ path: '/reset-password', name: 'reset-password', component: ResetPassword },
 		{ path: '/verify-otp', name: 'verify-otp', component: VerifyOTP },
-		{ path: '/chatbox', name: 'chatbox', component: ChatBox },
 		{ path: '/exchange-v2/manage/:id', name: 'ManageTrade', component: () => import('../pages/ManageTrade.vue') },
 
 		...adminRoutes,
@@ -34,18 +27,46 @@ const router = createRouter({
 	],
 });
 
-// router.beforeEach((to) => {
-// 	const isAuthed = computed(() => Boolean(token.value))
-// 	console.log('Navigating to %s, requiresAuth: %s, isAuthed: %s', to.fullPath, to.meta.requiresAuth, isAuthed.value);
-// 	if (to.meta.requiresAuth && !isAuthed) {
-// 		return { path: '/login', query: { redirect: to.fullPath } };
-// 	}
+const publicPaths = ['/login', '/signup', '/forgot-password', '/reset-password', '/verify-otp', '/auth/callback'];
 
-// 	if ((to.path === '/login' || to.path === '/signup') && isAuthed) {
-// 		return { path: '/home' };
-// 	}
+router.beforeEach(async (to) => {
+	// Wait for session restoration to complete before checking auth
+	if (isRestoring.value) {
+		await new Promise<void>((resolve) => {
+			const unwatch = setInterval(() => {
+				if (!isRestoring.value) {
+					clearInterval(unwatch);
+					resolve();
+				}
+			}, 50);
+		});
+	}
 
-// 	return true;
-// });
+	const isAuthenticated = Boolean(token.value);
+	const userRole = user.value?.role;
+
+	// Redirect authenticated users away from public auth pages
+	if (isAuthenticated && publicPaths.includes(to.path)) {
+		const target = userRole === 'ADMIN' ? '/admin/dashboard' : '/home';
+		return { path: target };
+	}
+
+	// Check if route requires authentication
+	if (to.meta.requiresAuth && !isAuthenticated) {
+		return { path: '/login', query: { redirect: to.fullPath } };
+	}
+
+	// Check if route requires specific roles
+	const requiredRoles = to.meta.roles as string[] | undefined;
+	if (isAuthenticated && requiredRoles && requiredRoles.length > 0) {
+		if (!userRole || !requiredRoles.includes(userRole)) {
+			// User does not have the required role — redirect to their home
+			const fallback = userRole === 'ADMIN' ? '/admin/dashboard' : '/home';
+			return { path: fallback };
+		}
+	}
+
+	return true;
+});
 
 export default router;

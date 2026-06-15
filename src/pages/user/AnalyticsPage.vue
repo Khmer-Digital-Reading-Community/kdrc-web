@@ -1,206 +1,125 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { TrendingUp, Users, Eye, BookOpen } from "lucide-vue-next";
+import { ref, computed, onMounted } from "vue";
+import { Users, Eye, BookOpen, Star } from "lucide-vue-next";
 import AnalyticsOverview from "@/components/analytics/AnalyticsOverview.vue";
 import ReadingTrendChart from "@/components/analytics/ReadingTrendChart.vue";
-import ChapterPerformance from "@/components/analytics/ChapterPerformance.vue";
-import AudienceInsights from "@/components/analytics/AudienceInsights.vue";
-import EngagementMetrics from "@/components/analytics/EngagementMetrics.vue";
+import PublishedBooksPanel from "@/components/analytics/PublishedBooksPanel.vue";
+import {
+  getMyBooks,
+  getMyBookStats,
+  getMyReaderTrend,
+} from "@/services/bookApi";
+import { getFollowerCounts } from "@/services/followApi";
+import { user } from "@/services/auth";
+import type { Book } from "@/services/bookApi";
 
-const selectedPeriod = ref("month");
-const periods = [
-  { value: "week", label: "This Week" },
-  { value: "month", label: "This Month" },
-  { value: "quarter", label: "This Quarter" },
-  { value: "year", label: "This Year" },
-];
+const books = ref<Book[]>([]);
+const statsData = ref({ totalPublished: 0, totalBooks: 0 });
+const followerCount = ref(0);
+const booksLoading = ref(false);
+const trendData = ref<{ labels: string[]; readers: number[] }>({
+  labels: [],
+  readers: [],
+});
 
-// Mock analytics data
-const overviewStats = ref([
+const publishedBooks = computed(() =>
+  books.value.filter((b) => b.status === "PUBLISHED"),
+);
+
+const totalReads = computed(() =>
+  publishedBooks.value.reduce((sum, b) => sum + (b.readCount ?? 0), 0),
+);
+
+const avgRating = computed(() => {
+  const rated = publishedBooks.value.filter((b) => b.rating && b.rating > 0);
+  if (!rated.length) return "—";
+  return (
+    rated.reduce((sum, b) => sum + (b.rating ?? 0), 0) / rated.length
+  ).toFixed(1);
+});
+
+const overviewStats = computed(() => [
   {
-    title: "Total Readers",
-    value: "12,450",
-    change: "+12.5%",
-    isPositive: true,
-    icon: Users,
+    title: "Total Reads",
+    value: totalReads.value.toLocaleString(),
+    icon: Eye,
     color: "bg-blue-50",
   },
   {
-    title: "Total Views",
-    value: "84,530",
-    change: "+8.2%",
-    isPositive: true,
-    icon: Eye,
+    title: "Followers",
+    value: followerCount.value.toLocaleString(),
+    icon: Users,
     color: "bg-green-50",
   },
   {
-    title: "Avg. Reading Time",
-    value: "12m 45s",
-    change: "-3.1%",
-    isPositive: false,
-    icon: TrendingUp,
+    title: "Avg. Rating",
+    value: avgRating.value,
+    icon: Star,
     color: "bg-purple-50",
   },
   {
-    title: "Engagement Rate",
-    value: "68.5%",
-    change: "+5.3%",
-    isPositive: true,
+    title: "Published",
+    value: statsData.value.totalPublished,
     icon: BookOpen,
     color: "bg-orange-50",
   },
 ]);
 
-const readingTrendData = {
-  labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-  views: [320, 450, 380, 520, 490, 610, 580],
-  readers: [65, 95, 78, 110, 105, 130, 125],
-};
+onMounted(async () => {
+  booksLoading.value = true;
+  try {
+    const [booksRes, statsRes, trend] = await Promise.all([
+      getMyBooks(),
+      getMyBookStats(),
+      getMyReaderTrend(),
+    ]);
+    books.value = booksRes;
+    statsData.value = statsRes;
+    trendData.value = trend;
 
-const chapterPerformanceData = [
-  {
-    id: 1,
-    title: "Chapter 1: The Beginning",
-    views: 2450,
-    completionRate: 92,
-    avgTime: 8.5,
-    rating: 4.8,
-    drop: -2.1,
-  },
-  {
-    id: 2,
-    title: "Chapter 2: Rising Tension",
-    views: 2180,
-    completionRate: 85,
-    avgTime: 9.2,
-    rating: 4.6,
-    drop: -7.3,
-  },
-  {
-    id: 3,
-    title: "Chapter 3: Climax",
-    views: 1920,
-    completionRate: 78,
-    avgTime: 10.1,
-    rating: 4.9,
-    drop: -12.4,
-  },
-  {
-    id: 4,
-    title: "Chapter 4: Resolution",
-    views: 1680,
-    completionRate: 72,
-    avgTime: 7.8,
-    rating: 4.5,
-    drop: -14.6,
-  },
-];
-
-const audienceData = {
-  demographics: [
-    { label: "13-18 years", percentage: 25, color: "bg-blue-500" },
-    { label: "19-25 years", percentage: 35, color: "bg-purple-500" },
-    { label: "26-35 years", percentage: 25, color: "bg-pink-500" },
-    { label: "36+ years", percentage: 15, color: "bg-amber-500" },
-  ],
-  topCountries: [
-    { country: "Cambodia", readers: 3450, percentage: 28 },
-    { country: "Thailand", readers: 2890, percentage: 23 },
-    { country: "Vietnam", readers: 2450, percentage: 20 },
-    { country: "Philippines", readers: 1870, percentage: 15 },
-    { country: "Indonesia", readers: 1690, percentage: 14 },
-  ],
-};
-
-const engagementMetrics = ref([
-  {
-    title: "Comments",
-    value: 342,
-    change: "+15.2%",
-    isPositive: true,
-  },
-  {
-    title: "Bookmarks",
-    value: 1240,
-    change: "+22.8%",
-    isPositive: true,
-  },
-  {
-    title: "Shares",
-    value: 456,
-    change: "+8.5%",
-    isPositive: true,
-  },
-  {
-    title: "Bounce Rate",
-    value: "24.3%",
-    change: "-2.1%",
-    isPositive: true,
-  },
-]);
+    if (user.value?.id) {
+      const counts = await getFollowerCounts(user.value.id);
+      followerCount.value = counts.followersCount;
+    }
+  } catch (e) {
+    console.error(e);
+  } finally {
+    booksLoading.value = false;
+  }
+});
 </script>
 
 <template>
   <div class="p-3 sm:p-4 lg:p-6">
-    <!-- Breadcrumb -->
-          <div
-            class="text-[11px] sm:text-sm uppercase tracking-[0.15em] text-gray-500 mb-6"
-          >
-            Atelier >
-            <span class="font-bold text-black"> Analytics </span>
-          </div>
+    <!-- Header -->
+    <div class="mb-8">
+      <p class="text-3xl sm:text-4xl font-bold mt-2">Analytics Dashboard</p>
 
-          <!-- Header with Period Selector -->
-          <div
-            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8"
-          >
-            <div>
-              <h1 class="text-2xl sm:text-3xl font-bold text-black mb-2">
-                Analytics Dashboard
-              </h1>
-              <p class="text-gray-600 text-sm">
-                Track your book performance and audience insights
-              </p>
-            </div>
+      <p class="text-gray-500 text-lg mt-2 text-[17px] pt-2">
+        Track your book performance and audience insights
+      </p>
+    </div>
 
-            <!-- Period Selector -->
-            <div class="flex gap-2 flex-wrap">
-              <button
-                v-for="period in periods"
-                :key="period.value"
-                @click="selectedPeriod = period.value"
-                :class="[
-                  'px-4 py-2 rounded-lg text-sm font-medium transition-all',
-                  selectedPeriod === period.value
-                    ? 'bg-[#9C6700] text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50',
-                ]"
-              >
-                {{ period.label }}
-              </button>
-            </div>
-          </div>
+    <!-- Overview Stats (real data) -->
+    <AnalyticsOverview :stats="overviewStats" />
 
-          <!-- Overview Stats -->
-          <AnalyticsOverview :stats="overviewStats" />
-
-          <!-- Charts Section -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 my-6">
-            <!-- Reading Trend Chart (spans 2 columns on large screens) -->
-            <div class="lg:col-span-2">
-              <ReadingTrendChart :data="readingTrendData" />
-            </div>
-
-            <!-- Engagement Metrics -->
-            <div>
-              <EngagementMetrics :metrics="engagementMetrics" />
-            </div>
-          </div>
-
-          <!-- Chapter Performance -->
-          <ChapterPerformance :chapters="chapterPerformanceData" />
-
-          <!-- Audience Insights -->
-          <AudienceInsights :audience="audienceData" />
+    <!-- Charts + Books -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 my-6">
+      <div class="lg:col-span-2">
+        <ReadingTrendChart
+          v-if="trendData.labels.length"
+          :data="{ ...trendData, views: trendData.readers }"
+        />
+        <div
+          v-else
+          class="bg-white rounded-2xl p-6 shadow-sm flex items-center justify-center h-48 text-gray-400 text-sm"
+        >
+          No published books yet.
+        </div>
+      </div>
+      <div>
+        <PublishedBooksPanel :books="publishedBooks" :loading="booksLoading" />
+      </div>
+    </div>
   </div>
 </template>

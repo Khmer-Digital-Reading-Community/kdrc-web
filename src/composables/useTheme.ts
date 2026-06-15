@@ -21,7 +21,7 @@ export function useTheme() {
     document.documentElement.classList.remove('dark');
   };
 
-  const setTheme = (next: Theme) => {
+  const setTheme = (_next: Theme) => {
     theme.value = 'light';
     localStorage.setItem('theme', 'light');
     applyTheme();

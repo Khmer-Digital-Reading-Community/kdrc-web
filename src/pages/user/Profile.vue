@@ -8,7 +8,6 @@ import {
   Camera,
   Loader2,
   Save,
-  Check,
   CalendarDays,
   Settings,
 } from "lucide-vue-next";
@@ -237,12 +236,6 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="p-3 sm:p-4 lg:p-6">
-    <!-- Breadcrumb -->
-    <div class="text-[10px] sm:text-[11px] lg:text-xs uppercase tracking-[0.2em] text-[#7a5b3e] mb-6 font-bold">
-      Atelier &gt;
-      <span class="text-gray-900">{{ t.profile }}</span>
-    </div>
-
     <!-- Loading -->
     <div v-if="pageLoading" class="flex flex-col items-center justify-center min-h-[50vh] py-12">
       <Loader2 class="w-12 h-12 animate-spin text-[#0f6d5f] mb-4" />

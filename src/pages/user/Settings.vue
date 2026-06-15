@@ -20,7 +20,7 @@ import { useAuth } from "../../stores/useAuth";
 
 const toast = useToast();
 const router = useRouter();
-const { currentLang, setLanguage } = useLanguage();
+const { currentLang } = useLanguage();
 const { logout, loginRole } = useAuth();
 
 // Active tab
@@ -160,11 +160,6 @@ const savePassword = async () => {
     
     <!-- Page Header -->
     <div class="max-w-5xl mx-auto mb-6">
-      <div class="text-[10px] sm:text-[11px] lg:text-xs uppercase tracking-[0.2em] text-[#7a5b3e] mb-6 font-bold">
-        Atelier &gt;
-        <span class="text-gray-900">{{ t.title }}</span>
-      </div>
-      
       <div class="bg-white/70 backdrop-blur-md p-6 rounded-2xl border border-gray-200/50 shadow-sm transition-colors duration-300">
         <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight leading-none mb-1.5 font-['Playfair_Display',serif]">{{ t.title }}</h1>
         <p class="text-xs text-[#7a5b3e]">{{ t.subtitle }}</p>
