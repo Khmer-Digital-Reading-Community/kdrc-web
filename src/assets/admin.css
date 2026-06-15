@@ -200,6 +200,14 @@
   margin: 0.25rem 0 0;
 }
 
+.admin-stat-hint.up {
+  color: #10B981;
+}
+
+.admin-stat-hint.down {
+  color: #EF4444;
+}
+
 .admin-card {
   background: var(--admin-surface);
   border: 1px solid var(--admin-border);

@@ -3,6 +3,7 @@ import api from './api';
 export interface ChatUser {
   id: string;
   name?: string;
+  email?: string;
   avatarUrl?: string;
   role?: string;
 }
@@ -50,5 +51,10 @@ export async function deleteAdminChatMessage(id: string): Promise<void> {
 
 export async function bulkDeleteAdminChatMessages(ids: string[]): Promise<{ deleted: number }> {
   const res = await api.delete('/chat/admin', { data: { ids } });
+  return unwrap(res);
+}
+
+export async function getAdminChatStats(): Promise<{ total: number; todayCount: number }> {
+  const res = await api.get('/chat/admin/stats');
   return unwrap(res);
 }

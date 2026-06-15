@@ -149,8 +149,8 @@
       <div class="flex-1 flex flex-col h-full min-h-0 relative">
         <!-- Floating Top Header (sticky) -->
         <header
-          class="sticky top-0 z-40 px-4 py-3 flex items-center justify-between backdrop-blur-md border-b"
-          :class="[isScrolled ? 'border-white/10' : 'border-transparent']"
+          class="sticky top-0 z-40 px-4 py-3 flex items-center justify-between backdrop-blur-md border-b shadow-sm"
+          :class="[isScrolled ? 'border-black/10' : 'border-black/5']"
           :style="headerStyle"
         >
           <div class="flex items-center gap-4">
@@ -159,7 +159,7 @@
               class="p-2 rounded-full hover:bg-black/10 transition-colors"
               :title="showSidebar ? 'Close chapters' : 'View chapters'"
             >
-              <PanelLeft :size="20" />
+              <Menu :size="20" />
             </button>
             <button
               @click="router.push('/book-detail/' + route.params.id)"
@@ -205,19 +205,35 @@
             </button>
 
             <button
+              @click="handleToggleBookmark"
               class="p-2 rounded-full hover:bg-black/10 transition-colors"
-              title="Bookmark"
+              :title="
+                isChapterBookmarked
+                  ? 'Remove bookmark'
+                  : 'Bookmark this chapter'
+              "
             >
-              <BookmarkIcon :size="20" />
+              <BookmarkIcon
+                :size="20"
+                :fill="isChapterBookmarked ? 'currentColor' : 'none'"
+                :class="isChapterBookmarked ? 'text-amber-500' : ''"
+              />
             </button>
           </div>
         </header>
+
+        <!-- Settings Backdrop (mobile) -->
+        <div
+          v-if="showSettings && isMobile"
+          class="fixed inset-0 z-40 bg-black/20 backdrop-blur-xs sm:hidden"
+          @click="showSettings = false"
+        ></div>
 
         <!-- Settings Modal -->
         <transition name="slide-fade">
           <div
             v-if="showSettings"
-            class="fixed top-16 right-4 z-50 w-72 rounded-2xl shadow-2xl border p-6"
+            class="fixed z-50 rounded-2xl shadow-2xl border p-6 inset-x-4 top-20 sm:inset-x-auto sm:top-16 sm:right-4 sm:w-72"
             style="
               background-color: var(--reader-bg);
               color: var(--reader-text);
@@ -609,6 +625,7 @@ import {
 import { useRoute, useRouter, onBeforeRouteLeave } from "vue-router";
 import {
   ArrowLeft,
+  Menu,
   Settings,
   Bookmark as BookmarkIcon,
   X,
@@ -630,6 +647,7 @@ import {
 import { useChapterNavigation } from "../../composables/useChapterNavigation";
 import { renderContent } from "../../utils/content";
 import { useReadingProgress } from "../../composables/useReadingProgress";
+import { useBookmarks } from "../../composables/useBookmarks";
 import ReadingProgress from "../../components/reader/ReadingProgress.vue";
 import ChapterSidebar from "../../components/reader/ChapterSidebar.vue";
 import { getBookBasic } from "../../services/bookApi";
@@ -668,6 +686,7 @@ const {
 
 const { saveChapterProgress, getChapterProgress, markBookCompleted } =
   useReadingProgress();
+const { toggleChapterBookmark, isBookmarked } = useBookmarks();
 const mainContentRef = ref<HTMLElement | null>(null);
 const chapterScrollMap = ref<Map<string, number>>(new Map());
 const contentSentinel = ref<HTMLElement | null>(null);
@@ -701,6 +720,21 @@ const currentScrollPercent = ref(0);
 const currentPageNumber = computed(() => {
   return Math.min(10, Math.floor(currentScrollPercent.value / 10) + 1);
 });
+
+// Bookmark state
+const isChapterBookmarked = computed(() => {
+  if (!currentChapter.value) return false;
+  return isBookmarked(currentChapter.value.id, "CHAPTER");
+});
+
+const handleToggleBookmark = async () => {
+  if (!currentChapter.value) return;
+  try {
+    await toggleChapterBookmark(currentChapter.value.id);
+  } catch {
+    // User not logged in — handled inside composable
+  }
+};
 
 const fetchComments = async () => {
   if (!currentChapter.value) return;
@@ -798,7 +832,10 @@ const themeVariables = computed(() => ({
 // Header background
 const headerStyle = computed(() => {
   const bg = themes[currentTheme.value].bg;
-  return { backgroundColor: bg + (isScrolled.value ? "e6" : "cc") };
+  return {
+    backgroundColor: bg + (isScrolled.value ? "f2" : "e6"),
+    color: themes[currentTheme.value].text,
+  };
 });
 
 // Display content ref — populated async to avoid blocking the main thread
@@ -1139,6 +1176,9 @@ const navigateFinishReading = async () => {
 const handleSelectChapter = async (chapterId: string) => {
   await saveCurrentProgress();
   await goToChapter(chapterId);
+  if (isMobile.value) {
+    showSidebar.value = false;
+  }
 };
 
 // Flush pending progress sync on tab close or route leave
@@ -1172,7 +1212,15 @@ onMounted(async () => {
   isMobile.value = window.innerWidth < 1024;
   if (isMobile.value) showSidebar.value = false;
   window.addEventListener("resize", () => {
+    const wasMobile = isMobile.value;
     isMobile.value = window.innerWidth < 1024;
+    // Auto-close sidebar when switching to mobile, open when going to desktop
+    if (!wasMobile && isMobile.value) {
+      showSidebar.value = false;
+      showSettings.value = false;
+    } else if (wasMobile && !isMobile.value) {
+      showSidebar.value = true;
+    }
   });
 
   if (bookId) {

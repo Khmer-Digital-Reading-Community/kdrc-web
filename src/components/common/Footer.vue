@@ -118,37 +118,34 @@ const footerCols = [
   {
     title: "Explore",
     links: [
-      { label: "Browse Books", path: "/explore" },
-      { label: "Classic Khmer", path: "/explore" },
-      { label: "Fiction", path: "/explore" },
-      { label: "Education", path: "/explore" },
-      { label: "Free Books", path: "/explore" },
+      { label: "Home", path: "/" },
+      { label: "Explore", path: "/explore" },
     ],
   },
   {
     title: "Community",
     links: [
       { label: "Discussions", path: "/community" },
-      { label: "Book Exchange", path: "/exchange" },
-      // { label: 'Writers',      path: '/writers'   },
-      // { label: 'Start Writing', path: '/write'    },
+      { label: "Book Exchange", path: "/exchange-v2" },
+      { label: "Writers", path: "/writers" },
+      { label: "Start Writing", path: "/dashboard/books/new" },
     ],
   },
   {
     title: "Support",
     links: [
-      // { label: 'About KDRC',    path: '/about'   },
-      // { label: 'FAQ',           path: '/faq'     },
-      // { label: 'Contact Us',    path: '/contact' },
-      // { label: 'Privacy Policy',path: '/privacy' },
-      // { label: 'Terms of Use',  path: '/terms'   },
+      { label: "About KDRC", path: "/about" },
+      { label: "FAQ", path: "/faq" },
+      { label: "Contact Us", path: "/contact" },
+      { label: "Privacy Policy", path: "/privacy" },
+      { label: "Terms of Use", path: "/terms" },
     ],
   },
 ];
 
 const bottomLinks: Array<{ label: string; path: string }> = [
-  // { label: 'Privacy', path: '/privacy' },
-  // { label: 'Terms',   path: '/terms'   },
-  // { label: 'Contact', path: '/contact' },
+  { label: "Privacy", path: "/privacy" },
+  { label: "Terms", path: "/terms" },
+  { label: "Contact", path: "/contact" },
 ];
 </script>

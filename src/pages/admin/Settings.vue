@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 import {
   Globe,
   Moon,
@@ -14,41 +14,43 @@ import {
   Check,
   User,
   Monitor,
-} from 'lucide-vue-next';
-import api from '../../services/api';
-import { useAdminTheme } from '../../composables/useAdminTheme';
-import { useAuth } from '../../stores/useAuth';
+} from "lucide-vue-next";
+import api from "../../services/api";
+import { useAdminTheme } from "../../composables/useAdminTheme";
+import { useAuth } from "../../stores/useAuth";
 
 const router = useRouter();
 const { isDark, toggleTheme } = useAdminTheme();
 const { logout: authLogout } = useAuth();
 
-const PREFS_KEY = 'kdrc-admin-prefs';
+const PREFS_KEY = "kdrc-admin-prefs";
 const prefs = ref({
   itemsPerPage: localStorage.getItem(PREFS_KEY)
-    ? JSON.parse(localStorage.getItem(PREFS_KEY)!).itemsPerPage || '10'
-    : '10',
+    ? JSON.parse(localStorage.getItem(PREFS_KEY)!).itemsPerPage || "10"
+    : "10",
   timezone: localStorage.getItem(PREFS_KEY)
-    ? JSON.parse(localStorage.getItem(PREFS_KEY)!).timezone || 'Asia/Phnom_Penh'
-    : 'Asia/Phnom_Penh',
+    ? JSON.parse(localStorage.getItem(PREFS_KEY)!).timezone || "Asia/Phnom_Penh"
+    : "Asia/Phnom_Penh",
 });
 
 const savingPrefs = ref(false);
-const toastMsg = ref('');
+const toastMsg = ref("");
 const toastError = ref(false);
 
 const changingPassword = ref(false);
 const showOldPw = ref(false);
 const showNewPw = ref(false);
 const showConfirmPw = ref(false);
-const oldPassword = ref('');
-const newPassword = ref('');
-const confirmPassword = ref('');
+const oldPassword = ref("");
+const newPassword = ref("");
+const confirmPassword = ref("");
 
 const showToast = (msg: string, err = false) => {
   toastMsg.value = msg;
   toastError.value = err;
-  setTimeout(() => { toastMsg.value = ''; }, 3500);
+  setTimeout(() => {
+    toastMsg.value = "";
+  }, 3500);
 };
 
 const savePrefs = () => {
@@ -56,27 +58,27 @@ const savePrefs = () => {
   setTimeout(() => {
     localStorage.setItem(PREFS_KEY, JSON.stringify(prefs.value));
     savingPrefs.value = false;
-    showToast('Preferences saved!');
+    showToast("Preferences saved!");
   }, 300);
 };
 
 const changePassword = async () => {
   if (newPassword.value !== confirmPassword.value) {
-    showToast('Passwords do not match!', true);
+    showToast("Passwords do not match!", true);
     return;
   }
   changingPassword.value = true;
   try {
-    await api.patch('/users/change-password', {
+    await api.patch("/users/change-password", {
       oldPassword: oldPassword.value,
       newPassword: newPassword.value,
     });
-    showToast('Password updated successfully!');
-    oldPassword.value = '';
-    newPassword.value = '';
-    confirmPassword.value = '';
+    showToast("Password updated successfully!");
+    oldPassword.value = "";
+    newPassword.value = "";
+    confirmPassword.value = "";
   } catch (e: any) {
-    showToast(e?.response?.data?.message || 'Failed to update password.', true);
+    showToast(e?.response?.data?.message || "Failed to update password.", true);
   } finally {
     changingPassword.value = false;
   }
@@ -84,25 +86,24 @@ const changePassword = async () => {
 
 const logout = async () => {
   await authLogout();
-  router.push('/login');
+  router.push("/login");
 };
 </script>
 
 <template>
   <section class="admin-page">
     <!-- Header -->
-    <div class="admin-page-header">
-      <div>
-        <h2>Settings</h2>
-        <p>Manage preferences, security and your admin account.</p>
-      </div>
-      <button type="button" class="admin-btn admin-btn-secondary" @click="router.push('/admin/profile')">
+    <div class="flex flex-row items-center justify-end">
+      <button
+        type="button"
+        class="admin-btn admin-btn-secondary"
+        @click="router.push('/admin/profile')"
+      >
         <User :size="14" /> My Profile
       </button>
     </div>
 
     <div class="settings-grid">
-
       <!-- Display Preferences -->
       <div class="admin-card settings-card">
         <div class="admin-card-header">
@@ -111,7 +112,9 @@ const logout = async () => {
           </h3>
         </div>
         <div class="admin-card-body">
-          <div class="settings-section-desc">Customize how the admin panel looks and feels.</div>
+          <div class="settings-section-desc">
+            Customize how the admin panel looks and feels.
+          </div>
 
           <!-- Theme Toggle -->
           <div class="pref-row">
@@ -120,12 +123,18 @@ const logout = async () => {
               <p class="pref-desc">Switch between light and dark interface.</p>
             </div>
             <button type="button" class="theme-toggle-btn" @click="toggleTheme">
-              <span class="theme-icon-wrap" :class="isDark ? 'dark-mode' : 'light-mode'">
+              <span
+                class="theme-icon-wrap"
+                :class="isDark ? 'dark-mode' : 'light-mode'"
+              >
                 <Sun v-if="!isDark" :size="14" />
                 <Moon v-else :size="14" />
               </span>
               <span class="theme-toggle-track" :class="{ active: isDark }">
-                <span class="theme-toggle-thumb" :class="{ active: isDark }"></span>
+                <span
+                  class="theme-toggle-thumb"
+                  :class="{ active: isDark }"
+                ></span>
               </span>
             </button>
           </div>
@@ -155,10 +164,15 @@ const logout = async () => {
           </div>
 
           <div class="card-actions">
-            <button type="button" class="admin-btn admin-btn-primary" @click="savePrefs" :disabled="savingPrefs">
+            <button
+              type="button"
+              class="admin-btn admin-btn-primary"
+              @click="savePrefs"
+              :disabled="savingPrefs"
+            >
               <Loader2 v-if="savingPrefs" :size="13" class="spin-icon" />
               <Check v-else :size="13" />
-              {{ savingPrefs ? 'Saving…' : 'Save Preferences' }}
+              {{ savingPrefs ? "Saving…" : "Save Preferences" }}
             </button>
           </div>
         </div>
@@ -172,7 +186,9 @@ const logout = async () => {
           </h3>
         </div>
         <div class="admin-card-body">
-          <div class="settings-section-desc">Keep your admin account secure with a strong password.</div>
+          <div class="settings-section-desc">
+            Keep your admin account secure with a strong password.
+          </div>
           <form @submit.prevent="changePassword" class="password-form">
             <!-- Current Password -->
             <div class="admin-form-group">
@@ -186,7 +202,11 @@ const logout = async () => {
                   required
                   placeholder="Enter current password"
                 />
-                <button type="button" class="pw-toggle" @click="showOldPw = !showOldPw">
+                <button
+                  type="button"
+                  class="pw-toggle"
+                  @click="showOldPw = !showOldPw"
+                >
                   <EyeOff v-if="showOldPw" :size="14" />
                   <Eye v-else :size="14" />
                 </button>
@@ -207,7 +227,11 @@ const logout = async () => {
                     minlength="6"
                     placeholder="At least 6 characters"
                   />
-                  <button type="button" class="pw-toggle" @click="showNewPw = !showNewPw">
+                  <button
+                    type="button"
+                    class="pw-toggle"
+                    @click="showNewPw = !showNewPw"
+                  >
                     <EyeOff v-if="showNewPw" :size="14" />
                     <Eye v-else :size="14" />
                   </button>
@@ -217,7 +241,11 @@ const logout = async () => {
                 <label for="confirm-pw">Confirm Password</label>
                 <div class="pw-input-wrap">
                   <span class="pw-icon">
-                    <Check v-if="confirmPassword && confirmPassword === newPassword" :size="14" class="match-icon" />
+                    <Check
+                      v-if="confirmPassword && confirmPassword === newPassword"
+                      :size="14"
+                      class="match-icon"
+                    />
                     <Lock v-else :size="14" />
                   </span>
                   <input
@@ -226,9 +254,16 @@ const logout = async () => {
                     v-model="confirmPassword"
                     required
                     placeholder="Repeat new password"
-                    :class="{ 'input-mismatch': confirmPassword && confirmPassword !== newPassword }"
+                    :class="{
+                      'input-mismatch':
+                        confirmPassword && confirmPassword !== newPassword,
+                    }"
                   />
-                  <button type="button" class="pw-toggle" @click="showConfirmPw = !showConfirmPw">
+                  <button
+                    type="button"
+                    class="pw-toggle"
+                    @click="showConfirmPw = !showConfirmPw"
+                  >
                     <EyeOff v-if="showConfirmPw" :size="14" />
                     <Eye v-else :size="14" />
                   </button>
@@ -237,10 +272,14 @@ const logout = async () => {
             </div>
 
             <div class="card-actions">
-              <button type="submit" class="admin-btn admin-btn-primary" :disabled="changingPassword">
+              <button
+                type="submit"
+                class="admin-btn admin-btn-primary"
+                :disabled="changingPassword"
+              >
                 <Loader2 v-if="changingPassword" :size="13" class="spin-icon" />
                 <ShieldCheck v-else :size="13" />
-                {{ changingPassword ? 'Updating…' : 'Update Password' }}
+                {{ changingPassword ? "Updating…" : "Update Password" }}
               </button>
             </div>
           </form>
@@ -255,14 +294,12 @@ const logout = async () => {
           </h3>
         </div>
         <div class="admin-card-body">
-          <div class="settings-section-desc">Select the language for the admin interface.</div>
+          <div class="settings-section-desc">
+            Select the language for the admin interface.
+          </div>
           <div class="lang-pills">
-            <button type="button" class="lang-pill active">
-              🇬🇧 English
-            </button>
-            <button type="button" class="lang-pill">
-              🇰🇭 ខ្មែរ
-            </button>
+            <button type="button" class="lang-pill active">🇬🇧 English</button>
+            <button type="button" class="lang-pill">🇰🇭 ខ្មែរ</button>
           </div>
         </div>
       </div>
@@ -275,18 +312,25 @@ const logout = async () => {
           </h3>
         </div>
         <div class="admin-card-body">
-          <p class="settings-section-desc">Sign out of your KDRC administrator account on this device.</p>
-          <button type="button" class="admin-btn admin-btn-danger signout-btn" @click="logout">
+          <p class="settings-section-desc">
+            Sign out of your KDRC administrator account on this device.
+          </p>
+          <button
+            type="button"
+            class="admin-btn admin-btn-danger signout-btn"
+            @click="logout"
+          >
             <LogOut :size="14" /> Sign Out
           </button>
         </div>
       </div>
-
     </div>
 
     <!-- Toast -->
     <Transition name="toast">
-      <p v-if="toastMsg" class="admin-toast" :class="{ error: toastError }">{{ toastMsg }}</p>
+      <p v-if="toastMsg" class="admin-toast" :class="{ error: toastError }">
+        {{ toastMsg }}
+      </p>
     </Transition>
   </section>
 </template>
@@ -297,10 +341,6 @@ const logout = async () => {
   grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
   gap: 1.25rem;
   align-items: start;
-}
-
-.settings-card {
-  /* inherits .admin-card */
 }
 
 .card-title {
@@ -331,7 +371,9 @@ const logout = async () => {
   padding: 0.5rem 0;
 }
 
-.pref-info { flex: 1; }
+.pref-info {
+  flex: 1;
+}
 
 .pref-label {
   font-size: 0.9rem;
@@ -402,7 +444,7 @@ const logout = async () => {
   height: 18px;
   background: #fff;
   border-radius: 50%;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
   transition: transform 0.25s ease;
   position: absolute;
   top: 2px;
@@ -425,7 +467,11 @@ const logout = async () => {
 }
 
 /* Password inputs */
-.password-form { display: flex; flex-direction: column; gap: 0; }
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
 
 .pw-input-wrap {
   position: relative;
@@ -465,7 +511,9 @@ const logout = async () => {
   color: var(--admin-text);
 }
 
-.match-icon { color: var(--admin-accent); }
+.match-icon {
+  color: var(--admin-accent);
+}
 
 .input-mismatch {
   border-color: var(--admin-danger) !important;
@@ -522,15 +570,23 @@ const logout = async () => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Toast transition */
-.toast-enter-active, .toast-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+.toast-enter-active,
+.toast-leave-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
-.toast-enter-from, .toast-leave-to {
+.toast-enter-from,
+.toast-leave-to {
   opacity: 0;
   transform: translateY(8px);
 }

@@ -1,8 +1,7 @@
 <template>
   <section class="admin-page">
     <div class="admin-page-header">
-      <div>
-        <h2>Notifications</h2>
+      <div class="admin-page-header-content">
         <p>{{ notifications.length }} total · {{ unreadCount }} unread</p>
       </div>
       <div class="header-btns">
@@ -28,7 +27,11 @@
     <div class="admin-toolbar">
       <div class="admin-search">
         <Search :size="18" />
-        <input v-model="search" type="search" placeholder="Search notifications…" />
+        <input
+          v-model="search"
+          type="search"
+          placeholder="Search notifications…"
+        />
       </div>
       <div class="admin-filter-pills">
         <button
@@ -39,7 +42,7 @@
           :class="{ active: typeFilter === t }"
           @click="typeFilter = t"
         >
-          {{ t === 'all' ? 'All' : t }}
+          {{ t === "all" ? "All" : t }}
         </button>
       </div>
     </div>
@@ -66,7 +69,12 @@
           </div>
           <p>{{ n.message }}</p>
         </div>
-        <button type="button" class="admin-icon-btn danger" title="Delete" @click.stop="remove(n.id)">
+        <button
+          type="button"
+          class="admin-icon-btn danger"
+          title="Delete"
+          @click.stop="remove(n.id)"
+        >
           <Trash2 :size="16" />
         </button>
       </article>
@@ -75,14 +83,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { Bell, Search, Trash2, Check } from 'lucide-vue-next';
-import { useAdminNotifications } from '../../composables/useAdminNotifications';
-import type { Notification } from '../../services/notification.service';
+import { ref, computed, onMounted } from "vue";
+import { Bell, Search, Trash2, Check } from "lucide-vue-next";
+import { useAdminNotifications } from "../../composables/useAdminNotifications";
+import type { Notification } from "../../services/notification.service";
 
-const search = ref('');
-const typeFilter = ref('all');
-const typeFilters = ['all', 'info', 'success', 'warning', 'error'];
+const search = ref("");
+const typeFilter = ref("all");
+const typeFilters = ["all", "info", "success", "warning", "error"];
 
 const {
   notifications,
@@ -98,7 +106,7 @@ const {
 
 const filtered = computed(() => {
   let list = notifications.value;
-  if (typeFilter.value !== 'all') {
+  if (typeFilter.value !== "all") {
     list = list.filter((n) => n.type === typeFilter.value);
   }
   const q = search.value.trim().toLowerCase();
@@ -117,7 +125,7 @@ const toggleRead = async (n: Notification) => {
 };
 
 const onClearAll = async () => {
-  if (!confirm('Delete all notifications?')) return;
+  if (!confirm("Delete all notifications?")) return;
   await clearAll();
 };
 
@@ -162,10 +170,18 @@ onMounted(() => load(true));
   flex-shrink: 0;
 }
 
-.type-dot.info { background: var(--admin-info); }
-.type-dot.success { background: var(--admin-accent); }
-.type-dot.warning { background: var(--admin-warning); }
-.type-dot.error { background: var(--admin-danger); }
+.type-dot.info {
+  background: var(--admin-info);
+}
+.type-dot.success {
+  background: var(--admin-accent);
+}
+.type-dot.warning {
+  background: var(--admin-warning);
+}
+.type-dot.error {
+  background: var(--admin-danger);
+}
 
 .notif-body {
   flex: 1;

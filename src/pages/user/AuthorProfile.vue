@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getAuthorProfile } from "../../services/followApi";
 import FollowButton from "../../components/bookdetail/FollowButton.vue";
-
 
 const route = useRoute();
 const router = useRouter();
@@ -30,6 +29,16 @@ interface AuthorProfile {
 const author = ref<AuthorProfile | null>(null);
 const loading = ref(true);
 const error = ref("");
+
+const avatarFailed = ref(false);
+
+const authorInitial = computed(() => {
+  return author.value?.name?.charAt(0).toUpperCase() ?? "?";
+});
+
+const onAvatarError = () => {
+  avatarFailed.value = true;
+};
 
 const fetchProfile = async () => {
   try {
@@ -62,19 +71,30 @@ onMounted(fetchProfile);
       </div>
 
       <template v-else-if="author">
-        <div class="bg-white rounded-2xl p-8 shadow-sm border border-[#e8e4dc] mb-8">
+        <div
+          class="bg-white rounded-2xl p-8 shadow-sm border border-[#e8e4dc] mb-8"
+        >
           <div class="flex flex-col sm:flex-row items-start gap-6">
-            <div
-              class="w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-bold shrink-0"
-              :style="{
-                background: `linear-gradient(135deg, #093A3F, #c5a050)`,
-              }"
-            >
-              {{ author.name?.charAt(0)?.toUpperCase() || '?' }}
+            <div class="w-28 shrink-0 aspect-[4/5] rounded-xl overflow-hidden bg-[#133F39]">
+              <img
+                v-if="author.avatarUrl && !avatarFailed"
+                :src="author.avatarUrl"
+                :alt="author.name"
+                @error="onAvatarError"
+                class="w-full h-full object-cover"
+              />
+              <div
+                v-else
+                class="w-full h-full flex items-center justify-center text-4xl font-black text-white/80"
+              >
+                {{ authorInitial }}
+              </div>
             </div>
 
             <div class="flex-1 min-w-0">
-              <h1 class="text-2xl font-bold text-[#093A3F] font-['Playfair_Display',Georgia,serif]">
+              <h1
+                class="text-2xl font-bold text-[#093A3F] font-['Playfair_Display',Georgia,serif]"
+              >
                 {{ author.name }}
               </h1>
               <p v-if="author.bio" class="text-gray-500 mt-2 leading-relaxed">
@@ -86,16 +106,15 @@ onMounted(fetchProfile);
                 <span>{{ author.followingCount }} following</span>
               </div>
               <div class="mt-4">
-                <FollowButton
-                  :authorId="author.id"
-                  :authorName="author.name"
-                />
+                <FollowButton :authorId="author.id" :authorName="author.name" />
               </div>
             </div>
           </div>
         </div>
 
-        <h2 class="text-xl font-bold text-[#093A3F] mb-6 font-['Playfair_Display',Georgia,serif]">
+        <h2
+          class="text-xl font-bold text-[#093A3F] mb-6 font-['Playfair_Display',Georgia,serif]"
+        >
           Published Books
         </h2>
 
@@ -116,7 +135,9 @@ onMounted(fetchProfile);
             class="bg-white rounded-xl shadow-sm border border-[#e8e4dc] overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
             @click="router.push(`/book-detail/${book.id}`)"
           >
-            <div class="h-48 bg-gradient-to-br from-[#093A3F]/10 to-[#c5a050]/10 flex items-center justify-center">
+            <div
+              class="h-48 bg-gradient-to-br from-[#093A3F]/10 to-[#c5a050]/10 flex items-center justify-center"
+            >
               <img
                 v-if="book.coverImageUrl"
                 :src="book.coverImageUrl"
@@ -126,15 +147,22 @@ onMounted(fetchProfile);
               <svg
                 v-else
                 class="w-10 h-10 text-gray-300"
-                fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
                   d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                 />
               </svg>
             </div>
             <div class="p-4">
-              <h3 class="font-semibold text-[#093A3F] truncate">{{ book.title }}</h3>
+              <h3 class="font-semibold text-[#093A3F] truncate">
+                {{ book.title }}
+              </h3>
               <div class="flex items-center gap-2 mt-1 text-sm text-gray-500">
                 <span>★ {{ book.rating || 0 }}</span>
                 <span>·</span>

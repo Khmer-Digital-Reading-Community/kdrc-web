@@ -17,7 +17,10 @@
         <Moon v-else :size="20" />
       </button>
 
-      <div class="notification-wrap" v-click-outside="() => (notifOpen = false)">
+      <div
+        class="notification-wrap"
+        v-click-outside="() => (notifOpen = false)"
+      >
         <button
           type="button"
           class="icon-circle"
@@ -25,7 +28,9 @@
           @click="toggleNotif"
         >
           <Bell :size="20" />
-          <span v-if="unreadCount > 0" class="dot-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+          <span v-if="unreadCount > 0" class="dot-badge">{{
+            unreadCount > 9 ? "9+" : unreadCount
+          }}</span>
         </button>
 
         <div v-if="notifOpen" class="dropdown notif-dropdown">
@@ -61,28 +66,53 @@
               </span>
             </button>
           </div>
-          <router-link to="/admin/notifications" class="dropdown-foot" @click="notifOpen = false">
+          <router-link
+            to="/admin/notifications"
+            class="dropdown-foot"
+            @click="notifOpen = false"
+          >
             View all →
           </router-link>
         </div>
       </div>
 
       <div class="profile-wrap" v-click-outside="() => (profileOpen = false)">
-        <button type="button" class="profile-btn" @click="profileOpen = !profileOpen">
-          <img v-if="authState.user.value?.avatarUrl" :src="authState.user.value.avatarUrl" alt="Avatar" class="avatar avatar-img-header" />
+        <button
+          type="button"
+          class="profile-btn"
+          @click="profileOpen = !profileOpen"
+        >
+          <img
+            v-if="authState.user.value?.avatarUrl"
+            :src="authState.user.value.avatarUrl"
+            alt="Avatar"
+            class="avatar avatar-img-header"
+          />
           <span v-else class="avatar">{{ initials }}</span>
           <span class="profile-meta">
             <span class="profile-name">{{ displayName }}</span>
             <span class="profile-role">Administrator</span>
           </span>
-          <ChevronDown :size="16" class="chevron" :class="{ open: profileOpen }" />
+          <ChevronDown
+            :size="16"
+            class="chevron"
+            :class="{ open: profileOpen }"
+          />
         </button>
         <div v-if="profileOpen" class="dropdown profile-dropdown">
           <p class="profile-email">{{ userEmail }}</p>
-          <router-link to="/admin/settings" class="dropdown-link" @click="profileOpen = false">
+          <router-link
+            to="/admin/settings"
+            class="dropdown-link"
+            @click="profileOpen = false"
+          >
             <Settings :size="16" /> Settings
           </router-link>
-          <button type="button" class="dropdown-link danger" @click="handleLogout">
+          <button
+            type="button"
+            class="dropdown-link danger"
+            @click="handleLogout"
+          >
             <LogOut :size="16" /> Sign out
           </button>
         </div>
@@ -92,25 +122,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { Bell, ChevronDown, Settings, LogOut, Sun, Moon } from 'lucide-vue-next';
-import { useAdminTheme } from '../../composables/useAdminTheme';
-import { useAuth } from '../../stores/useAuth';
-import { authState } from '../../services/auth';
-import { useAdminNotifications } from '../../composables/useAdminNotifications';
-import type { Notification } from '../../services/notification.service';
+import { ref, computed, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import {
+  Bell,
+  ChevronDown,
+  Settings,
+  LogOut,
+  Sun,
+  Moon,
+} from "lucide-vue-next";
+import { useAdminTheme } from "../../composables/useAdminTheme";
+import { useAuth } from "../../stores/useAuth";
+import { authState } from "../../services/auth";
+import { useAdminNotifications } from "../../composables/useAdminNotifications";
+import type { Notification } from "../../services/notification.service";
 
 const vClickOutside = {
   mounted(el: HTMLElement, binding: { value: () => void }) {
-    (el as HTMLElement & { _clickOutside?: (e: Event) => void })._clickOutside = (e: Event) => {
-      if (!el.contains(e.target as Node)) binding.value();
-    };
-    document.addEventListener('click', (el as HTMLElement & { _clickOutside: (e: Event) => void })._clickOutside!);
+    (el as HTMLElement & { _clickOutside?: (e: Event) => void })._clickOutside =
+      (e: Event) => {
+        if (!el.contains(e.target as Node)) binding.value();
+      };
+    document.addEventListener(
+      "click",
+      (el as HTMLElement & { _clickOutside: (e: Event) => void })
+        ._clickOutside!,
+    );
   },
   unmounted(el: HTMLElement) {
-    const fn = (el as HTMLElement & { _clickOutside?: (e: Event) => void })._clickOutside;
-    if (fn) document.removeEventListener('click', fn);
+    const fn = (el as HTMLElement & { _clickOutside?: (e: Event) => void })
+      ._clickOutside;
+    if (fn) document.removeEventListener("click", fn);
   },
 };
 
@@ -132,25 +175,58 @@ const {
 } = useAdminNotifications();
 
 const titles: Record<string, { title: string; subtitle?: string }> = {
-  'admin-dashboard': { title: 'Dashboard', subtitle: 'Platform overview' },
-  'admin-books': { title: 'Books', subtitle: 'Manage catalog' },
-  'admin-challenges': { title: 'Challenges', subtitle: 'Reading programs' },
-  'admin-users': { title: 'Users', subtitle: 'Accounts & roles' },
-  'admin-notifications': { title: 'Notifications', subtitle: 'Your alerts' },
-  'admin-comments': { title: 'Comments', subtitle: 'Moderation queue' },
-  'admin-reports': { title: 'Reports', subtitle: 'User reports' },
-  'admin-settings': { title: 'Settings', subtitle: 'Account & preferences' },
-  'admin-analytics': { title: 'Analytics', subtitle: 'Growth & engagement' },
+  "admin-dashboard": { title: "Dashboard", subtitle: "Platform overview" },
+  "admin-books": {
+    title: "Books",
+    subtitle: "Manage All manuscripts and published titles on the platform",
+  },
+  "admin-exchanges": {
+    title: "Exchanges",
+    subtitle: "User Manage physical book listings and trade proposals",
+  },
+  "admin-chat-messages": {
+    title: "Chat Messages",
+    subtitle:
+      "User conversations Monitor and moderate live book-exchange chat messages support inquiries",
+  },
+  "admin-profile": {
+    title: "Profile",
+    subtitle: "Manage your administrator identity and personal information.",
+  },
+  "admin-challenges": {
+    title: "Challenges",
+    subtitle: "Create and manage community reading challenges",
+  },
+  "admin-users": { title: "Users", subtitle: "Accounts & roles" },
+  "admin-notifications": { title: "Notifications", subtitle: "Your alerts" },
+  "admin-comments": {
+    title: "Comments",
+    subtitle: "Review, moderate, and manage all user comments queue",
+  },
+  "admin-reports": {
+    title: "Reports",
+    subtitle: "User-submitted content reports reports",
+  },
+  "admin-settings": {
+    title: "Settings",
+    subtitle: "Manage preferences, security and your admin account.",
+  },
+  "admin-analytics": {
+    title: "Analytics",
+    subtitle: "Platform growth and content breakdown",
+  },
 };
 
-const pageTitle = computed(() => titles[route.name as string]?.title ?? 'Admin');
+const pageTitle = computed(
+  () => titles[route.name as string]?.title ?? "Admin",
+);
 const pageSubtitle = computed(() => titles[route.name as string]?.subtitle);
 
-const displayName = computed(() => authState.user.value?.name || 'Admin');
-const userEmail = computed(() => authState.user.value?.email || '');
+const displayName = computed(() => authState.user.value?.name || "Admin");
+const userEmail = computed(() => authState.user.value?.email || "");
 const initials = computed(() => {
   const n = displayName.value.trim();
-  return n ? n.charAt(0).toUpperCase() : 'A';
+  return n ? n.charAt(0).toUpperCase() : "A";
 });
 
 const toggleNotif = async () => {
@@ -388,10 +464,18 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.notif-type.system { background: var(--admin-info); }
-.notif-type.user { background: var(--admin-accent); }
-.notif-type.security { background: var(--admin-danger); }
-.notif-type.warning { background: var(--admin-warning); }
+.notif-type.system {
+  background: var(--admin-info);
+}
+.notif-type.user {
+  background: var(--admin-accent);
+}
+.notif-type.security {
+  background: var(--admin-danger);
+}
+.notif-type.warning {
+  background: var(--admin-warning);
+}
 
 .notif-text {
   display: flex;

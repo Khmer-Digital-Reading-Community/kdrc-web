@@ -123,7 +123,7 @@ async function handleDelete(e: Event, id: string) {
       v-if="isOpen"
       @mouseenter="emit('popupEnter')"
       @mouseleave="emit('popupLeave')"
-      class="fixed top-12 right-6 w-96 bg-[#0d4d54] rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.4)] z-50 border border-[#FDE9D0]/10 max-h-[600px] flex flex-col overflow-hidden"
+      class="fixed top-14 sm:top-12 right-4 left-4 sm:right-6 sm:left-auto sm:w-96 bg-[#0d4d54] rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.4)] z-50 border border-[#FDE9D0]/10 max-h-[70vh] sm:max-h-[600px] flex flex-col overflow-hidden"
     >
       <!-- Header -->
       <div class="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-[#0a3f45] to-[#0d4d54] border-b border-[#FDE9D0]/10">

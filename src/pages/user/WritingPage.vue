@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import QuillEditor from "../../components/common/QuillEditor.vue";
 import ChapterSidebar from "../../components/writing/ChapterSidebar.vue";
 import SettingsDrawer from "../../components/writing/SettingsDrawer.vue";
 import PublishDialog from "../../components/writing/PublishDialog.vue";
 import PreviewModal from "../../components/writing/PreviewModal.vue";
-import { ArrowLeft, Save, Settings, Eye } from "lucide-vue-next";
+import { ArrowLeft, Save, Settings, Eye, Menu } from "lucide-vue-next";
 import { useWritingPage } from "../../composables/useWritingPage";
 
 import { useChapterManagement } from "../../composables/useChapterManagement";
@@ -218,6 +218,29 @@ async function handleConfirmPublish() {
   await publish.confirmPublish(writing.book.value, writing.chapters.value);
 }
 
+// Responsive sidebar
+const sidebarOpen = ref(true);
+const isMobile = ref(false);
+
+function checkMobile() {
+  isMobile.value = window.innerWidth < 1024;
+  if (isMobile.value) sidebarOpen.value = false;
+  else sidebarOpen.value = true;
+}
+
+function toggleSidebar() {
+  sidebarOpen.value = !sidebarOpen.value;
+}
+
+onMounted(() => {
+  checkMobile();
+  window.addEventListener("resize", checkMobile);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", checkMobile);
+});
+
 // Preview
 const showPreview = ref(false);
 
@@ -236,23 +259,50 @@ function goBack() {
 
 <template>
   <div class="flex h-screen overflow-hidden bg-[#F6F1E8]">
-    <!-- Left: Chapter Sidebar -->
-    <ChapterSidebar
-      v-if="writing.book.value && writing.book.value.id !== 'new'"
-      :chapters="writing.chapters.value"
-      :activeChapterId="writing.activeChapterId.value"
-      @selectChapter="writing.selectChapter($event)"
-      @newChapter="handleNewChapter($event)"
-      @deleteChapter="handleDeleteChapter($event)"
-      @updateStatus="handleChapterStatus"
-      @reorder="handleReorder($event)"
+    <!-- Mobile sidebar overlay backdrop -->
+    <div
+      v-if="isMobile && sidebarOpen && writing.book.value && writing.book.value.id !== 'new'"
+      @click="sidebarOpen = false"
+      class="fixed inset-0 bg-black/40 z-20 lg:hidden transition-opacity duration-300"
     />
 
+    <!-- Left: Chapter Sidebar -->
+    <div
+      v-if="writing.book.value && writing.book.value.id !== 'new'"
+      :class="[
+        'h-full flex-shrink-0',
+        isMobile
+          ? `fixed inset-y-0 left-0 z-30 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`
+          : '',
+      ]"
+    >
+      <ChapterSidebar
+        :chapters="writing.chapters.value"
+        :activeChapterId="writing.activeChapterId.value"
+        :showClose="isMobile"
+        @selectChapter="writing.selectChapter($event); sidebarOpen = false"
+        @newChapter="handleNewChapter($event)"
+        @deleteChapter="handleDeleteChapter($event)"
+        @updateStatus="handleChapterStatus"
+        @reorder="handleReorder($event)"
+        @close="sidebarOpen = false"
+      />
+    </div>
+
     <!-- Center: Editor -->
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="flex-1 flex flex-col overflow-hidden min-w-0">
       <!-- Top bar -->
       <div class="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-between gap-3 flex-shrink-0">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <button
+            v-if="isMobile && writing.book.value && writing.book.value.id !== 'new'"
+            @click="toggleSidebar"
+            class="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+            title="Chapters"
+          >
+            <Menu :size="18" />
+          </button>
+
           <button
             @click="goBack"
             class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition"

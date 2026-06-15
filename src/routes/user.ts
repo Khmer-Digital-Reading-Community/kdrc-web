@@ -49,6 +49,36 @@ export default [
         component: () => import("../pages/user/AboutUs.vue"),
       },
       {
+        path: "faq",
+        name: "faq",
+        component: () => import("../pages/user/Faq.vue"),
+      },
+      {
+        path: "contact",
+        name: "contact",
+        component: () => import("../pages/user/ContactUs.vue"),
+      },
+      {
+        path: "privacy",
+        name: "privacy",
+        component: () => import("../pages/user/PrivacyPolicy.vue"),
+      },
+      {
+        path: "terms",
+        name: "terms",
+        component: () => import("../pages/user/TermsOfService.vue"),
+      },
+      {
+        path: "writers",
+        name: "writers",
+        component: () => import("../pages/user/Writers.vue"),
+      },
+      {
+        path: "user/:id",
+        name: "author-profile",
+        component: () => import("../pages/user/AuthorProfile.vue"),
+      },
+      {
         path: "post-exchange",
         name: "post-exchange",
         component: () => import("../pages/user/ExchangeForm_v2.vue"),

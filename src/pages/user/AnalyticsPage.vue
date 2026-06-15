@@ -4,6 +4,7 @@ import { Users, Eye, BookOpen, Star } from "lucide-vue-next";
 import AnalyticsOverview from "@/components/analytics/AnalyticsOverview.vue";
 import ReadingTrendChart from "@/components/analytics/ReadingTrendChart.vue";
 import PublishedBooksPanel from "@/components/analytics/PublishedBooksPanel.vue";
+import AnalyticsChart from "@/components/dashboard/AnalyticsChart.vue";
 import {
   getMyBooks,
   getMyBookStats,
@@ -94,16 +95,15 @@ onMounted(async () => {
     <!-- Header -->
     <div class="mb-8">
       <p class="text-3xl sm:text-4xl font-bold mt-2">Analytics Dashboard</p>
-
       <p class="text-gray-500 text-lg mt-2 text-[17px] pt-2">
         Track your book performance and audience insights
       </p>
     </div>
 
-    <!-- Overview Stats (real data) -->
+    <!-- Overview Stats -->
     <AnalyticsOverview :stats="overviewStats" />
 
-    <!-- Charts + Books -->
+    <!-- Row 1: Reading Trend + Published Books -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 my-6">
       <div class="lg:col-span-2">
         <ReadingTrendChart
@@ -120,6 +120,11 @@ onMounted(async () => {
       <div>
         <PublishedBooksPanel :books="publishedBooks" :loading="booksLoading" />
       </div>
+    </div>
+
+    <!-- Row 2: Book Status Distribution -->
+    <div class="my-6">
+      <AnalyticsChart :books="books" />
     </div>
   </div>
 </template>

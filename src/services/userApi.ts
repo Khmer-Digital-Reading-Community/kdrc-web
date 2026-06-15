@@ -38,6 +38,20 @@ export async function uploadAvatarFile(file: File): Promise<{ success: boolean; 
   return response.data;
 }
 
+export interface AuthorSummary {
+  id: string;
+  name: string;
+  bio?: string;
+  avatarUrl?: string;
+  createdAt: string;
+  booksCount: number;
+}
+
+export async function getAuthors(): Promise<AuthorSummary[]> {
+  const response = await api.get<AuthorSummary[]>('/users/authors');
+  return Array.isArray(response.data) ? response.data : (response.data as any)?.data ?? [];
+}
+
 export async function changeUserPassword(data: {
   oldPassword?: string;
   newPassword?: string;
