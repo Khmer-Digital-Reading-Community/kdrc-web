@@ -10,6 +10,7 @@
     <div v-if="loading" class="admin-loading">Loading analytics…</div>
 
     <template v-else-if="data">
+      <!-- KPI Cards -->
       <div class="admin-stats-grid">
         <div v-for="card in metricCards" :key="card.label" class="admin-stat-card">
           <div class="admin-stat-icon" :class="card.tone">
@@ -18,88 +19,64 @@
           <div>
             <p class="admin-stat-label">{{ card.label }}</p>
             <p class="admin-stat-value">{{ card.value }}</p>
+            <p v-if="card.trend" class="admin-stat-hint" :class="card.trend > 0 ? 'up' : 'down'">
+              {{ card.trend > 0 ? '+' : '' }}{{ card.trend }} this month
+            </p>
           </div>
         </div>
       </div>
 
+      <!-- Row 1: User Growth + Books by Status -->
       <div class="charts-row">
-        <div class="admin-card">
-          <div class="admin-card-header"><h3>User growth (by month)</h3></div>
-          <div class="admin-card-body">
+        <div class="admin-card chart-card-wide">
+          <div class="admin-card-header"><h3>User Growth</h3></div>
+          <div class="admin-card-body chart-body">
             <div v-if="!userGrowth.length" class="admin-empty">Not enough data yet</div>
-            <div v-else class="bar-chart">
-              <div
-                v-for="row in userGrowth"
-                :key="row.month"
-                class="bar-col"
-              >
-                <div
-                  class="bar-fill"
-                  :style="{ height: barHeight(row.count) + '%' }"
-                  :title="`${row.count} users`"
-                />
-                <span class="bar-label">{{ row.month.slice(5) }}</span>
-              </div>
-            </div>
+            <Line v-else :data="userGrowthChartData" :options="lineChartOptions" />
           </div>
         </div>
 
-        <div class="admin-card">
-          <div class="admin-card-header"><h3>Books by status</h3></div>
-          <div class="admin-card-body">
+        <div class="admin-card chart-card-narrow">
+          <div class="admin-card-header"><h3>Books by Status</h3></div>
+          <div class="admin-card-body chart-body">
             <div v-if="!booksByStatus.length" class="admin-empty">No books yet</div>
-            <ul v-else class="status-list">
-              <li v-for="row in booksByStatus" :key="row.status">
-                <span class="admin-badge" :class="statusTone(row.status)">{{ row.status }}</span>
-                <span class="count">{{ row.count }}</span>
-                <div class="bar-track">
-                  <div
-                    class="bar-track-fill"
-                    :style="{ width: statusPercent(row.count, maxBooks) + '%' }"
-                  />
-                </div>
-              </li>
-            </ul>
+            <Doughnut v-else :data="booksDoughnutData" :options="doughnutOptions" />
           </div>
         </div>
       </div>
 
+      <!-- Row 2: Exchanges + Trades -->
       <div class="charts-row">
         <div class="admin-card">
-          <div class="admin-card-header"><h3>Exchange listings by status</h3></div>
-          <div class="admin-card-body">
+          <div class="admin-card-header"><h3>Exchange Listings by Status</h3></div>
+          <div class="admin-card-body chart-body">
             <div v-if="!exchangesByStatus.length" class="admin-empty">No exchange listings yet</div>
-            <ul v-else class="status-list">
-              <li v-for="row in exchangesByStatus" :key="row.status">
-                <span class="admin-badge" :class="exchangeTone(row.status)">{{ row.status }}</span>
-                <span class="count">{{ row.count }}</span>
-                <div class="bar-track">
-                  <div
-                    class="bar-track-fill exchange"
-                    :style="{ width: statusPercent(row.count, maxExchanges) + '%' }"
-                  />
-                </div>
-              </li>
-            </ul>
+            <Bar v-else :data="exchangesChartData" :options="horizontalBarOptions" />
           </div>
         </div>
 
         <div class="admin-card">
-          <div class="admin-card-header"><h3>Trades by status</h3></div>
-          <div class="admin-card-body">
+          <div class="admin-card-header"><h3>Trades by Status</h3></div>
+          <div class="admin-card-body chart-body">
             <div v-if="!tradesByStatus.length" class="admin-empty">No trade proposals yet</div>
-            <ul v-else class="status-list">
-              <li v-for="row in tradesByStatus" :key="row.status">
-                <span class="admin-badge neutral">{{ row.status.replace('_', ' ') }}</span>
-                <span class="count">{{ row.count }}</span>
-                <div class="bar-track">
-                  <div
-                    class="bar-track-fill trade"
-                    :style="{ width: statusPercent(row.count, maxTrades) + '%' }"
-                  />
-                </div>
-              </li>
-            </ul>
+            <Bar v-else :data="tradesChartData" :options="horizontalBarOptions" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Comments + Reports -->
+      <div class="charts-row">
+        <div class="admin-card">
+          <div class="admin-card-header"><h3>Comments Overview</h3></div>
+          <div class="admin-card-body chart-body">
+            <Bar :data="commentsChartData" :options="verticalBarOptions" />
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header"><h3>Reports Overview</h3></div>
+          <div class="admin-card-body chart-body">
+            <Bar :data="reportsChartData" :options="verticalBarOptions" />
           </div>
         </div>
       </div>
@@ -110,7 +87,32 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { Users, BookOpen, MessageSquare, Flag, ArrowLeftRight } from 'lucide-vue-next';
+import { Line, Bar, Doughnut } from 'vue-chartjs';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Filler,
+} from 'chart.js';
 import { fetchAdminAnalytics } from '../../services/adminApi';
+
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Filler,
+);
 
 interface AnalyticsPayload {
   stats: {
@@ -119,6 +121,14 @@ interface AnalyticsPayload {
     totalComments: number;
     pendingComments: number;
     totalReports: number;
+    pendingReports: number;
+    totalExchangeListings: number;
+    activeExchangeListings: number;
+    totalExchangeRequests: number;
+    pendingExchangeRequests: number;
+    newUsersThisMonth: number;
+    newBooksThisMonth: number;
+    newExchangeListingsThisMonth: number;
   };
   userGrowth: { month: string; count: string }[];
   booksByStatus: { status: string; count: string }[];
@@ -134,52 +144,120 @@ const booksByStatus = computed(() => data.value?.booksByStatus ?? []);
 const exchangesByStatus = computed(() => data.value?.exchangesByStatus ?? []);
 const tradesByStatus = computed(() => data.value?.tradesByStatus ?? []);
 
-const maxUsers = computed(() =>
-  Math.max(...userGrowth.value.map((r) => Number(r.count)), 1),
-);
-
-const maxBooks = computed(() =>
-  Math.max(...booksByStatus.value.map((r) => Number(r.count)), 1),
-);
-
-const maxExchanges = computed(() =>
-  Math.max(...exchangesByStatus.value.map((r) => Number(r.count)), 1),
-);
-
-const maxTrades = computed(() =>
-  Math.max(...tradesByStatus.value.map((r) => Number(r.count)), 1),
-);
-
 const metricCards = computed(() => {
   const s = data.value?.stats;
   if (!s) return [];
   return [
-    { label: 'Users', value: s.totalUsers, icon: Users, tone: 'blue' },
-    { label: 'Books', value: s.totalBooks, icon: BookOpen, tone: 'green' },
-    { label: 'Comments', value: s.totalComments, icon: MessageSquare, tone: 'amber' },
-    { label: 'Open reports', value: s.totalReports, icon: Flag, tone: 'red' },
-    {
-      label: 'Exchange listings',
-      value: (s as { totalExchangeListings?: number }).totalExchangeListings ?? 0,
-      icon: ArrowLeftRight,
-      tone: 'blue',
-    },
+    { label: 'Users', value: s.totalUsers, icon: Users, tone: 'blue', trend: s.newUsersThisMonth },
+    { label: 'Books', value: s.totalBooks, icon: BookOpen, tone: 'green', trend: s.newBooksThisMonth },
+    { label: 'Comments', value: s.totalComments, icon: MessageSquare, tone: 'amber', trend: null },
+    { label: 'Open Reports', value: s.pendingReports, icon: Flag, tone: 'red', trend: null },
+    { label: 'Exchange Listings', value: s.totalExchangeListings, icon: ArrowLeftRight, tone: 'blue', trend: s.newExchangeListingsThisMonth },
   ];
 });
 
-const barHeight = (count: string) =>
-  Math.round((Number(count) / maxUsers.value) * 100);
+// -- Chart data --
 
-const statusPercent = (count: string, max: number) =>
-  Math.round((Number(count) / max) * 100);
-
-const statusTone = (s: string) => {
-  if (s === 'PUBLISHED') return 'success';
-  if (s === 'DRAFT') return 'warning';
-  return 'neutral';
+const lineChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    y: { beginAtZero: true, grid: { color: '#f0f3f1' }, ticks: { precision: 0 } },
+    x: { grid: { display: false } },
+  },
+  elements: { line: { tension: 0.4, borderWidth: 2.5 }, point: { radius: 3, hoverRadius: 5 } },
 };
 
-const exchangeTone = (s: string) => (s === 'ACTIVE' ? 'success' : 'neutral');
+const userGrowthChartData = computed(() => ({
+  labels: userGrowth.value.map((r) => r.month.slice(5)),
+  datasets: [{
+    label: 'Users',
+    data: userGrowth.value.map((r) => Number(r.count)),
+    borderColor: '#4a8f65',
+    backgroundColor: (ctx: any) => {
+      const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 200);
+      g.addColorStop(0, 'rgba(74,143,101,0.25)');
+      g.addColorStop(1, 'rgba(74,143,101,0.02)');
+      return g;
+    },
+    fill: true,
+  }],
+}));
+
+const doughnutOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { position: 'bottom' as const } },
+};
+
+const booksDoughnutData = computed(() => ({
+  labels: booksByStatus.value.map((r) => r.status),
+  datasets: [{
+    data: booksByStatus.value.map((r) => Number(r.count)),
+    backgroundColor: ['#10B981', '#FBBF24', '#6B7280', '#EF4444'],
+    borderWidth: 0,
+  }],
+}));
+
+const horizontalBarOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  indexAxis: 'y' as const,
+  plugins: { legend: { display: false } },
+  scales: { x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f0f3f1' } }, y: { grid: { display: false } } },
+};
+
+const exchangesChartData = computed(() => ({
+  labels: exchangesByStatus.value.map((r) => r.status),
+  datasets: [{
+    data: exchangesByStatus.value.map((r) => Number(r.count)),
+    backgroundColor: ['#8b5cf6', '#a78bfa', '#c4b5fd'],
+    borderRadius: 4,
+  }],
+}));
+
+const tradesChartData = computed(() => ({
+  labels: tradesByStatus.value.map((r) => r.status.replace(/_/g, ' ')),
+  datasets: [{
+    data: tradesByStatus.value.map((r) => Number(r.count)),
+    backgroundColor: ['#0ea5e9', '#38bdf8', '#7dd3fc', '#bae6fd'],
+    borderRadius: 4,
+  }],
+}));
+
+const verticalBarOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f0f3f1' } }, x: { grid: { display: false } } },
+};
+
+const commentsChartData = computed(() => {
+  const s = data.value?.stats;
+  const resolved = (s?.totalComments ?? 0) - (s?.pendingComments ?? 0);
+  return {
+    labels: ['Approved', 'Pending'],
+    datasets: [{
+      data: [resolved, s?.pendingComments ?? 0],
+      backgroundColor: ['#10B981', '#FBBF24'],
+      borderRadius: 6,
+    }],
+  };
+});
+
+const reportsChartData = computed(() => {
+  const s = data.value?.stats;
+  const resolved = (s?.totalReports ?? 0) - (s?.pendingReports ?? 0);
+  return {
+    labels: ['Resolved', 'Pending'],
+    datasets: [{
+      data: [resolved, s?.pendingReports ?? 0],
+      backgroundColor: ['#6B7280', '#EF4444'],
+      borderRadius: 6,
+    }],
+  };
+});
 
 onMounted(async () => {
   try {
@@ -195,86 +273,36 @@ onMounted(async () => {
 <style scoped>
 .charts-row {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1.25rem;
 }
 
-.bar-chart {
-  display: flex;
-  align-items: flex-end;
-  gap: 0.5rem;
-  height: 180px;
-  padding-top: 1rem;
+.chart-card-wide {
+  grid-column: span 1;
 }
 
-.bar-col {
-  flex: 1;
+.chart-card-narrow {
+  grid-column: span 1;
+}
+
+.charts-row:first-of-type {
+  grid-template-columns: 1.4fr 1fr;
+}
+
+.chart-body {
+  height: 280px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  height: 100%;
-  justify-content: flex-end;
-}
-
-.bar-fill {
-  width: 100%;
-  max-width: 36px;
-  background: linear-gradient(180deg, #4a8f65, #2d5a40);
-  border-radius: 6px 6px 0 0;
-  min-height: 4px;
-}
-
-.bar-label {
-  font-size: 0.65rem;
-  color: var(--admin-muted);
-  margin-top: 0.35rem;
-}
-
-.status-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.status-list li {
-  display: grid;
-  grid-template-columns: auto 40px 1fr;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.count {
-  font-weight: 700;
-  text-align: right;
-}
-
-.bar-track {
-  height: 8px;
-  background: #f0f3f1;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.bar-track-fill {
-  height: 100%;
-  background: var(--admin-accent);
-  border-radius: 4px;
-}
-
-.bar-track-fill.exchange {
-  background: #8b5cf6;
-}
-
-.bar-track-fill.trade {
-  background: #0ea5e9;
+  justify-content: center;
 }
 
 @media (max-width: 900px) {
-  .charts-row {
+  .charts-row,
+  .charts-row:first-of-type {
     grid-template-columns: 1fr;
+  }
+  .chart-body {
+    height: 240px;
   }
 }
 </style>
