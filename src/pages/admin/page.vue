@@ -17,7 +17,7 @@
         </div>
       </div>
 
-      <!-- Mini Charts Row -->
+      <!-- Mini Charts -->
       <div class="dashboard-charts">
         <div class="admin-card">
           <div class="admin-card-header"><h3>User Growth</h3></div>
@@ -36,7 +36,7 @@
         </div>
       </div>
 
-      <!-- Activity + Quick Actions (kept as-is) -->
+      <!-- Activity + Quick Actions -->
       <div class="dashboard-grid">
         <div class="admin-card">
           <div class="admin-card-header">

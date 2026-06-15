@@ -26,17 +26,17 @@
         </div>
       </div>
 
-      <!-- Row 1: User Growth + Books by Status -->
-      <div class="charts-row">
-        <div class="admin-card chart-card-wide">
+      <!-- Row 1: User Growth (area) + Books by Status (doughnut) -->
+      <div class="charts-row charts-row-wide">
+        <div class="admin-card">
           <div class="admin-card-header"><h3>User Growth</h3></div>
           <div class="admin-card-body chart-body">
             <div v-if="!userGrowth.length" class="admin-empty">Not enough data yet</div>
-            <Line v-else :data="userGrowthChartData" :options="lineChartOptions" />
+            <Line v-else :data="userGrowthChartData" :options="areaOptions" />
           </div>
         </div>
 
-        <div class="admin-card chart-card-narrow">
+        <div class="admin-card">
           <div class="admin-card-header"><h3>Books by Status</h3></div>
           <div class="admin-card-body chart-body">
             <div v-if="!booksByStatus.length" class="admin-empty">No books yet</div>
@@ -45,7 +45,7 @@
         </div>
       </div>
 
-      <!-- Row 2: Exchanges + Trades -->
+      <!-- Row 2: Exchanges + Trades (horizontal bars) -->
       <div class="charts-row">
         <div class="admin-card">
           <div class="admin-card-header"><h3>Exchange Listings by Status</h3></div>
@@ -64,19 +64,27 @@
         </div>
       </div>
 
-      <!-- Row 3: Comments + Reports -->
+      <!-- Row 3: Content Moderation (polar area) + Insights -->
       <div class="charts-row">
         <div class="admin-card">
-          <div class="admin-card-header"><h3>Comments Overview</h3></div>
+          <div class="admin-card-header"><h3>Content Moderation</h3></div>
           <div class="admin-card-body chart-body">
-            <Bar :data="commentsChartData" :options="verticalBarOptions" />
+            <PolarArea :data="moderationPolarData" :options="polarAreaOptions" />
           </div>
         </div>
 
         <div class="admin-card">
-          <div class="admin-card-header"><h3>Reports Overview</h3></div>
-          <div class="admin-card-body chart-body">
-            <Bar :data="reportsChartData" :options="verticalBarOptions" />
+          <div class="admin-card-header"><h3>Platform Health</h3></div>
+          <div class="admin-card-body insights-panel">
+            <div class="insight-item" v-for="m in platformMetrics" :key="m.label">
+              <div class="insight-icon" :style="{ background: m.color }">
+                <component :is="m.icon" :size="18" />
+              </div>
+              <div class="insight-info">
+                <span class="insight-label">{{ m.label }}</span>
+                <span class="insight-value">{{ m.value }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -86,8 +94,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Users, BookOpen, MessageSquare, Flag, ArrowLeftRight } from 'lucide-vue-next';
-import { Line, Bar, Doughnut } from 'vue-chartjs';
+import { Users, BookOpen, MessageSquare, Flag, ArrowLeftRight, TrendingUp } from 'lucide-vue-next';
+import { Line, Bar, Doughnut, PolarArea } from 'vue-chartjs';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -99,6 +107,8 @@ import {
   LineElement,
   BarElement,
   Filler,
+  PolarAreaController,
+  RadialLinearScale,
 } from 'chart.js';
 import { fetchAdminAnalytics } from '../../services/adminApi';
 
@@ -112,6 +122,8 @@ ChartJS.register(
   LineElement,
   BarElement,
   Filler,
+  PolarAreaController,
+  RadialLinearScale,
 );
 
 interface AnalyticsPayload {
@@ -156,9 +168,9 @@ const metricCards = computed(() => {
   ];
 });
 
-// -- Chart data --
+// -- Chart options --
 
-const lineChartOptions = {
+const areaOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: { legend: { display: false } },
@@ -205,7 +217,10 @@ const horizontalBarOptions = {
   maintainAspectRatio: false,
   indexAxis: 'y' as const,
   plugins: { legend: { display: false } },
-  scales: { x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f0f3f1' } }, y: { grid: { display: false } } },
+  scales: {
+    x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f0f3f1' } },
+    y: { grid: { display: false } },
+  },
 };
 
 const exchangesChartData = computed(() => ({
@@ -226,37 +241,62 @@ const tradesChartData = computed(() => ({
   }],
 }));
 
-const verticalBarOptions = {
+// -- Polar area for content moderation --
+
+const polarAreaOptions = {
   responsive: true,
   maintainAspectRatio: false,
-  plugins: { legend: { display: false } },
-  scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f0f3f1' } }, x: { grid: { display: false } } },
+  plugins: { legend: { position: 'bottom' as const, labels: { padding: 14, usePointStyle: true } } },
 };
 
-const commentsChartData = computed(() => {
+const moderationPolarData = computed(() => {
   const s = data.value?.stats;
-  const resolved = (s?.totalComments ?? 0) - (s?.pendingComments ?? 0);
   return {
-    labels: ['Approved', 'Pending'],
+    labels: ['Approved Comments', 'Pending Comments', 'Resolved Reports', 'Pending Reports'],
     datasets: [{
-      data: [resolved, s?.pendingComments ?? 0],
-      backgroundColor: ['#10B981', '#FBBF24'],
-      borderRadius: 6,
+      data: [
+        (s?.totalComments ?? 0) - (s?.pendingComments ?? 0),
+        s?.pendingComments ?? 0,
+        (s?.totalReports ?? 0) - (s?.pendingReports ?? 0),
+        s?.pendingReports ?? 0,
+      ],
+      backgroundColor: ['#10B981', '#F59E0B', '#6B7280', '#EF4444'],
+      borderWidth: 0,
     }],
   };
 });
 
-const reportsChartData = computed(() => {
+// -- Platform health insights --
+
+const platformMetrics = computed(() => {
   const s = data.value?.stats;
-  const resolved = (s?.totalReports ?? 0) - (s?.pendingReports ?? 0);
-  return {
-    labels: ['Resolved', 'Pending'],
-    datasets: [{
-      data: [resolved, s?.pendingReports ?? 0],
-      backgroundColor: ['#6B7280', '#EF4444'],
-      borderRadius: 6,
-    }],
-  };
+  if (!s) return [];
+  return [
+    {
+      label: 'Active exchange listings',
+      value: (s.activeExchangeListings ?? 0).toLocaleString(),
+      icon: TrendingUp,
+      color: '#8b5cf6',
+    },
+    {
+      label: 'Pending exchange requests',
+      value: (s.pendingExchangeRequests ?? 0).toLocaleString(),
+      icon: ArrowLeftRight,
+      color: '#0ea5e9',
+    },
+    {
+      label: 'Comments awaiting review',
+      value: (s.pendingComments ?? 0).toLocaleString(),
+      icon: MessageSquare,
+      color: '#f59e0b',
+    },
+    {
+      label: 'Open reports',
+      value: (s.pendingReports ?? 0).toLocaleString(),
+      icon: Flag,
+      color: '#ef4444',
+    },
+  ];
 });
 
 onMounted(async () => {
@@ -277,15 +317,7 @@ onMounted(async () => {
   gap: 1.25rem;
 }
 
-.chart-card-wide {
-  grid-column: span 1;
-}
-
-.chart-card-narrow {
-  grid-column: span 1;
-}
-
-.charts-row:first-of-type {
+.charts-row-wide {
   grid-template-columns: 1.4fr 1fr;
 }
 
@@ -296,13 +328,67 @@ onMounted(async () => {
   justify-content: center;
 }
 
+/* Platform Health panel */
+.insights-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  justify-content: center;
+  height: 280px;
+  padding: 0.5rem 1rem;
+}
+
+.insight-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+
+.insight-item:hover {
+  background: #f3f4f6;
+}
+
+.insight-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.insight-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.insight-label {
+  font-size: 0.8rem;
+  color: var(--admin-muted);
+}
+
+.insight-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
 @media (max-width: 900px) {
   .charts-row,
-  .charts-row:first-of-type {
+  .charts-row-wide {
     grid-template-columns: 1fr;
   }
   .chart-body {
     height: 240px;
+  }
+  .insights-panel {
+    height: auto;
   }
 }
 </style>
