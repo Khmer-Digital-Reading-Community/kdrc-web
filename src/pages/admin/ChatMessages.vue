@@ -73,7 +73,7 @@
                   <div class="user-avatar">{{ msg.user?.name?.charAt(0).toUpperCase() ?? 'U' }}</div>
                   <div class="user-meta">
                     <span class="user-name">{{ msg.user?.name ?? 'Deleted user' }}</span>
-                    <span class="user-role">{{ msg.user?.role ?? '' }}</span>
+                    <span class="user-email">{{ msg.user?.email ?? 'N/A' }}</span>
                   </div>
                 </div>
               </td>
@@ -156,7 +156,7 @@
           <div class="admin-form-row">
             <div class="admin-form-group">
               <label>Sender</label>
-              <input readonly type="text" :value="viewMsg.user?.name ?? 'Deleted user'" />
+              <input readonly type="text" :value="viewMsg.user ? `${viewMsg.user.name ?? 'Unknown'} (${viewMsg.user.email ?? 'N/A'})` : 'Deleted user'" />
             </div>
             <div class="admin-form-group">
               <label>Sent At</label>
@@ -184,6 +184,7 @@ import {
   getAdminChatMessages,
   deleteAdminChatMessage,
   bulkDeleteAdminChatMessages,
+  getAdminChatStats,
   type ChatMessage,
 } from '../../services/chatApi';
 
@@ -191,15 +192,32 @@ const messages = ref<ChatMessage[]>([]);
 const selected = ref<string[]>([]);
 const viewMsg = ref<ChatMessage | null>(null);
 const searchQuery = ref('');
+const getPageSizePreference = (): number => {
+  const PREFS_KEY = 'kdrc-admin-prefs';
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.itemsPerPage) {
+        const val = parseInt(parsed.itemsPerPage, 10);
+        if (!isNaN(val)) return val;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to parse admin prefs:', e);
+  }
+  return 10;
+};
+
 const currentPage = ref(1);
-const pageSize = 20;
+const pageSize = ref(getPageSizePreference());
 const totalMessages = ref(0);
 const todayCount = ref(0);
 const loading = ref(false);
 const toast = ref('');
 const toastError = ref(false);
 
-const totalPages = computed(() => Math.max(1, Math.ceil(totalMessages.value / pageSize)));
+const totalPages = computed(() => Math.max(1, Math.ceil(totalMessages.value / pageSize.value)));
 
 const showToast = (msg: string, err = false) => {
   toast.value = msg;
@@ -213,7 +231,7 @@ const fetchMessages = async () => {
     const res = await getAdminChatMessages({
       search: searchQuery.value || undefined,
       page: currentPage.value,
-      limit: pageSize,
+      limit: pageSize.value,
     });
     messages.value = res.data;
     totalMessages.value = res.total;
@@ -221,6 +239,16 @@ const fetchMessages = async () => {
     showToast('Failed to load messages', true);
   } finally {
     loading.value = false;
+  }
+};
+
+const fetchStats = async () => {
+  try {
+    const res = await getAdminChatStats();
+    totalMessages.value = res.total;
+    todayCount.value = res.todayCount;
+  } catch (err) {
+    console.error('Failed to load chat stats:', err);
   }
 };
 
@@ -245,6 +273,7 @@ const deleteOne = async (msg: ChatMessage) => {
     await deleteAdminChatMessage(msg.id);
     showToast('Message deleted');
     await fetchMessages();
+    await fetchStats();
   } catch {
     showToast('Failed to delete', true);
   }
@@ -257,6 +286,7 @@ const bulkDelete = async () => {
     showToast(`${selected.value.length} message(s) deleted`);
     selected.value = [];
     await fetchMessages();
+    await fetchStats();
   } catch {
     showToast('Bulk delete failed', true);
   }
@@ -264,6 +294,7 @@ const bulkDelete = async () => {
 
 onMounted(() => {
   fetchMessages();
+  fetchStats();
 });
 </script>
 
@@ -348,10 +379,9 @@ onMounted(() => {
   color: var(--admin-text);
 }
 
-.user-role {
-  font-size: 0.72rem;
+.user-email {
+  font-size: 0.75rem;
   color: var(--admin-muted);
-  text-transform: capitalize;
 }
 
 .date-col {
