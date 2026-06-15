@@ -28,6 +28,8 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
 
     if (query.genres && typeof query.genres === "string") {
       selectedGenres.value = query.genres.split(",").filter(Boolean);
+    } else if (query.genre && typeof query.genre === "string") {
+      selectedGenres.value = [query.genre];
     }
 
     if (query.authors && typeof query.authors === "string") {
@@ -38,7 +40,7 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
       minRating.value = parseFloat(query.rating) || 0;
     }
 
-    if (query.isFree === "true") {
+    if (query.isFree === "true" || query.filter === "free") {
       showFreeOnly.value = true;
     }
   };
@@ -175,7 +177,9 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
       query.language = activeLanguage.value;
     }
 
-    if (selectedGenres.value.length > 0) {
+    if (selectedGenres.value.length === 1) {
+      query.genre = selectedGenres.value[0];
+    } else if (selectedGenres.value.length > 1) {
       query.genres = selectedGenres.value.join(",");
     }
 
@@ -188,7 +192,7 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
     }
 
     if (showFreeOnly.value) {
-      query.isFree = "true";
+      query.filter = "free";
     }
 
     router.push({
@@ -215,20 +219,22 @@ export function useExploreFilters(books: Ref<ExploreBook[]>) {
       );
     }
 
-    // Genre filter
+    // Genre filter (case-insensitive)
     if (selectedGenres.value.length > 0) {
+      const lowerGenres = selectedGenres.value.map((g) => g.toLowerCase());
       result = result.filter((book: ExploreBook) => {
         const bookGenres = Array.isArray(book.genre)
           ? book.genre
           : [book.genre];
-        return selectedGenres.value.some((genre) => bookGenres.includes(genre));
+        return bookGenres.some((g) => lowerGenres.includes(g.toLowerCase()));
       });
     }
 
-    // Author filter
+    // Author filter (case-insensitive)
     if (selectedAuthors.value.length > 0) {
+      const lowerAuthors = selectedAuthors.value.map((a) => a.toLowerCase());
       result = result.filter((book: ExploreBook) =>
-        selectedAuthors.value.includes(book.author),
+        lowerAuthors.includes(book.author.toLowerCase()),
       );
     }
 

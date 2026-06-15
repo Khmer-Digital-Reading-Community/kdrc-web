@@ -1,7 +1,8 @@
 <template>
   <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-    <section class="rounded-[28px] bg-white border border-[#E6E0D4] p-8 md:p-10 shadow-[0_18px_45px_rgba(15,59,53,0.06)]">
-
+    <section
+      class="rounded-[28px] bg-white border border-[#E6E0D4] p-8 md:p-10 shadow-[0_18px_45px_rgba(15,59,53,0.06)]"
+    >
       <div class="flex items-center gap-4 mb-8">
         <img
           v-if="author.image"
@@ -21,7 +22,7 @@
         <div>
           <router-link
             v-if="author.id"
-            :to="`/author/${author.id}`"
+            :to="`/user/${author.id}`"
             class="text-3xl font-bold text-gray-900 hover:text-[#c5a050] transition-colors"
           >
             {{ author.name }}
@@ -29,9 +30,7 @@
           <h2 v-else class="text-3xl font-bold text-gray-900">
             {{ author.name }}
           </h2>
-          <p class="text-sm text-gray-500 mt-1">
-            Author profile
-          </p>
+          <p class="text-sm text-gray-500 mt-1">Author profile</p>
         </div>
       </div>
 
@@ -40,14 +39,13 @@
       </p>
 
       <div v-if="author.id" class="mt-6">
-        <FollowButton
-          :authorId="author.id"
-          :authorName="author.name"
-        />
+        <FollowButton :authorId="author.id" :authorName="author.name" />
       </div>
     </section>
 
-    <aside class="rounded-[28px] overflow-hidden border border-[#E6E0D4] bg-[#0F3B35] text-white shadow-[0_18px_45px_rgba(15,59,53,0.08)]">
+    <aside
+      class="rounded-[28px] overflow-hidden border border-[#E6E0D4] bg-[#0F3B35] text-white shadow-[0_18px_45px_rgba(15,59,53,0.08)]"
+    >
       <div class="aspect-[4/5] bg-[#133F39]">
         <img
           v-if="author.image"
@@ -85,8 +83,8 @@ const props = defineProps<{
   author: Author;
 }>();
 
-const authorInitial = computed(() =>
-  props.author.name?.trim().charAt(0).toUpperCase() || "A",
+const authorInitial = computed(
+  () => props.author.name?.trim().charAt(0).toUpperCase() || "A",
 );
 
 function onAvatarError(event: Event) {
