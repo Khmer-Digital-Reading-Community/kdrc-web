@@ -81,10 +81,7 @@
             :activeLanguage="activeLanguage"
             :showFreeOnly="showFreeOnly"
             @toggleFilter="isMobileFilterOpen = true"
-            @toggleSort="
-              sortBy =
-                sortBy === 'Newest Arrivals' ? 'Top Rated' : 'Newest Arrivals'
-            "
+            @updateSort="sortBy = $event"
             @toggleFree="toggleFreeOnly"
           />
 
@@ -159,15 +156,21 @@ onMounted(() => {
 const sortedBooks = computed(() => {
   const result = [...filteredBooks.value];
 
-  if (sortBy.value === "Newest Arrivals") {
+  if (
+    sortBy.value === "Newest Arrivals" ||
+    sortBy.value === "Latest"
+  ) {
     return result.sort(
       (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        new Date(b.createdAt).getTime() -
+        new Date(a.createdAt).getTime(),
     );
   }
 
-  if (sortBy.value === "Top Rated") {
-    return result.sort((a, b) => b.rating - a.rating);
+  if (sortBy.value === "Popular") {
+    return result.sort(
+      (a, b) => b.rating - a.rating,
+    );
   }
 
   return result;
