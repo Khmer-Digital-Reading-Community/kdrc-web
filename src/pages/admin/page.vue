@@ -3,6 +3,7 @@
     <div v-if="loading" class="admin-loading">Loading dashboard…</div>
 
     <template v-else>
+      <!-- KPI Cards -->
       <div class="admin-stats-grid">
         <div v-for="card in statCards" :key="card.label" class="admin-stat-card">
           <div class="admin-stat-icon" :class="card.tone">
@@ -16,6 +17,26 @@
         </div>
       </div>
 
+      <!-- Mini Charts Row -->
+      <div class="dashboard-charts">
+        <div class="admin-card">
+          <div class="admin-card-header"><h3>User Growth</h3></div>
+          <div class="admin-card-body chart-body">
+            <div v-if="!userGrowth.length" class="admin-empty">Not enough data yet</div>
+            <Line v-else :data="userGrowthChartData" :options="sparklineOptions" />
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header"><h3>Books by Status</h3></div>
+          <div class="admin-card-body chart-body">
+            <div v-if="!booksByStatus.length" class="admin-empty">No books yet</div>
+            <Doughnut v-else :data="booksDoughnutData" :options="miniDoughnutOptions" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity + Quick Actions (kept as-is) -->
       <div class="dashboard-grid">
         <div class="admin-card">
           <div class="admin-card-header">
@@ -80,16 +101,49 @@ import {
   Trophy,
   ArrowLeftRight,
 } from 'lucide-vue-next';
+import { Line, Doughnut } from 'vue-chartjs';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+} from 'chart.js';
 import {
   fetchAdminStats,
   fetchAdminActivity,
+  fetchAdminAnalytics,
   type AdminStats,
   type AdminActivityItem,
 } from '../../services/adminApi';
 
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+);
+
+interface AnalyticsData {
+  userGrowth: { month: string; count: string }[];
+  booksByStatus: { status: string; count: string }[];
+}
+
 const loading = ref(true);
 const stats = ref<AdminStats | null>(null);
 const activity = ref<AdminActivityItem[]>([]);
+const analyticsData = ref<AnalyticsData>({ userGrowth: [], booksByStatus: [] });
+
+const userGrowth = computed(() => analyticsData.value.userGrowth ?? []);
+const booksByStatus = computed(() => analyticsData.value.booksByStatus ?? []);
 
 const statCards = computed(() => {
   const s = stats.value;
@@ -133,6 +187,49 @@ const statCards = computed(() => {
   ];
 });
 
+// -- Mini chart configs --
+
+const sparklineOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    y: { beginAtZero: true, grid: { color: '#f0f3f1' }, ticks: { precision: 0 } },
+    x: { grid: { display: false } },
+  },
+  elements: { line: { tension: 0.4, borderWidth: 2 }, point: { radius: 2, hoverRadius: 4 } },
+};
+
+const userGrowthChartData = computed(() => ({
+  labels: userGrowth.value.map((r) => r.month.slice(5)),
+  datasets: [{
+    data: userGrowth.value.map((r) => Number(r.count)),
+    borderColor: '#4a8f65',
+    backgroundColor: (ctx: any) => {
+      const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 160);
+      g.addColorStop(0, 'rgba(74,143,101,0.2)');
+      g.addColorStop(1, 'rgba(74,143,101,0.02)');
+      return g;
+    },
+    fill: true,
+  }],
+}));
+
+const miniDoughnutOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { position: 'bottom' as const, labels: { padding: 16, usePointStyle: true } } },
+};
+
+const booksDoughnutData = computed(() => ({
+  labels: booksByStatus.value.map((r) => r.status),
+  datasets: [{
+    data: booksByStatus.value.map((r) => Number(r.count)),
+    backgroundColor: ['#10B981', '#FBBF24', '#6B7280', '#EF4444'],
+    borderWidth: 0,
+  }],
+}));
+
 const formatRelative = (ts: string) => {
   const diff = Date.now() - new Date(ts).getTime();
   const mins = Math.floor(diff / 60000);
@@ -144,9 +241,14 @@ const formatRelative = (ts: string) => {
 
 onMounted(async () => {
   try {
-    const [s, a] = await Promise.all([fetchAdminStats(), fetchAdminActivity(8)]);
+    const [s, a, an] = await Promise.all([
+      fetchAdminStats(),
+      fetchAdminActivity(8),
+      fetchAdminAnalytics(),
+    ]);
     stats.value = s;
     activity.value = a;
+    analyticsData.value = an;
   } catch (e) {
     console.error(e);
   } finally {
@@ -156,6 +258,20 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.dashboard-charts {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.chart-body {
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
@@ -252,6 +368,7 @@ onMounted(async () => {
 }
 
 @media (max-width: 900px) {
+  .dashboard-charts,
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
