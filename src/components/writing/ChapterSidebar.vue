@@ -1,8 +1,16 @@
 <template>
   <aside class="w-72 bg-white border-r border-gray-200 flex flex-col h-full">
     <!-- Header -->
-    <div class="px-5 py-4 border-b border-gray-100">
+    <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
       <h3 class="text-sm font-bold text-[#123C3A] uppercase tracking-wider">Chapters</h3>
+      <button
+        v-if="showClose"
+        @click="$emit('close')"
+        class="lg:hidden p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+        title="Close sidebar"
+      >
+        <X :size="18" />
+      </button>
     </div>
 
     <!-- Filter tabs -->
@@ -178,13 +186,14 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { Plus, GripVertical, MoreHorizontal, Archive, ChevronDown } from "lucide-vue-next";
+import { Plus, GripVertical, MoreHorizontal, Archive, ChevronDown, X } from "lucide-vue-next";
 import type { Chapter } from "../../services/chapterApi";
 import type { ChapterCreateType } from "../../composables/useChapterManagement";
 
 const props = defineProps<{
   chapters: Chapter[];
   activeChapterId: string | null;
+  showClose?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -193,6 +202,7 @@ const emit = defineEmits<{
   deleteChapter: [chapterId: string];
   updateStatus: [chapterId: string, status: "DRAFT" | "PUBLISHED" | "ARCHIVED"];
   reorder: [orderedIds: string[]];
+  close: [];
 }>();
 
 const activeFilter = ref<string>("All");
