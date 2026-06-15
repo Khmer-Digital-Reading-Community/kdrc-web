@@ -1,9 +1,9 @@
 <template>
   <div class="search-container">
-    <div class="search-wrapper relative flex-grow max-w-2xl">
+    <div class="search-wrapper relative flex-grow w-full">
       <div class="search-input-group relative">
         <svg
-          class="search-icon absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5"
+          class="search-icon absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -21,7 +21,7 @@
           v-model="query"
           type="text"
           placeholder="Search books by title or author"
-          class="w-[360px] pl-12 pr-10 py-2.5 md:py-3 rounded-[12px] border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#B4690E] focus:border-transparent transition-all placeholder-gray-400 text-sm md:text-base"
+          class="w-full pl-12 pr-10 py-2.5 md:py-3 rounded-[12px] border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B4690E] focus:border-transparent transition-all placeholder-gray-400 text-base"
           :aria-label="'Search books and authors'"
           :aria-expanded="showSuggestions"
           aria-autocomplete="list"
@@ -440,13 +440,6 @@ watch(
 @keyframes spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .search-input {
-    font-size: 16px; /* Prevents zoom on iOS */
   }
 }
 </style>

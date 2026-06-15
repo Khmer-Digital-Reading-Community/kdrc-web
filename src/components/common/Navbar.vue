@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { Bell } from "lucide-vue-next";
 import icon from "../../assets/images/Icon.png";
 import Profile from "../../assets/images/Profile.png";
 import NotificationIcon from "../../assets/images/NotificationIcon.png";
@@ -17,42 +16,42 @@ import { useLanguage } from "../../composables/useLanguage";
 const router = useRouter();
 const route = useRoute();
 const { logout, user, loginRole } = useAuth();
+const { currentLang, setLanguage } = useLanguage();
 
 const showNavbarSearch = computed(() => {
-  return !route.meta.hideNavbarSearch
-})
+  return !route.meta.hideNavbarSearch;
+});
 
 const mobileOpen = ref(false);
 const langOpen = ref(false);
 const profileOpen = ref(false);
-const currentLang = ref("EN");
-const showNotifications = ref(false)
-const notifHoverMode = ref(false)
-let notifHoverTimeout: ReturnType<typeof setTimeout> | null = null
+const showNotifications = ref(false);
+const notifHoverMode = ref(false);
+let notifHoverTimeout: ReturnType<typeof setTimeout> | null = null;
 
 function onNotifEnter() {
-  if (notifHoverTimeout) clearTimeout(notifHoverTimeout)
-  notifHoverMode.value = true
-  showNotifications.value = true
+  if (notifHoverTimeout) clearTimeout(notifHoverTimeout);
+  notifHoverMode.value = true;
+  showNotifications.value = true;
 }
 
 function onNotifLeave() {
   notifHoverTimeout = setTimeout(() => {
-    showNotifications.value = false
-    notifHoverMode.value = false
-  }, 200)
+    showNotifications.value = false;
+    notifHoverMode.value = false;
+  }, 200);
 }
 
 function onNotifPopupEnter() {
-  if (notifHoverTimeout) clearTimeout(notifHoverTimeout)
+  if (notifHoverTimeout) clearTimeout(notifHoverTimeout);
 }
 
 function onNotifPopupLeave() {
   notifHoverTimeout = setTimeout(() => {
-    showNotifications.value = false
-    notifHoverMode.value = false
-  }, 200)
-};
+    showNotifications.value = false;
+    notifHoverMode.value = false;
+  }, 200);
+}
 
 // Derive auth state only from the session token.
 const isAuthed = computed(() => Boolean(token.value));
@@ -67,6 +66,13 @@ watch(
   () => token.value,
   (newVal) => {
     console.log("Token ref changed:", !!newVal, "isAuthed:", isAuthed.value);
+  },
+);
+
+watch(
+  () => route.path,
+  () => {
+    mobileOpen.value = false;
   },
 );
 
@@ -87,12 +93,19 @@ const authenticatedNavLinks = [
 ];
 
 const profileMenuItems = computed(() => {
-  const roleChosen = loginRole.value || (user.value?.role === 'ADMIN' ? 'admin' : 'user');
+  const roleChosen =
+    loginRole.value || (user.value?.role === "ADMIN" ? "admin" : "user");
   const items = [
-    { label: "Profile", path: roleChosen === 'admin' ? "/admin/profile" : "/settings/profile" },
-    { label: "Dashboard", path: roleChosen === 'admin' ? "/admin/dashboard" : "/dashboard" },
+    {
+      label: "Profile",
+      path: roleChosen === "admin" ? "/admin/profile" : "/settings/profile",
+    },
+    {
+      label: "Dashboard",
+      path: roleChosen === "admin" ? "/admin/dashboard" : "/dashboard",
+    },
   ];
-  if (roleChosen !== 'admin' && isAdmin.value) {
+  if (roleChosen !== "admin" && isAdmin.value) {
     items.splice(1, 0, { label: "Admin Panel", path: "/admin/dashboard" });
   }
   return items;
@@ -104,7 +117,6 @@ const languages = [
 ];
 
 function selectLang(code: string) {
-  const { setLanguage } = useLanguage();
   setLanguage(code);
   langOpen.value = false;
 }
@@ -132,7 +144,7 @@ async function handleLogout() {
   <nav class="w-full bg-[#093A3F] border-b border-gray-700 relative">
     <div
       v-if="isAuthed"
-      class="w-full px-6 py-4 flex flex-wrap items-center justify-between gap-6"
+      class="w-full px-3 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3 sm:gap-6"
     >
       <div class="flex items-center gap-8">
         <router-link to="/home" class="flex items-center gap-2 no-underline">
@@ -161,15 +173,18 @@ async function handleLogout() {
         </div>
       </div>
 
-      <div v-if="showNavbarSearch" class="w-full max-w-md relative order-3 lg:order-none lg:flex-1 lg:max-w-lg flex items-center">
+      <div
+        v-if="showNavbarSearch"
+        class="w-full max-w-lg relative order-3 lg:order-none lg:flex-1 lg:max-w-2xl flex items-center justify-center"
+      >
         <SearchBar />
       </div>
 
-      <div class="flex items-center gap-4">
-        <div class="relative">
+      <div class="flex items-center gap-2 sm:gap-4">
+        <div class="relative hidden lg:block">
           <button
             type="button"
-            class="px-3 py-1.5 bg-cyan-950 rounded-xl flex items-center gap-2"
+            class="px-2 sm:px-3 py-1.5 bg-cyan-950 rounded-xl flex items-center gap-1.5 sm:gap-2"
             @click="langOpen = !langOpen"
           >
             <span class="w-2 h-2 bg-orange-300 rounded-xl"></span>
@@ -200,7 +215,7 @@ async function handleLogout() {
           </div>
         </div>
 
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 sm:gap-4">
           <div
             class="relative"
             @mouseenter="onNotifEnter"
@@ -220,7 +235,7 @@ async function handleLogout() {
                 v-if="unreadCount > 0"
                 class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-[#F9AE5B] text-[#093A3F] text-[10px] font-bold rounded-full px-1"
               >
-                {{ unreadCount > 99 ? '99+' : unreadCount }}
+                {{ unreadCount > 99 ? "99+" : unreadCount }}
               </span>
             </button>
 
@@ -235,7 +250,7 @@ async function handleLogout() {
           </div>
           <router-link
             to="/chatbox"
-            class="inline-flex flex-col justify-start items-start"
+            class="hidden lg:inline-flex flex-col justify-start items-start"
           >
             <img :src="ChatIcon" alt="Chat" class="w-5 h-5 object-contain" />
           </router-link>
@@ -275,10 +290,122 @@ async function handleLogout() {
             </button>
           </div>
         </div>
+
+        <!-- Mobile hamburger -->
+        <button
+          class="lg:hidden text-[#FDE9D0] p-1 -mr-1"
+          @click="mobileOpen = !mobileOpen"
+          aria-label="Toggle menu"
+        >
+          <svg
+            v-if="!mobileOpen"
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+          <svg
+            v-else
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 6l12 12M18 6L6 18"
+            />
+          </svg>
+        </button>
       </div>
     </div>
 
-    <div v-else class="max-w-7xl mx-auto px-6 h-16 flex items-center">
+    <!-- Mobile dropdown for authenticated users -->
+    <div
+      v-if="mobileOpen && isAuthed"
+      class="lg:hidden bg-[#0A2F34] px-6 py-4 flex flex-col gap-3 absolute w-full border-b border-white/10 z-40"
+    >
+      <router-link
+        v-for="link in authenticatedNavLinks"
+        :key="link.label"
+        :to="link.path"
+        class="text-sm py-1 transition-colors"
+        :class="
+          route.path === link.path
+            ? 'text-[#F9AE5B] font-semibold'
+            : 'text-[#FDE9D0]/70 hover:text-[#FDE9D0]'
+        "
+        @click="mobileOpen = false"
+      >
+        {{ link.label }}
+      </router-link>
+
+      <hr class="border-white/10" />
+
+      <div class="flex items-center gap-2">
+        <button
+          v-for="lang in languages"
+          :key="lang.code"
+          type="button"
+          class="px-3 py-1.5 text-xs rounded-full transition-colors"
+          :class="
+            currentLang === lang.code
+              ? 'bg-[#F9AE5B] text-[#093A3F] font-semibold'
+              : 'text-[#FDE9D0]/60 hover:text-[#FDE9D0] border border-[#FDE9D0]/20'
+          "
+          @click="selectLang(lang.code)"
+        >
+          {{ lang.label }}
+        </button>
+      </div>
+
+      <router-link
+        to="/chatbox"
+        class="flex items-center gap-2 text-sm text-[#FDE9D0]/70 hover:text-[#FDE9D0] py-1 transition-colors"
+        @click="mobileOpen = false"
+      >
+        <img
+          :src="ChatIcon"
+          alt="Chat"
+          class="w-4 h-4 object-contain opacity-70"
+        />
+        Chat
+      </router-link>
+
+      <hr class="border-white/10" />
+
+      <button
+        v-for="item in profileMenuItems"
+        :key="item.label"
+        type="button"
+        @click="
+          goTo(item.path);
+          mobileOpen = false;
+        "
+        class="w-full text-left text-sm text-[#FDE9D0]/70 hover:text-[#FDE9D0] py-1.5 transition-colors"
+      >
+        {{ item.label }}
+      </button>
+
+      <button
+        type="button"
+        @click="handleLogout"
+        class="w-full text-left text-sm text-red-400 hover:text-red-300 py-1.5 transition-colors"
+      >
+        Logout
+      </button>
+    </div>
+
+    <div v-if="!isAuthed" class="max-w-7xl mx-auto px-6 h-16 flex items-center">
       <router-link to="/" class="flex items-center gap-2 no-underline mr-8">
         <span class="text-2xl">
           <img :src="icon" alt="Icon" />
@@ -365,10 +492,38 @@ async function handleLogout() {
       </div>
 
       <button
-        class="md:hidden text-[#FDE9D0]"
+        class="md:hidden text-[#FDE9D0] p-1"
         @click="mobileOpen = !mobileOpen"
+        aria-label="Toggle menu"
       >
-        Menu
+        <svg
+          v-if="!mobileOpen"
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"
+          />
+        </svg>
+        <svg
+          v-else
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 6l12 12M18 6L6 18"
+          />
+        </svg>
       </button>
     </div>
 
@@ -381,6 +536,7 @@ async function handleLogout() {
         :key="link.label"
         :to="link.path"
         class="text-[#FDE9D0]/70 hover:text-[#FDE9D0]"
+        @click="mobileOpen = false"
       >
         {{ link.label }}
       </router-link>
@@ -425,122 +581,18 @@ async function handleLogout() {
           <router-link
             to="/login"
             class="text-center text-[#FDE9D0] border border-[#FDE9D0]/30 py-2 rounded hover:bg-[#FDE9D0]/10"
+            @click="mobileOpen = false"
             >Login</router-link
           >
           <router-link
             to="/signup"
             class="text-center bg-[#F9AE5B] text-[#093A3F] font-medium py-2 rounded hover:opacity-90"
+            @click="mobileOpen = false"
             >Sign Up</router-link
           >
         </template>
       </div>
     </div>
-
-    <div
-      v-if="mobileOpen && isAuthed"
-      class="md:hidden bg-[#0d4d54] px-6 py-4 flex flex-col gap-4 absolute w-full border-b border-[#FDE9D0]/10 z-40"
-    >
-      <router-link
-        v-for="link in authenticatedNavLinks"
-        :key="link.label"
-        :to="link.path"
-        class="text-[#FDE9D0]/70 hover:text-[#FDE9D0]"
-      >
-        {{ link.label }}
-      </router-link>
-
-      <div class="flex flex-col gap-3 pt-2 border-t border-[#FDE9D0]/10">
-        <div class="relative">
-          <button
-            type="button"
-            @click="langOpen = !langOpen"
-            class="flex items-center gap-2 bg-[#0d4d54] px-3 py-1.5 rounded-full hover:bg-[#0a3f45] transition-colors"
-          >
-            <span class="w-2 h-2 rounded-full bg-[#F9AE5B]"></span>
-            <span class="text-[#FDE9D0] text-sm">{{ currentLang }}</span>
-          </button>
-
-          <div
-            v-if="langOpen"
-            class="absolute left-0 top-full mt-2 bg-[#0d4d54] rounded-md shadow-lg py-1 min-w-25 border border-[#FDE9D0]/10 z-50"
-          >
-            <button
-              v-for="lang in languages"
-              :key="lang.code"
-              @click="selectLang(lang.code)"
-              class="w-full text-left px-4 py-2 text-sm text-[#FDE9D0]/70 hover:bg-[#093A3F] hover:text-[#FDE9D0]"
-            >
-              {{ lang.label }}
-            </button>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between">
-          <div
-            class="relative"
-            @mouseenter="onNotifEnter"
-            @mouseleave="onNotifLeave"
-          >
-            <button
-              type="button"
-              @click="showNotifications = !showNotifications"
-              class="notif-bell-btn relative text-[#FDE9D0]/70 hover:text-[#FDE9D0] transition-colors"
-            >
-              <Bell :size="20" />
-              <span
-                v-if="unreadCount > 0"
-                class="absolute -top-1 -right-1 min-w-[16px] h-[16px] flex items-center justify-center bg-[#F9AE5B] text-[#093A3F] text-[9px] font-bold rounded-full px-0.5"
-              >
-                {{ unreadCount > 99 ? '99+' : unreadCount }}
-              </span>
-            </button>
-          </div>
-
-          <button
-            type="button"
-            class="text-[#FDE9D0]/70 hover:text-[#FDE9D0] transition-colors"
-          >
-            <img :src="ChatIcon" alt="Chat" class="w-5 h-5 object-contain" />
-          </button>
-        </div>
-
-        <div class="relative flex items-center gap-3">
-          <button
-            @click="profileOpen = !profileOpen"
-            class="w-10 h-10 relative bg-stone-200 rounded-3xl outline outline-neutral-300/20 -outline-offset-1 overflow-hidden hover:opacity-80 transition-opacity"
-          >
-            <img
-              class="w-10 h-10 left-0 top-0 absolute object-cover"
-              :src="user?.avatarUrl || Profile"
-              alt="User avatar"
-            />
-          </button>
-
-          <div
-            v-if="profileOpen"
-            class="absolute left-0 top-full mt-2 bg-[#093A3F] rounded-md shadow-lg py-1 min-w-40 border border-white/10 z-50"
-          >
-            <button
-              v-for="item in profileMenuItems"
-              :key="item.label"
-              type="button"
-              @click="goTo(item.path)"
-              class="w-full text-left px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
-            >
-              {{ item.label }}
-            </button>
-            <button
-              type="button"
-              @click="handleLogout"
-              class="w-full text-left px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </nav>
 </template>
 
@@ -550,7 +602,7 @@ async function handleLogout() {
 }
 
 .notif-bell-btn::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -6px;
   border-radius: 50%;
