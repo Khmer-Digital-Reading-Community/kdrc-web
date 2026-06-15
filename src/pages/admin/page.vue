@@ -12,7 +12,10 @@
           <div>
             <p class="admin-stat-label">{{ card.label }}</p>
             <p class="admin-stat-value">{{ card.value }}</p>
-            <p v-if="card.hint" class="admin-stat-hint">{{ card.hint }}</p>
+            <p v-if="card.trend != null" class="admin-stat-hint" :class="card.trend > 0 ? 'up' : 'down'">
+              {{ card.trend > 0 ? '+' : '' }}{{ card.trend }} this month
+            </p>
+            <p v-else-if="card.hint" class="admin-stat-hint">{{ card.hint }}</p>
           </div>
         </div>
       </div>
@@ -149,41 +152,11 @@ const statCards = computed(() => {
   const s = stats.value;
   if (!s) return [];
   return [
-    {
-      label: 'Total books',
-      value: s.totalBooks.toLocaleString(),
-      hint: `+${s.newBooksThisMonth} this month`,
-      icon: BookOpen,
-      tone: 'green',
-    },
-    {
-      label: 'Users',
-      value: s.totalUsers.toLocaleString(),
-      hint: `+${s.newUsersThisMonth} this month`,
-      icon: Users,
-      tone: 'blue',
-    },
-    {
-      label: 'Comments',
-      value: s.totalComments.toLocaleString(),
-      hint: `${s.pendingComments} awaiting review`,
-      icon: MessageSquare,
-      tone: 'amber',
-    },
-    {
-      label: 'Challenges',
-      value: s.totalChallenges.toLocaleString(),
-      hint: `${s.totalReviews} reviews`,
-      icon: Trophy,
-      tone: 'green',
-    },
-    {
-      label: 'Exchange listings',
-      value: (s.totalExchangeListings ?? 0).toLocaleString(),
-      hint: `${s.activeExchangeListings ?? 0} active · ${s.pendingExchangeRequests ?? 0} pending trades`,
-      icon: ArrowLeftRight,
-      tone: 'blue',
-    },
+    { label: 'Users', value: s.totalUsers.toLocaleString(), icon: Users, tone: 'blue', trend: s.newUsersThisMonth, hint: null },
+    { label: 'Books', value: s.totalBooks.toLocaleString(), icon: BookOpen, tone: 'green', trend: s.newBooksThisMonth, hint: null },
+    { label: 'Comments', value: s.totalComments.toLocaleString(), icon: MessageSquare, tone: 'amber', trend: null, hint: `${s.pendingComments} awaiting review` },
+    { label: 'Challenges', value: s.totalChallenges.toLocaleString(), icon: Trophy, tone: 'green', trend: null, hint: `${s.totalReviews} reviews` },
+    { label: 'Exchange listings', value: (s.totalExchangeListings ?? 0).toLocaleString(), icon: ArrowLeftRight, tone: 'blue', trend: s.newExchangeListingsThisMonth, hint: null },
   ];
 });
 
