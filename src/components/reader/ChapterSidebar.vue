@@ -75,14 +75,31 @@
 
           <!-- Info -->
           <div class="flex-1 min-w-0">
-            <p
-              :class="[
-                'text-sm font-medium truncate leading-tight',
-                isActiveChapter(chapter.id) ? 'text-amber-700' : 'text-current/80',
-              ]"
-            >
-              {{ chapter.title || `Chapter ${chapter.chapterNumber}` }}
-            </p>
+            <div class="flex items-center gap-1.5">
+              <p
+                :class="[
+                  'text-sm font-medium truncate leading-tight',
+                  isActiveChapter(chapter.id) ? 'text-amber-700' : 'text-current/80',
+                ]"
+              >
+                {{ chapter.title || `Chapter ${chapter.chapterNumber}` }}
+              </p>
+              <!-- Access badge -->
+              <span
+                v-if="chapter.isPremium"
+                class="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                title="Premium — requires subscription or purchase"
+              >
+                <Crown :size="10" />
+              </span>
+              <span
+                v-else-if="chapter.isPurchasable && Number(chapter.price ?? 0) > 0"
+                class="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                title="Paid — requires purchase"
+              >
+                <Lock :size="9" />
+              </span>
+            </div>
             <p class="text-[11px] font-medium opacity-40 mt-0.5">
               {{ chapter.wordCount || 0 }} words
               <template v-if="chapter.readingTimeMinutes">
@@ -122,7 +139,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from "vue";
-import { BookOpen, X } from "lucide-vue-next";
+import { BookOpen, X, Lock, Crown } from "lucide-vue-next";
 import type { Chapter } from "../../composables/useChapterNavigation";
 
 interface Props {
@@ -182,6 +199,13 @@ const activeChapterStyle = computed(() => ({
 
 const isActiveChapter = (chapterId: string) =>
   chapterId === props.activeChapterId;
+
+const isChapterRestricted = (chapter: Chapter) => {
+  return (
+    chapter.isPremium ||
+    (chapter.isPurchasable && Number(chapter.price ?? 0) > 0)
+  );
+};
 
 const chapterProgressCache = ref<Map<string, number>>(new Map());
 

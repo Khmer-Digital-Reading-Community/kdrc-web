@@ -343,6 +343,50 @@
           </div>
         </transition>
 
+        <!-- Access Denied Toast (shown when blocked from navigating to a restricted chapter) -->
+        <transition name="slide-down">
+          <div
+            v-if="accessError && currentChapter"
+            class="absolute top-16 left-4 right-4 z-50 sm:left-1/2 sm:-translate-x-1/2 sm:w-[420px]"
+          >
+            <div class="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200 shadow-lg animate-fade-in-up">
+              <div class="shrink-0 w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                <Crown v-if="accessError.requiresSubscription" class="text-red-600 w-4 h-4" />
+                <Lock v-else-if="accessError.requiresPurchase" class="text-red-600 w-4 h-4" />
+                <AlertTriangle v-else class="text-red-600 w-4 h-4" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-red-900">
+                  {{ accessError.requiresSubscription ? 'Premium Content' : accessError.requiresPurchase ? 'Paid Content' : 'Access Restricted' }}
+                </p>
+                <p class="text-xs text-red-700 mt-0.5">{{ accessError.reason }}</p>
+                <div class="flex items-center gap-2 mt-2">
+                  <button
+                    v-if="accessError.requiresSubscription"
+                    @click="router.push('/subscriptions')"
+                    class="text-xs font-bold px-3 py-1.5 rounded-lg bg-amber-500 text-white hover:bg-amber-400 transition-colors"
+                  >
+                    View Plans
+                  </button>
+                  <button
+                    v-if="accessError.requiresPurchase"
+                    @click="router.push(`/book-detail/${route.params.id}`)"
+                    class="text-xs font-bold px-3 py-1.5 rounded-lg bg-amber-500 text-white hover:bg-amber-400 transition-colors"
+                  >
+                    Purchase
+                  </button>
+                  <button
+                    @click="accessError = null"
+                    class="text-xs font-medium px-3 py-1.5 rounded-lg text-red-600 hover:bg-red-100 transition-colors"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition>
+
         <!-- Reading Progress Tracker -->
         <ReadingProgress
           :chapter-id="currentChapter.id"
@@ -1274,6 +1318,21 @@ watch(
     }
   },
 );
+
+// Auto-dismiss the access-denied toast when user is already reading a chapter
+let dismissToastTimer: ReturnType<typeof setTimeout> | null = null;
+watch(accessError, (err) => {
+  if (dismissToastTimer) {
+    clearTimeout(dismissToastTimer);
+    dismissToastTimer = null;
+  }
+  // Only auto-dismiss the toast variant (when currentChapter is present)
+  if (err && currentChapter.value) {
+    dismissToastTimer = setTimeout(() => {
+      accessError.value = null;
+    }, 8000);
+  }
+});
 </script>
 
 <style scoped>
@@ -1376,6 +1435,17 @@ watch(
 .slide-fade-enter-from,
 .slide-fade-leave-to {
   transform: translateY(-20px) translateX(20px);
+  opacity: 0;
+}
+
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.35s ease-out;
+}
+
+.slide-down-enter-from,
+.slide-down-leave-to {
+  transform: translateY(-16px);
   opacity: 0;
 }
 

@@ -92,11 +92,16 @@ export function useChapterNavigation() {
       if (lower.includes('login') || status === 401) {
         return { reason: message, chapterId, requiresLogin: true };
       }
-      if (lower.includes('subscription') || lower.includes('premium')) {
-        return { reason: message, chapterId, requiresSubscription: true };
-      }
-      if (lower.includes('purchase') || lower.includes('own')) {
-        return { reason: message, chapterId, requiresPurchase: true };
+      // Check both flags independently — backend may mention both options
+      const hasSub = lower.includes('subscription') || lower.includes('premium');
+      const hasPurchase = lower.includes('purchase') || lower.includes('own');
+      if (hasSub || hasPurchase) {
+        return {
+          reason: message,
+          chapterId,
+          requiresSubscription: hasSub || undefined,
+          requiresPurchase: hasPurchase || undefined,
+        };
       }
       return { reason: message, chapterId, requiresLogin: true };
     }
@@ -126,11 +131,19 @@ export function useChapterNavigation() {
     }
   };
 
-  const fetchChapterContent = async (chapterId: string) => {
+  /**
+   * Fetch chapter content from the backend.
+   * Returns true if the content was loaded successfully, false if access was denied or an error occurred.
+   */
+  const fetchChapterContent = async (chapterId: string): Promise<boolean> => {
     if (!chapterId) {
       error.value = 'Chapter ID is required';
-      return;
+      return false;
     }
+
+    // Save previous state in case access is denied — we'll restore it
+    const prevChapter = currentChapter.value;
+    const prevContent = currentChapterContent.value;
 
     try {
       isLoading.value = true;
@@ -143,16 +156,21 @@ export function useChapterNavigation() {
       currentChapter.value = chapterData;
       currentChapterContent.value = chapterData.content || '';
       contentCacheKey.value++;
+      return true;
     } catch (err: any) {
       const ae = parseAccessError(err, chapterId);
       if (ae.requiresLogin || ae.requiresPurchase || ae.requiresSubscription) {
         accessError.value = ae;
         error.value = ae.reason;
+        // Restore previous chapter state so the user isn't left with a blank screen
+        currentChapter.value = prevChapter;
+        currentChapterContent.value = prevContent;
       } else {
         error.value = err.message || 'Failed to fetch chapter content';
+        currentChapterContent.value = '';
+        contentCacheKey.value++;
       }
-      currentChapterContent.value = '';
-      contentCacheKey.value++;
+      return false;
     } finally {
       isLoading.value = false;
     }
@@ -193,24 +211,18 @@ export function useChapterNavigation() {
       return;
     }
 
-    // No free chapters — check if there are paid/premium chapters
-    const hasPaidOrPremium = chapters.value.some(
-      (ch) => ch.status === 'PUBLISHED' && (ch.isPremium || (ch.isPurchasable && Number(ch.price ?? 0) > 0)),
-    );
-
-    if (hasPaidOrPremium) {
-      const first = chapters.value.find((ch) => ch.status === 'PUBLISHED');
-      accessError.value = {
-        reason: first?.isPremium
-          ? 'This book requires a subscription to read.'
-          : 'This book requires purchase to read.',
-        chapterId: first?.id,
-        requiresPurchase: !first?.isPremium && (first?.isPurchasable && Number(first?.price ?? 0) > 0) || undefined,
-        requiresSubscription: first?.isPremium || undefined,
-      };
-    } else {
-      error.value = 'No readable chapters found.';
+    // No free chapters — try loading the first published chapter through the backend.
+    // The backend will grant or deny access based on the user's purchases/subscription.
+    // Only show the access-error overlay if the backend actually returns 403.
+    const firstPublished = chapters.value.find((ch) => ch.status === 'PUBLISHED');
+    if (firstPublished) {
+      await fetchChapterContent(firstPublished.id);
+      // If fetchChapterContent succeeded, currentChapter is now set and accessError is null.
+      // If it failed with an access error, accessError is already populated by parseAccessError.
+      return;
     }
+
+    error.value = 'No readable chapters found.';
   };
 
   const navigateWithCleanUrl = async () => {
@@ -229,16 +241,13 @@ export function useChapterNavigation() {
       return;
     }
 
-    try {
-      isLoading.value = true;
-      scrollToTop();
-      await fetchChapterContent(nextChapter.value.id);
+    isLoading.value = true;
+    scrollToTop();
+    const ok = await fetchChapterContent(nextChapter.value.id);
+    if (ok) {
       await navigateWithCleanUrl();
-    } catch {
-      // error already set by fetchChapterContent
-    } finally {
-      isLoading.value = false;
     }
+    isLoading.value = false;
   };
 
   const goToPreviousChapter = async () => {
@@ -247,16 +256,13 @@ export function useChapterNavigation() {
       return;
     }
 
-    try {
-      isLoading.value = true;
-      scrollToTop();
-      await fetchChapterContent(previousChapter.value.id);
+    isLoading.value = true;
+    scrollToTop();
+    const ok = await fetchChapterContent(previousChapter.value.id);
+    if (ok) {
       await navigateWithCleanUrl();
-    } catch {
-      // error already set by fetchChapterContent
-    } finally {
-      isLoading.value = false;
     }
+    isLoading.value = false;
   };
 
   const goToChapter = async (chapterId: string) => {
@@ -266,16 +272,13 @@ export function useChapterNavigation() {
       return;
     }
 
-    try {
-      isLoading.value = true;
-      scrollToTop();
-      await fetchChapterContent(chapterId);
+    isLoading.value = true;
+    scrollToTop();
+    const ok = await fetchChapterContent(chapterId);
+    if (ok) {
       await navigateWithCleanUrl();
-    } catch {
-      // error already set by fetchChapterContent
-    } finally {
-      isLoading.value = false;
     }
+    isLoading.value = false;
   };
 
   return {
