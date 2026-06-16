@@ -160,8 +160,7 @@ async function handleCreateGenre(name: string) {
 async function handleCreateCategory(name: string) {
   try {
     const { createCategory } = await import("../../services/bookApi");
-    const slug = name.toLowerCase().replace(/\s+/g, "-");
-    const created = await createCategory({ name, slug });
+    const created = await createCategory(name);
     settingsCategories.value = [...settingsCategories.value, created];
     toast.success(`Category "${name}" created`);
   } catch {

@@ -118,7 +118,7 @@ const footerCols = [
   {
     title: "Explore",
     links: [
-      { label: "Home", path: "/" },
+      { label: "Home", path: "/home" },
       { label: "Explore", path: "/explore" },
     ],
   },
