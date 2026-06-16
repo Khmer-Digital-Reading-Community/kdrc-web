@@ -175,7 +175,10 @@
           <p class="text-lg font-bold text-gray-900">{{ listingStatusLabel }}</p>
         </div>
         <div class="flex gap-4 w-full md:w-auto">
-          <button class="flex-1 md:flex-none bg-purple-50 text-[#6D28D9] hover:bg-purple-100 px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors">
+          <button
+            @click="startMessage"
+            class="flex-1 md:flex-none bg-purple-50 text-[#6D28D9] hover:bg-purple-100 px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
+          >
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
             Message
           </button>
@@ -396,6 +399,22 @@ const submitProposal = async () => {
 const onImgError = (e: Event) => {
   const t = e.target as HTMLImageElement | null;
   if (t) t.src = 'https://via.placeholder.com/300x450?text=No+Cover';
+};
+
+const startMessage = () => {
+  if (!book.value) return;
+  if (!authState.token.value) {
+    router.push({ path: '/login', query: { redirect: route.fullPath } });
+    return;
+  }
+  router.push({
+    path: '/chatbox',
+    query: {
+      title: book.value.title,
+      author: book.value.author,
+      exchangeType: book.value.exchangeType
+    }
+  });
 };
 
 const loadOfferedBooks = async () => {
