@@ -177,6 +177,11 @@ export default [
         component: () => import("../pages/user/BookmarkPage.vue"),
       },
       {
+        path: "reading-history",
+        name: "reading-history",
+        component: () => import("../pages/user/ReadingHistoryPage.vue"),
+      },
+      {
         path: "billing",
         name: "billing",
         component: () => import("../pages/user/PlanAndBilling.vue"),
