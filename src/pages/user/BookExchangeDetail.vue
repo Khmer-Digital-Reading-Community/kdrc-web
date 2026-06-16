@@ -197,7 +197,10 @@
             <p class="text-[20px] md:text-[22px] font-bold text-[#093A3F]">Available for trade</p>
           </div>
           <div class="flex flex-row gap-3 md:gap-5 w-full sm:w-auto">
-            <button class="bg-[#f3f0ff] text-[#7B61FF] px-6 py-3.5 md:px-10 md:py-4 rounded-xl md:rounded-2xl font-bold text-[14px] md:text-[15px] hover:bg-[#e9e4ff] transition-colors flex items-center justify-center gap-2 flex-1 sm:flex-initial">
+            <button
+              @click="startMessage"
+              class="bg-[#f3f0ff] text-[#7B61FF] px-6 py-3.5 md:px-10 md:py-4 rounded-xl md:rounded-2xl font-bold text-[14px] md:text-[15px] hover:bg-[#e9e4ff] transition-colors flex items-center justify-center gap-2 flex-1 sm:flex-initial"
+            >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               Message
             </button>
@@ -214,8 +217,22 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router';
 import bookCover from '../../assets/images/books/Book1.png'
 import userAvatar from '../../assets/images/books/users/user2.jpg'
+
+const router = useRouter();
+
+const startMessage = () => {
+  router.push({
+    path: '/chatbox',
+    query: {
+      title: 'The Art of Stillness',
+      author: 'Pico Iyer',
+      exchangeType: 'SWAP'
+    }
+  });
+};
 </script>
 
 <style scoped>
