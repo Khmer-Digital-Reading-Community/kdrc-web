@@ -178,12 +178,16 @@ const statusClass = (s: string) => {
   return "danger";
 };
 
-const formatDate = (d: string) =>
-  new Date(d).toLocaleDateString(undefined, {
+const formatDate = (d: string) => {
+  if (!d) return "—";
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
+};
 
 const load = async (p = page.value) => {
   loading.value = true;
