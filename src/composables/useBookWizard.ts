@@ -106,8 +106,7 @@ export function useBookWizard() {
 
   async function createCategoryAction(name: string): Promise<Category | null> {
     try {
-      const slug = slugify(name);
-      const category = await createCategory({ name: name.trim(), slug });
+      const category = await createCategory(name.trim());
       categories.value = [...categories.value, category];
       selectedCategories.value = [...selectedCategories.value, category.slug];
       toast.success(`Category "${category.name}" created`);
