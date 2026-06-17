@@ -40,7 +40,9 @@ const formatWordCount = (book: Book): string => {
 
 const formatLastEdit = (book: Book): string => {
   if (!book.updatedAt) return "Just now";
-  return dayjs(book.updatedAt).fromNow();
+  const d = dayjs(book.updatedAt);
+  if (!d.isValid()) return "Just now";
+  return d.fromNow();
 };
 </script>
 

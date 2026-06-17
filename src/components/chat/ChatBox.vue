@@ -33,12 +33,40 @@
     </header>
 
     <!-- Main Grid: Listings | Chat -->
-    <div class="flex-1 flex items-start max-w-[1600px] w-full mx-auto p-4 sm:p-6 gap-4">
+    <div class="flex-1 flex flex-col md:flex-row items-stretch md:items-start max-w-[1600px] w-full mx-auto p-4 sm:p-6 gap-4">
+
+      <!-- Mobile Tab Switcher -->
+      <div class="flex md:hidden bg-white border border-slate-100 p-1.5 rounded-2xl w-full shadow-sm mb-2 shrink-0">
+        <button
+          type="button"
+          @click="activeTab = 'listings'"
+          :class="activeTab === 'listings' ? 'bg-[#093A3F] text-white font-bold shadow-md shadow-[#093A3F]/10' : 'text-slate-500 hover:text-slate-800 font-semibold'"
+          class="flex-1 py-2.5 text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5"
+        >
+          <BookOpen :size="14" />
+          Listings ({{ listings.length }})
+        </button>
+        <button
+          type="button"
+          @click="activeTab = 'chat'"
+          :class="activeTab === 'chat' ? 'bg-[#093A3F] text-white font-bold shadow-md shadow-[#093A3F]/10' : 'text-slate-500 hover:text-slate-800 font-semibold'"
+          class="flex-1 py-2.5 text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 relative"
+        >
+          <MessageSquare :size="14" />
+          Chat Room
+          <span v-if="onlineMembers.length" class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+        </button>
+      </div>
 
       <!-- ═══════════════════════════════════════════════
            LEFT: Listings Panel
       ════════════════════════════════════════════════ -->
-      <aside class="flex flex-col w-full md:w-[420px] xl:w-[480px] shrink-0 bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden sticky top-4 h-[calc(100vh-97px)] self-start">
+      <aside
+        :class="[
+          activeTab === 'listings' ? 'flex' : 'hidden md:flex',
+          'flex-col w-full md:w-[420px] xl:w-[480px] shrink-0 bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden sticky top-4 h-[calc(100vh-160px)] md:h-[calc(100vh-97px)] self-start'
+        ]"
+      >
         <!-- Panel header -->
         <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50">
           <div class="flex items-center gap-2">
@@ -162,7 +190,12 @@
       <!-- ═══════════════════════════════════════════════
            RIGHT: Chat Panel
       ════════════════════════════════════════════════ -->
-      <main class="flex-1 bg-white rounded-3xl shadow-xl border border-slate-100 flex flex-col overflow-hidden min-w-0 sticky top-4 h-[calc(100vh-97px)] self-start">
+      <main
+        :class="[
+          activeTab === 'chat' ? 'flex' : 'hidden md:flex',
+          'flex-1 bg-white rounded-3xl shadow-xl border border-slate-100 flex-col overflow-hidden min-w-0 sticky top-4 h-[calc(100vh-160px)] md:h-[calc(100vh-97px)] self-start'
+        ]"
+      >
         <!-- Chat header -->
         <div class="px-6 py-4 flex items-center justify-between border-b border-slate-100 bg-slate-50/50">
           <div class="flex items-center gap-3">
@@ -473,7 +506,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useAuth, token } from '../../stores/useAuth';
 import { getChatMessages, sendChatMessage, type ChatMessage } from '../../services/chatApi';
 import { exchangeService } from '../../services/exchange.service';
@@ -484,8 +517,11 @@ import {
 } from 'lucide-vue-next';
 
 const router = useRouter();
+const route = useRoute();
 const { user: currentUser } = useAuth();
 const isAuthenticated = computed(() => Boolean(token.value));
+
+const activeTab = ref<'listings' | 'chat'>('listings');
 
 // ─── Listings ────────────────────────────────────────────
 const listings = ref<ExchangeListing[]>([]);
@@ -600,7 +636,10 @@ const openContactModal = (item: ExchangeListing) => {
 
 const sendContactChat = (item: ExchangeListing) => {
   newMessage.value = `Hi! I'm interested in your book: "${item.title}" by ${item.author} (${item.exchangeType}). Is it still available?`;
-  inputRef.value?.focus();
+  activeTab.value = 'chat';
+  nextTick(() => {
+    inputRef.value?.focus();
+  });
 };
 
 // ─── Chat ─────────────────────────────────────────────────
@@ -718,6 +757,18 @@ onMounted(() => {
 
   chatPollTimer = setInterval(() => fetchMessages(true), 3000);
   listingsPollTimer = setInterval(() => fetchListings(searchQuery.value), 15000);
+
+  // Check if routed with book details query parameters
+  const { title, author, exchangeType } = route.query;
+  if (title && author && exchangeType) {
+    newMessage.value = `Hi! I'm interested in your book: "${title}" by ${author} (${exchangeType}). Is it still available?`;
+    activeTab.value = 'chat';
+    nextTick(() => {
+      inputRef.value?.focus();
+    });
+    // Clean up query parameters to keep the URL clean
+    router.replace({ path: '/chatbox', query: {} });
+  }
 });
 
 onUnmounted(() => {

@@ -20,85 +20,139 @@
       class="fixed inset-0 flex items-center justify-center p-4 sm:p-6 z-50"
       style="background-color: var(--reader-bg)"
     >
-      <div class="w-full max-w-md animate-fade-in-up">
-        <div class="bg-[#093A3F] rounded-2xl shadow-2xl overflow-hidden">
-          <!-- Thin gold accent -->
-          <div
-            class="h-1 bg-gradient-to-r from-amber-500/70 via-amber-400 to-amber-500/70"
-          ></div>
-
+      <div class="w-full animate-fade-in-up" :class="accessError.requiresSubscription && accessError.requiresPurchase ? 'max-w-2xl' : 'max-w-md'">
+        <!-- Login required only -->
+        <div
+          v-if="accessError.requiresLogin && !accessError.requiresSubscription && !accessError.requiresPurchase"
+          class="bg-[#093A3F] rounded-2xl shadow-2xl overflow-hidden"
+        >
+          <div class="h-1 bg-gradient-to-r from-amber-500/70 via-amber-400 to-amber-500/70"></div>
           <div class="px-6 py-10 sm:px-10 sm:py-12 text-center">
-            <!-- Icon -->
-            <div
-              class="w-16 h-16 mx-auto mb-6 rounded-full bg-white/10 flex items-center justify-center"
-            >
-              <Lock
-                v-if="accessError.requiresPurchase"
-                class="text-amber-400 w-7 h-7"
-              />
-              <Crown
-                v-else-if="accessError.requiresSubscription"
-                class="text-amber-400 w-7 h-7"
-              />
-              <LogIn v-else class="text-amber-400 w-7 h-7" />
+            <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-white/10 flex items-center justify-center">
+              <LogIn class="text-amber-400 w-7 h-7" />
             </div>
-
-            <!-- Title -->
-            <h2
-              class="text-2xl sm:text-3xl font-bold text-white mb-3 tracking-tight"
-              style="font-family: var(--heading)"
-            >
-              {{
-                accessError.requiresSubscription
-                  ? "Premium Content"
-                  : accessError.requiresPurchase
-                    ? "Paid Chapter"
-                    : "Welcome Back"
-              }}
+            <h2 class="text-2xl sm:text-3xl font-bold text-white mb-3 tracking-tight" style="font-family: var(--heading)">
+              Welcome Back
             </h2>
-
-            <!-- Reason -->
-            <p
-              class="text-white/60 text-sm leading-relaxed mb-8 max-w-xs mx-auto"
+            <p class="text-white/60 text-sm leading-relaxed mb-8 max-w-xs mx-auto">{{ accessError.reason }}</p>
+            <button
+              @click="router.push('/login')"
+              class="inline-flex items-center justify-center gap-2 w-full max-w-[260px] px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#093A3F] font-bold text-sm transition-colors"
             >
+              <LogIn :size="18" />
+              Log In to Continue
+            </button>
+            <button
+              @click="router.push(`/book-detail/${route.params.id}`)"
+              class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-white/45 hover:text-white/80 hover:bg-white/6 font-medium text-sm transition-all mt-3"
+            >
+              <ArrowLeft :size="16" />
+              Back to Book Details
+            </button>
+          </div>
+        </div>
+
+        <!-- Subscription + Purchase dual cards (both available) -->
+        <div v-else-if="accessError.requiresSubscription || accessError.requiresPurchase">
+          <div class="text-center mb-6">
+            <div class="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center shadow-lg" style="background-color: #093A3F">
+              <Crown class="text-amber-400 w-7 h-7" />
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-bold tracking-tight" :style="{ color: 'var(--reader-text)' }" style="font-family: var(--heading)">
+              Premium Content
+            </h2>
+            <p class="text-sm opacity-60 mt-2 max-w-sm mx-auto" :style="{ color: 'var(--reader-text)' }">
               {{ accessError.reason }}
             </p>
+          </div>
 
-            <!-- Actions -->
-            <div class="flex flex-col items-center gap-3">
-              <button
-                v-if="accessError.requiresLogin"
-                @click="router.push('/login')"
-                class="inline-flex items-center justify-center gap-2 w-full max-w-[260px] px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#093A3F] font-bold text-sm transition-colors"
-              >
-                <LogIn :size="18" />
-                Log In to Continue
-              </button>
-              <button
-                v-if="accessError.requiresSubscription"
-                @click="router.push('/subscriptions')"
-                class="inline-flex items-center justify-center gap-2 w-full max-w-[260px] px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#093A3F] font-bold text-sm transition-colors"
-              >
-                <Crown :size="18" />
-                View Subscription Plans
-              </button>
-              <button
-                v-if="accessError.requiresPurchase"
-                @click="router.push(`/book-detail/${route.params.id}`)"
-                class="inline-flex items-center justify-center gap-2 w-full max-w-[260px] px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#093A3F] font-bold text-sm transition-colors"
-              >
-                <ShoppingCart :size="18" />
-                Purchase This Chapter
-              </button>
-
-              <button
-                @click="router.push(`/book-detail/${route.params.id}`)"
-                class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-white/45 hover:text-white/80 hover:bg-white/6 font-medium text-sm transition-all mt-2"
-              >
-                <ArrowLeft :size="16" />
-                Back to Book Details
-              </button>
+          <div class="grid gap-4" :class="accessError.requiresSubscription && accessError.requiresPurchase ? 'sm:grid-cols-2' : 'max-w-sm mx-auto'">
+            <!-- Subscription Card -->
+            <div
+              v-if="accessError.requiresSubscription"
+              class="bg-white rounded-2xl border-2 border-amber-400/40 shadow-xl overflow-hidden"
+            >
+              <div class="h-1 bg-gradient-to-r from-amber-500 to-yellow-400"></div>
+              <div class="p-6 text-center">
+                <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-amber-100 flex items-center justify-center">
+                  <Crown class="text-amber-600 w-6 h-6" />
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-1">Premium Subscription</h3>
+                <p class="text-xs text-gray-500 mb-5 leading-relaxed">
+                  Unlimited access to all premium books, ad-free reading, and exclusive early releases.
+                </p>
+                <ul class="text-left text-xs text-gray-600 space-y-1.5 mb-5">
+                  <li class="flex items-start gap-2">
+                    <span class="text-green-500 mt-0.5">✓</span>
+                    Unlimited premium books
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-green-500 mt-0.5">✓</span>
+                    Ad-free reading
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-green-500 mt-0.5">✓</span>
+                    Early access to new releases
+                  </li>
+                </ul>
+                <button
+                  @click="router.push('/subscriptions')"
+                  class="w-full py-2.5 rounded-xl text-sm font-bold bg-amber-500 hover:bg-amber-400 text-white transition-colors"
+                >
+                  View Plans — from $5
+                </button>
+              </div>
             </div>
+
+            <!-- Purchase Card -->
+            <div
+              v-if="accessError.requiresPurchase"
+              class="bg-white rounded-2xl border-2 border-[#093A3F]/30 shadow-xl overflow-hidden"
+            >
+              <div class="h-1 bg-gradient-to-r from-[#093A3F] to-[#0d4a50]"></div>
+              <div class="p-6 text-center">
+                <div class="w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center" style="background-color: rgba(9,58,63,0.08)">
+                  <ShoppingCart :size="22" style="color: #093A3F" />
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-1">One-Time Purchase</h3>
+                <p class="text-xs text-gray-500 mb-5 leading-relaxed">
+                  Buy this book or chapter individually. Own it forever — no subscription needed.
+                </p>
+                <ul class="text-left text-xs text-gray-600 space-y-1.5 mb-5">
+                  <li class="flex items-start gap-2">
+                    <span class="text-green-500 mt-0.5">✓</span>
+                    Lifetime access
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-green-500 mt-0.5">✓</span>
+                    No recurring fees
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-green-500 mt-0.5">✓</span>
+                    Read anytime, anywhere
+                  </li>
+                </ul>
+                <button
+                  @click="router.push(`/book-detail/${route.params.id}`)"
+                  class="w-full py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-colors"
+                  style="background-color: #093A3F"
+                >
+                  See Purchase Options
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Back link -->
+          <div class="text-center mt-5">
+            <button
+              @click="router.push(`/book-detail/${route.params.id}`)"
+              class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all opacity-50 hover:opacity-80"
+              :style="{ color: 'var(--reader-text)' }"
+            >
+              <ArrowLeft :size="16" />
+              Back to Book Details
+            </button>
           </div>
         </div>
       </div>
@@ -338,6 +392,64 @@
                 >
                   Sans
                 </button>
+              </div>
+            </div>
+          </div>
+        </transition>
+
+        <!-- Access Denied Toast (shown when blocked from navigating to a restricted chapter) -->
+        <transition name="slide-down">
+          <div
+            v-if="accessError && currentChapter"
+            class="absolute top-16 left-4 right-4 z-50 sm:left-1/2 sm:-translate-x-1/2 sm:w-[440px]"
+          >
+            <div class="animate-fade-in-up bg-white rounded-2xl border border-gray-200 shadow-2xl overflow-hidden">
+              <!-- Gold accent bar -->
+              <div class="h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400"></div>
+
+              <div class="p-5">
+                <!-- Header row -->
+                <div class="flex items-start gap-4">
+                  <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center" :class="accessError.requiresSubscription ? 'bg-amber-100' : 'bg-[#093A3F]/10'">
+                    <Crown v-if="accessError.requiresSubscription" class="text-amber-600 w-5 h-5" />
+                    <Lock v-else-if="accessError.requiresPurchase" :size="20" style="color: #093A3F" />
+                    <AlertTriangle v-else class="text-red-500 w-5 h-5" />
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-gray-900">
+                      {{ accessError.requiresSubscription ? 'Premium Content' : accessError.requiresPurchase ? 'Paid Content' : 'Access Restricted' }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">{{ accessError.reason }}</p>
+                  </div>
+                  <button
+                    @click="accessError = null"
+                    class="shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                    title="Dismiss"
+                  >
+                    <X :size="16" />
+                  </button>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="flex items-center gap-2.5 mt-4 pt-3 border-t border-gray-100">
+                  <button
+                    v-if="accessError.requiresSubscription"
+                    @click="router.push('/subscriptions')"
+                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-amber-500 hover:bg-amber-400 text-white transition-colors shadow-sm shadow-amber-500/20"
+                  >
+                    <Crown :size="16" />
+                    Upgrade to Premium
+                  </button>
+                  <button
+                    v-if="accessError.requiresPurchase"
+                    @click="router.push(`/book-detail/${route.params.id}`)"
+                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-colors shadow-sm"
+                    style="background-color: #093A3F"
+                  >
+                    <ShoppingCart :size="16" />
+                    Purchase Book
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1274,6 +1386,21 @@ watch(
     }
   },
 );
+
+// Auto-dismiss the access-denied toast when user is already reading a chapter
+let dismissToastTimer: ReturnType<typeof setTimeout> | null = null;
+watch(accessError, (err) => {
+  if (dismissToastTimer) {
+    clearTimeout(dismissToastTimer);
+    dismissToastTimer = null;
+  }
+  // Only auto-dismiss the toast variant (when currentChapter is present)
+  if (err && currentChapter.value) {
+    dismissToastTimer = setTimeout(() => {
+      accessError.value = null;
+    }, 8000);
+  }
+});
 </script>
 
 <style scoped>
@@ -1376,6 +1503,17 @@ watch(
 .slide-fade-enter-from,
 .slide-fade-leave-to {
   transform: translateY(-20px) translateX(20px);
+  opacity: 0;
+}
+
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.35s ease-out;
+}
+
+.slide-down-enter-from,
+.slide-down-leave-to {
+  transform: translateY(-16px);
   opacity: 0;
 }
 

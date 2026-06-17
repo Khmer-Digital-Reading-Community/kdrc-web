@@ -137,22 +137,24 @@ export function useWritingPage() {
         .map((c) => `${c.chapterNumber}. ${c.title}`)
         .join("\n");
 
-      const promises: Promise<any>[] = [
+      const [updatedBook] = await Promise.all([
         updateBook(bookId.value, {
           title: book.value.title,
           tableOfContents: toc,
         }),
-      ];
+        ...(activeChapterId.value
+          ? [
+              updateChapter(activeChapterId.value, {
+                content: editorContent.value,
+              }),
+            ]
+          : []),
+      ]);
 
-      if (activeChapterId.value) {
-        promises.push(
-          updateChapter(activeChapterId.value, {
-            content: editorContent.value,
-          }),
-        );
+      // Refresh local book state with the backend response so updatedAt stays current
+      if (updatedBook) {
+        book.value = { ...book.value, ...updatedBook };
       }
-
-      await Promise.all(promises);
 
       if (activeChapterId.value) {
         const chIndex = chapters.value.findIndex(

@@ -40,8 +40,14 @@
 
     <!-- Nav -->
     <nav class="sidebar-nav">
-      <div v-for="section in navSections" :key="section.group" class="nav-section">
-        <p v-if="!collapsed || isMobile" class="section-label">{{ section.group }}</p>
+      <div
+        v-for="section in navSections"
+        :key="section.group"
+        class="nav-section"
+      >
+        <p v-if="!collapsed || isMobile" class="section-label">
+          {{ section.group }}
+        </p>
         <div v-else class="section-divider" />
 
         <router-link
@@ -53,8 +59,12 @@
           @click="mobileOpen = false"
         >
           <span class="nav-icon" v-html="item.icon"></span>
-          <span v-if="!collapsed || isMobile" class="nav-label">{{ item.label }}</span>
-          <span v-if="collapsed && !isMobile" class="nav-tooltip">{{ item.label }}</span>
+          <span v-if="!collapsed || isMobile" class="nav-label">{{
+            item.label
+          }}</span>
+          <span v-if="collapsed && !isMobile" class="nav-tooltip">{{
+            item.label
+          }}</span>
         </router-link>
       </div>
     </nav>
@@ -80,19 +90,17 @@
     <Menu v-if="!mobileOpen" :size="22" />
     <X v-else :size="22" />
   </button>
-  <div v-if="mobileOpen && isMobile" class="sidebar-overlay" @click="mobileOpen = false" />
+  <div
+    v-if="mobileOpen && isMobile"
+    class="sidebar-overlay"
+    @click="mobileOpen = false"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import {
-  Plus,
-  Menu,
-  X,
-  PanelLeftClose,
-  PanelLeftOpen,
-} from "lucide-vue-next";
+import { Plus, Menu, X, PanelLeftClose, PanelLeftOpen } from "lucide-vue-next";
 import { loginRole } from "../../stores/useAuth";
 import { authState } from "../../services/auth";
 
@@ -129,7 +137,7 @@ const navSections = [
       },
       {
         label: "Exchange",
-        route: "/exchange",
+        route: "/dashboard/exchange-dashboard-v2",
         icon: `<svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
         </svg>`,
@@ -166,10 +174,10 @@ const navSections = [
         </svg>`,
       },
       {
-        label: "Trade Center",
-        route: "/dashboard/exchange-dashboard-v2",
+        label: "Reading History",
+        route: "/dashboard/reading-history",
         icon: `<svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h10m0 0l-2-2m2 2l-2 2M17 17H7m0 0l2 2m-2-2l2-2"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>`,
       },
     ],
@@ -205,7 +213,8 @@ const navSections = [
 
 const resolvedRoute = (item: { route: string }) => {
   const currentRole =
-    loginRole.value || (authState.user.value?.role === "ADMIN" ? "admin" : "user");
+    loginRole.value ||
+    (authState.user.value?.role === "ADMIN" ? "admin" : "user");
   if (currentRole === "admin") {
     if (item.route === "/settings/profile") return "/admin/profile";
     if (item.route === "/settings") return "/admin/settings";
@@ -215,7 +224,8 @@ const resolvedRoute = (item: { route: string }) => {
 
 const isItemActive = (item: { route: string }) => {
   const currentRole =
-    loginRole.value || (authState.user.value?.role === "ADMIN" ? "admin" : "user");
+    loginRole.value ||
+    (authState.user.value?.role === "ADMIN" ? "admin" : "user");
   let targetRoute = item.route;
   if (currentRole === "admin") {
     if (item.route === "/settings/profile") targetRoute = "/admin/profile";
@@ -334,7 +344,9 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
   z-index: 10;
 }
 
@@ -387,7 +399,9 @@ onBeforeUnmount(() => {
   background: none;
   width: 100%;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   position: relative;
   white-space: nowrap;
   overflow: hidden;
@@ -506,7 +520,9 @@ onBeforeUnmount(() => {
 @media (max-width: 768px) {
   .dashboard-sidebar {
     transform: translateX(-100%);
-    transition: transform 0.25s ease, width 0.25s ease;
+    transition:
+      transform 0.25s ease,
+      width 0.25s ease;
     width: 260px !important;
   }
 

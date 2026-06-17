@@ -20,7 +20,7 @@
           ref="searchInput"
           v-model="query"
           type="text"
-          placeholder="Search books by title or author"
+          placeholder="Search books, exchanges & authors..."
           class="w-full pl-12 pr-10 py-2.5 md:py-3 rounded-[12px] border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B4690E] focus:border-transparent transition-all placeholder-gray-400 text-base"
           :aria-label="'Search books and authors'"
           :aria-expanded="showSuggestions"
@@ -161,6 +161,60 @@
             </button>
           </div>
 
+          <!-- Exchange Section -->
+          <div
+            v-if="exchangeSuggestions.length > 0"
+            class="border-b border-gray-100"
+          >
+            <p
+              class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider"
+            >
+              Exchanges
+            </p>
+            <button
+              v-for="(item, index) in exchangeSuggestions"
+              :key="`exchange-${item.id}`"
+              :class="[
+                'w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors flex items-center gap-3',
+                {
+                  'bg-blue-50':
+                    selectedIndex === bookSuggestions.length + index,
+                },
+              ]"
+              @click="selectExchangeSuggestion(item)"
+              @mouseenter="selectedIndex = bookSuggestions.length + index"
+            >
+              <img
+                v-if="item.coverImage"
+                :src="item.coverImage"
+                :alt="item.title"
+                class="w-8 h-10 object-cover rounded flex-shrink-0"
+              />
+              <div
+                v-else
+                class="w-8 h-10 rounded bg-green-100 flex items-center justify-center flex-shrink-0"
+              >
+                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div
+                  class="text-sm text-gray-900 truncate"
+                  v-html="highlightMatch(item.title ?? '')"
+                ></div>
+                <div class="text-xs text-gray-500">
+                  {{ item.author?.name || "Unknown" }}
+                </div>
+              </div>
+              <span
+                class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex-shrink-0"
+              >
+                Exchange
+              </span>
+            </button>
+          </div>
+
           <!-- Authors Section -->
           <div
             v-if="authorSuggestions.length > 0"
@@ -178,11 +232,11 @@
                 'w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors flex items-center gap-3',
                 {
                   'bg-blue-50':
-                    selectedIndex === bookSuggestions.length + index,
+                    selectedIndex === bookSuggestions.length + exchangeSuggestions.length + index,
                 },
               ]"
               @click="selectAuthorSuggestion(item)"
-              @mouseenter="selectedIndex = bookSuggestions.length + index"
+              @mouseenter="selectedIndex = bookSuggestions.length + exchangeSuggestions.length + index"
             >
               <div
                 class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 text-xs font-bold text-blue-700"
@@ -277,6 +331,10 @@ const bookSuggestions = computed(() =>
   suggestions.value.filter((item) => item.type === "book"),
 );
 
+const exchangeSuggestions = computed(() =>
+  suggestions.value.filter((item) => item.type === "exchange"),
+);
+
 const authorSuggestions = computed(() =>
   suggestions.value.filter((item) => item.type === "author"),
 );
@@ -353,9 +411,26 @@ const selectSuggestion = (item: any) => {
       name: "book-detail",
       params: { id: item.id },
     });
+  } else if (item.type === "exchange") {
+    // Navigate to search results page so the user sees both books and exchanges
+    saveRecentSearch(item.title ?? "");
+    router.push({
+      name: "search",
+      query: { q: item.title ?? "", page: "1" },
+    });
   } else {
     viewAllResults();
   }
+  closeSuggestions();
+};
+
+const selectExchangeSuggestion = (item: any) => {
+  // Navigate to search results page to show full context (books + exchanges)
+  saveRecentSearch(item.title ?? "");
+  router.push({
+    name: "search",
+    query: { q: item.title ?? "", page: "1" },
+  });
   closeSuggestions();
 };
 

@@ -99,6 +99,11 @@ export default [
         name: "notifications",
         component: () => import("../pages/user/NotificationsPage.vue"),
       },
+      {
+        path: "subscriptions",
+        name: "subscriptions",
+        component: () => import("../pages/user/SubscriptionPlans.vue"),
+      },
     ],
   },
   {
@@ -175,6 +180,11 @@ export default [
         path: "bookmarks",
         name: "bookmarks",
         component: () => import("../pages/user/BookmarkPage.vue"),
+      },
+      {
+        path: "reading-history",
+        name: "reading-history",
+        component: () => import("../pages/user/ReadingHistoryPage.vue"),
       },
       {
         path: "billing",

@@ -18,7 +18,7 @@
     <div v-else class="space-y-4">
       <div v-for="book in books" :key="book.id" class="flex items-center gap-3">
         <div class="w-12 h-16 rounded-lg bg-[#f5f3ee] flex items-center justify-center flex-none overflow-hidden">
-          <img v-if="book.book?.cover" :src="book.book.cover" :alt="book.book.title" class="w-full h-full object-cover" />
+          <img v-if="book.book?.coverImageUrl" :src="book.book.coverImageUrl" :alt="book.book.title" class="w-full h-full object-cover" />
           <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c0bbb2" stroke-width="1.5">
             <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>

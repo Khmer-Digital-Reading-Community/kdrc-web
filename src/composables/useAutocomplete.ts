@@ -3,7 +3,7 @@ import { getSearchSuggestions } from '../services/searchApi';
 
 export interface AutocompleteSuggestion {
     id: string;
-    type: 'book' | 'author' | 'category';
+    type: 'book' | 'author' | 'category' | 'exchange';
     title?: string;
     name?: string;
     coverImage?: string;
@@ -87,6 +87,19 @@ const fetchSuggestions = async (query: string): Promise<void> => {
                         id: category.id,
                         type: 'category' as const,
                         name: category.name,
+                    }))
+                );
+            }
+
+            // Add exchange listings if available (limit to 3)
+            if (data.exchanges && Array.isArray(data.exchanges)) {
+                transformedSuggestions.push(
+                    ...data.exchanges.slice(0, 3).map((exchange) => ({
+                        id: exchange.id,
+                        type: 'exchange' as const,
+                        title: exchange.title,
+                        coverImage: exchange.coverImage,
+                        author: exchange.author,
                     }))
                 );
             }

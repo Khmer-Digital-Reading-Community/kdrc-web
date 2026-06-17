@@ -180,8 +180,8 @@ export const getCategories = async (): Promise<Category[]> => {
   return response.data;
 };
 
-export const createCategory = async (data: { name: string; slug: string }): Promise<Category> => {
-  const response = await api.post("/categories", data);
+export const createCategory = async (name: string): Promise<Category> => {
+  const response = await api.post("/categories", { name });
   return response.data;
 };
 

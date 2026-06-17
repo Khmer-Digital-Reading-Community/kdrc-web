@@ -89,7 +89,7 @@ export default {
             id: p.book?.id || p.id,
             title: p.book?.title || 'Untitled',
             author: p.book?.author?.name || 'Unknown Author',
-            cover: p.book?.cover || null,
+            cover: p.book?.coverImageUrl || null,
           }))
       } catch (e) {
         console.warn('Failed to fetch reading history:', e.message)

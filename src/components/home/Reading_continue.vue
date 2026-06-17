@@ -205,7 +205,7 @@ export default {
           title: p.book?.title || 'Untitled',
           author: p.book?.author?.name || 'Unknown Author',
           progress: Math.round(Number(p.percentageCompleted) || 0),
-          cover: p.book?.cover || null,
+          cover: p.book?.coverImageUrl || null,
           lastReadAt: p.lastReadAt,
           lastChapterId: p.chapterId || p.lastChapterId || null,
           chapterTitle: null,
