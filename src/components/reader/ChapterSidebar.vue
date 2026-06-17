@@ -23,16 +23,18 @@
               'absolute inset-y-0 left-0 z-50 w-[280px] shadow-2xl pointer-events-auto overflow-hidden',
               isOpen ? 'translate-x-0' : '-translate-x-full',
             ]
-          : [
-              'relative border-r overflow-hidden',
-              isOpen ? 'w-[280px]' : 'w-0',
-            ],
+          : ['relative border-r overflow-hidden', isOpen ? 'w-[280px]' : 'w-0'],
       ]"
       :style="sidebarStyle"
     >
       <!-- Header -->
-      <div class="flex items-center justify-between px-4 py-4 border-b shrink-0 whitespace-nowrap" :style="borderStyle">
-        <h3 class="text-sm font-bold uppercase tracking-wider opacity-70">Chapters</h3>
+      <div
+        class="flex items-center justify-between px-4 py-4 border-b shrink-0 whitespace-nowrap"
+        :style="borderStyle"
+      >
+        <h3 class="text-sm font-bold uppercase tracking-wider opacity-70">
+          Chapters
+        </h3>
         <button
           v-if="isMobile"
           @click="$emit('close')"
@@ -43,7 +45,9 @@
       </div>
 
       <!-- Chapter count -->
-      <div class="px-4 py-2 text-xs font-medium opacity-50 shrink-0 whitespace-nowrap">
+      <div
+        class="px-4 py-2 text-xs font-medium opacity-50 shrink-0 whitespace-nowrap"
+      >
         {{ chapters.length }} chapter{{ chapters.length !== 1 ? "s" : "" }}
       </div>
 
@@ -79,7 +83,9 @@
               <p
                 :class="[
                   'text-sm font-medium truncate leading-tight',
-                  isActiveChapter(chapter.id) ? 'text-amber-700' : 'text-current/80',
+                  isActiveChapter(chapter.id)
+                    ? 'text-amber-700'
+                    : 'text-current/80',
                 ]"
               >
                 {{ chapter.title || `Chapter ${chapter.chapterNumber}` }}
@@ -93,7 +99,9 @@
                 <Crown :size="10" />
               </span>
               <span
-                v-else-if="chapter.isPurchasable && Number(chapter.price ?? 0) > 0"
+                v-else-if="
+                  chapter.isPurchasable && Number(chapter.price ?? 0) > 0
+                "
                 class="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20"
                 title="Paid — requires purchase"
               >
@@ -116,7 +124,9 @@
             <div
               class="absolute bottom-0 w-full rounded-full transition-all duration-300"
               :class="[
-                getChapterProgress(chapter.id) >= 100 ? 'bg-green-500' : 'bg-amber-500',
+                getChapterProgress(chapter.id) >= 100
+                  ? 'bg-green-500'
+                  : 'bg-amber-500',
               ]"
               :style="{ height: getChapterProgress(chapter.id) + '%' }"
             ></div>
@@ -130,7 +140,10 @@
       </nav>
 
       <!-- Bottom book info -->
-      <div class="px-4 py-3 border-t text-xs font-medium opacity-40 truncate shrink-0 whitespace-nowrap" :style="borderStyle">
+      <div
+        class="px-4 py-3 border-t text-xs font-medium opacity-40 truncate shrink-0 whitespace-nowrap"
+        :style="borderStyle"
+      >
         {{ bookTitle }}
       </div>
     </aside>
@@ -171,7 +184,7 @@ const themes = {
 const isMobile = ref(false);
 
 const sortedChapters = computed(() =>
-  [...props.chapters].sort((a, b) => a.chapterNumber - b.chapterNumber)
+  [...props.chapters].sort((a, b) => a.chapterNumber - b.chapterNumber),
 );
 
 const borderColor = computed(() => {
@@ -190,7 +203,7 @@ const borderStyle = computed(() => ({
 }));
 
 const activeChapterClass = computed(() =>
-  props.currentTheme === "dark" ? "bg-amber-900/20" : "bg-amber-50"
+  props.currentTheme === "dark" ? "bg-amber-900/20" : "bg-amber-50",
 );
 
 const activeChapterStyle = computed(() => ({
@@ -200,12 +213,12 @@ const activeChapterStyle = computed(() => ({
 const isActiveChapter = (chapterId: string) =>
   chapterId === props.activeChapterId;
 
-const isChapterRestricted = (chapter: Chapter) => {
-  return (
-    chapter.isPremium ||
-    (chapter.isPurchasable && Number(chapter.price ?? 0) > 0)
-  );
-};
+// const isChapterRestricted = (chapter: Chapter) => {
+//   return (
+//     chapter.isPremium ||
+//     (chapter.isPurchasable && Number(chapter.price ?? 0) > 0)
+//   );
+// };
 
 const chapterProgressCache = ref<Map<string, number>>(new Map());
 
@@ -238,9 +251,13 @@ const checkMobile = () => {
   isMobile.value = window.innerWidth < 1024;
 };
 
-watch(() => props.chapters, () => {
-  buildProgressCache();
-}, { immediate: true });
+watch(
+  () => props.chapters,
+  () => {
+    buildProgressCache();
+  },
+  { immediate: true },
+);
 
 onMounted(() => {
   checkMobile();
@@ -255,7 +272,12 @@ onUnmounted(() => {
 <style scoped>
 .chapter-sidebar {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--reader-text, #1f2937) 20%, transparent) transparent;
+  scrollbar-color: color-mix(
+      in srgb,
+      var(--reader-text, #1f2937) 20%,
+      transparent
+    )
+    transparent;
 }
 
 aside::-webkit-scrollbar {

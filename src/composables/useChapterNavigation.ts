@@ -1,6 +1,6 @@
-import { ref, computed, shallowRef } from 'vue';
-import { useRouter } from 'vue-router';
-import api from '../services/api';
+import { ref, computed, shallowRef } from "vue";
+import { useRouter } from "vue-router";
+import api from "../services/api";
 
 export interface Chapter {
   id: string;
@@ -34,7 +34,7 @@ export function useChapterNavigation() {
 
   const chapters = ref<Chapter[]>([]);
   const currentChapter = ref<Chapter | null>(null);
-  const currentChapterContent = shallowRef<string>('');
+  const currentChapterContent = shallowRef<string>("");
   const contentCacheKey = ref(0);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
@@ -42,7 +42,7 @@ export function useChapterNavigation() {
 
   const currentChapterIndex = computed(() => {
     if (!currentChapter.value) return -1;
-    return chapters.value.findIndex(ch => ch.id === currentChapter.value!.id);
+    return chapters.value.findIndex((ch) => ch.id === currentChapter.value!.id);
   });
 
   const hasNextChapter = computed(() => {
@@ -71,11 +71,11 @@ export function useChapterNavigation() {
   });
 
   const scrollToTop = () => {
-    const mainElement = document.querySelector('main');
+    const mainElement = document.querySelector("main");
     if (mainElement) {
       mainElement.scrollTop = 0;
     } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -85,16 +85,22 @@ export function useChapterNavigation() {
       err?.response?.data?.message ||
       err?.response?.data?.data?.message ||
       err?.message ||
-      'Access denied';
+      "Access denied";
 
     const lower = message.toLowerCase();
     if (status === 403 || status === 401) {
-      if (lower.includes('login') || status === 401) {
+      if (lower.includes("login") || status === 401) {
         return { reason: message, chapterId, requiresLogin: true };
       }
-      // Check both flags independently — backend may mention both options
-      const hasSub = lower.includes('subscription') || lower.includes('premium');
-      const hasPurchase = lower.includes('purchase') || lower.includes('own');
+      // Detect access type from the error message.
+      // Premium/subscription-gated content → show subscription upsell ONLY.
+      // Purchasable content → show purchase option ONLY.
+      const isSubMsg =
+        lower.includes("subscription") || lower.includes("premium");
+      const isPurchaseMsg = lower.includes("purchase") || lower.includes("own");
+      // If the message mentions subscription/premium, it's the primary gate — don't show purchase.
+      const hasSub = isSubMsg;
+      const hasPurchase = isPurchaseMsg && !isSubMsg;
       if (hasSub || hasPurchase) {
         return {
           reason: message,
@@ -110,7 +116,7 @@ export function useChapterNavigation() {
 
   const fetchChapters = async (bookId: string) => {
     if (!bookId) {
-      error.value = 'Book ID is required';
+      error.value = "Book ID is required";
       return;
     }
 
@@ -120,11 +126,11 @@ export function useChapterNavigation() {
       accessError.value = null;
 
       const response = await api.get(`/chapters/book/${bookId}`);
-      chapters.value = (response.data || []).sort((a: Chapter, b: Chapter) =>
-        a.chapterNumber - b.chapterNumber
+      chapters.value = (response.data || []).sort(
+        (a: Chapter, b: Chapter) => a.chapterNumber - b.chapterNumber,
       );
     } catch (err: any) {
-      error.value = err.message || 'Failed to fetch chapters';
+      error.value = err.message || "Failed to fetch chapters";
       chapters.value = [];
     } finally {
       isLoading.value = false;
@@ -137,7 +143,7 @@ export function useChapterNavigation() {
    */
   const fetchChapterContent = async (chapterId: string): Promise<boolean> => {
     if (!chapterId) {
-      error.value = 'Chapter ID is required';
+      error.value = "Chapter ID is required";
       return false;
     }
 
@@ -154,7 +160,7 @@ export function useChapterNavigation() {
       const chapterData = response.data;
 
       currentChapter.value = chapterData;
-      currentChapterContent.value = chapterData.content || '';
+      currentChapterContent.value = chapterData.content || "";
       contentCacheKey.value++;
       return true;
     } catch (err: any) {
@@ -166,8 +172,8 @@ export function useChapterNavigation() {
         currentChapter.value = prevChapter;
         currentChapterContent.value = prevContent;
       } else {
-        error.value = err.message || 'Failed to fetch chapter content';
-        currentChapterContent.value = '';
+        error.value = err.message || "Failed to fetch chapter content";
+        currentChapterContent.value = "";
         contentCacheKey.value++;
       }
       return false;
@@ -182,7 +188,7 @@ export function useChapterNavigation() {
    */
   const findFirstFreeChapter = (): Chapter | undefined => {
     return chapters.value.find((ch) => {
-      if (ch.status !== 'PUBLISHED') return false;
+      if (ch.status !== "PUBLISHED") return false;
       if (ch.isPremium) return false;
       if (ch.isPurchasable && Number(ch.price ?? 0) > 0) return false;
       return true;
@@ -200,7 +206,7 @@ export function useChapterNavigation() {
     }
 
     if (chapters.value.length === 0) {
-      error.value = 'This book has no chapters yet.';
+      error.value = "This book has no chapters yet.";
       return;
     }
 
@@ -214,7 +220,9 @@ export function useChapterNavigation() {
     // No free chapters — try loading the first published chapter through the backend.
     // The backend will grant or deny access based on the user's purchases/subscription.
     // Only show the access-error overlay if the backend actually returns 403.
-    const firstPublished = chapters.value.find((ch) => ch.status === 'PUBLISHED');
+    const firstPublished = chapters.value.find(
+      (ch) => ch.status === "PUBLISHED",
+    );
     if (firstPublished) {
       await fetchChapterContent(firstPublished.id);
       // If fetchChapterContent succeeded, currentChapter is now set and accessError is null.
@@ -222,13 +230,13 @@ export function useChapterNavigation() {
       return;
     }
 
-    error.value = 'No readable chapters found.';
+    error.value = "No readable chapters found.";
   };
 
   const navigateWithCleanUrl = async () => {
     if (currentChapter.value?.bookId) {
       await router.push({
-        name: 'readingpage',
+        name: "readingpage",
         params: { id: currentChapter.value.bookId },
         query: { chapterId: currentChapter.value.id },
       });
@@ -237,7 +245,7 @@ export function useChapterNavigation() {
 
   const goToNextChapter = async () => {
     if (!hasNextChapter.value || !nextChapter.value) {
-      error.value = 'No next chapter available';
+      error.value = "No next chapter available";
       return;
     }
 
@@ -252,7 +260,7 @@ export function useChapterNavigation() {
 
   const goToPreviousChapter = async () => {
     if (!hasPreviousChapter.value || !previousChapter.value) {
-      error.value = 'No previous chapter available';
+      error.value = "No previous chapter available";
       return;
     }
 
@@ -266,9 +274,9 @@ export function useChapterNavigation() {
   };
 
   const goToChapter = async (chapterId: string) => {
-    const chapter = chapters.value.find(ch => ch.id === chapterId);
+    const chapter = chapters.value.find((ch) => ch.id === chapterId);
     if (!chapter) {
-      error.value = 'Chapter not found';
+      error.value = "Chapter not found";
       return;
     }
 
