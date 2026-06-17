@@ -107,7 +107,7 @@ import {
   BarElement,
   Filler,
 } from "chart.js";
-import { fetchAdminAnalytics } from "../../services/adminApi";
+import { fetchAdminAnalytics, fetchAdminStats } from "../../services/adminApi";
 
 ChartJS.register(
   ArcElement,
@@ -138,7 +138,7 @@ interface AnalyticsPayload {
     newUsersThisMonth: number;
     newBooksThisMonth: number;
     newExchangeListingsThisMonth: number;
-  };
+  } | null;
   userGrowth: { month: string; count: string }[];
   booksByStatus: { status: string; count: string }[];
   exchangesByStatus?: { status: string; count: string }[];
@@ -146,7 +146,7 @@ interface AnalyticsPayload {
 }
 
 const loading = ref(true);
-const data = ref<AnalyticsPayload | null>(null);
+const data = ref<AnalyticsPayload>({ stats: null, userGrowth: [], booksByStatus: [] });
 
 const userGrowth = computed(() => data.value?.userGrowth ?? []);
 const booksByStatus = computed(() => data.value?.booksByStatus ?? []);
@@ -339,13 +339,20 @@ const radialOptions = computed(() => ({
 }));
 
 onMounted(async () => {
-  try {
-    data.value = await fetchAdminAnalytics();
-  } catch (e) {
-    console.error(e);
-  } finally {
-    loading.value = false;
+  const results = await Promise.allSettled([
+    fetchAdminAnalytics(),
+    fetchAdminStats(),
+  ]);
+  const [an, st] = results;
+  if (an.status === 'fulfilled') {
+    data.value = { ...an.value, stats: data.value.stats };
   }
+  if (st.status === 'fulfilled') {
+    data.value = { ...data.value, stats: st.value };
+  }
+  if (an.status === 'rejected') console.error('Failed to load analytics:', an.reason);
+  if (st.status === 'rejected') console.error('Failed to load stats:', st.reason);
+  loading.value = false;
 });
 </script>
 

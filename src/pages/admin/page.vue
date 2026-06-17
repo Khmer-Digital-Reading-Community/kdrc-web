@@ -25,7 +25,8 @@
         <div class="admin-card">
           <div class="admin-card-header"><h3>User Growth</h3></div>
           <div class="admin-card-body chart-body">
-            <div v-if="!userGrowth.length" class="admin-empty">Not enough data yet</div>
+            <div v-if="analyticsError" class="admin-empty">Failed to load chart</div>
+            <div v-else-if="!userGrowth.length" class="admin-empty">Not enough data yet</div>
             <Line v-else :data="userGrowthChartData" :options="sparklineOptions" />
           </div>
         </div>
@@ -33,7 +34,8 @@
         <div class="admin-card">
           <div class="admin-card-header"><h3>Books by Status</h3></div>
           <div class="admin-card-body chart-body">
-            <div v-if="!booksByStatus.length" class="admin-empty">No books yet</div>
+            <div v-if="analyticsError" class="admin-empty">Failed to load chart</div>
+            <div v-else-if="!booksByStatus.length" class="admin-empty">No books yet</div>
             <Doughnut v-else :data="booksDoughnutData" :options="miniDoughnutOptions" />
           </div>
         </div>
@@ -47,7 +49,8 @@
             <router-link to="/admin/analytics" class="link">View analytics</router-link>
           </div>
           <div class="admin-card-body activity-list">
-            <div v-if="!activity.length" class="admin-empty">No recent activity</div>
+            <div v-if="activityError" class="admin-empty">Failed to load activity</div>
+            <div v-else-if="!activity.length" class="admin-empty">No recent activity</div>
             <div v-for="item in activity" :key="`${item.type}-${item.id}`" class="activity-item">
               <span class="activity-icon" :class="item.type" />
               <div>
@@ -144,6 +147,9 @@ const loading = ref(true);
 const stats = ref<AdminStats | null>(null);
 const activity = ref<AdminActivityItem[]>([]);
 const analyticsData = ref<AnalyticsData>({ userGrowth: [], booksByStatus: [] });
+const statsError = ref(false);
+const activityError = ref(false);
+const analyticsError = ref(false);
 
 const userGrowth = computed(() => analyticsData.value.userGrowth ?? []);
 const booksByStatus = computed(() => analyticsData.value.booksByStatus ?? []);
@@ -213,20 +219,36 @@ const formatRelative = (ts: string) => {
 };
 
 onMounted(async () => {
-  try {
-    const [s, a, an] = await Promise.all([
-      fetchAdminStats(),
-      fetchAdminActivity(8),
-      fetchAdminAnalytics(),
-    ]);
-    stats.value = s;
-    activity.value = a;
-    analyticsData.value = an;
-  } catch (e) {
-    console.error(e);
-  } finally {
-    loading.value = false;
+  const results = await Promise.allSettled([
+    fetchAdminStats(),
+    fetchAdminActivity(8),
+    fetchAdminAnalytics(),
+  ]);
+
+  const [s, a, an] = results;
+
+  if (s.status === 'fulfilled') {
+    stats.value = s.value;
+  } else {
+    console.error('Failed to load stats:', s.reason);
+    statsError.value = true;
   }
+
+  if (a.status === 'fulfilled') {
+    activity.value = a.value;
+  } else {
+    console.error('Failed to load activity:', a.reason);
+    activityError.value = true;
+  }
+
+  if (an.status === 'fulfilled') {
+    analyticsData.value = an.value;
+  } else {
+    console.error('Failed to load analytics:', an.reason);
+    analyticsError.value = true;
+  }
+
+  loading.value = false;
 });
 </script>
 
