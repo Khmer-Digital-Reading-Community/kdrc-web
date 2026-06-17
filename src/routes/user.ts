@@ -99,6 +99,11 @@ export default [
         name: "notifications",
         component: () => import("../pages/user/NotificationsPage.vue"),
       },
+      {
+        path: "subscriptions",
+        name: "subscriptions",
+        component: () => import("../pages/user/SubscriptionPlans.vue"),
+      },
     ],
   },
   {

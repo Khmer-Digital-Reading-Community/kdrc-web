@@ -89,6 +89,7 @@ const authenticatedNavLinks = [
   { label: "Exchange", path: "/exchange-v2" },
   // { label: "Trade Center", path: "/dashboard/exchange-dashboard-v2" },
   { label: "Community", path: "/community" },
+  { label: "Subscription", path: "/subscriptions" },
   { label: "About", path: "/about" },
 ];
 
